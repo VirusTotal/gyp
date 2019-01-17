@@ -32,17 +32,11 @@ package grammar
 
 import (
     "fmt"
-    "strings"
 
     "github.com/VirusTotal/go-yara-parser/data"
 )
 
 var ParsedRuleset data.RuleSet
-
-type regexPair struct {
-    text string
-    mods data.StringModifiers
-}
 
 %}
 
@@ -66,13 +60,13 @@ type regexPair struct {
 %token _CONDITION_
 %token <s> _IDENTIFIER_
 %token <s> _STRING_IDENTIFIER_
-%token _STRING_COUNT_
-%token _STRING_OFFSET_
-%token _STRING_LENGTH_
-%token _STRING_IDENTIFIER_WITH_WILDCARD_
+%token <s> _STRING_COUNT_
+%token <s> _STRING_OFFSET_
+%token <s> _STRING_LENGTH_
+%token <s> _STRING_IDENTIFIER_WITH_WILDCARD_
 %token <i64> _NUMBER_
-%token _DOUBLE_
-%token _INTEGER_FUNCTION_
+%token <f64> _DOUBLE_
+%token <s> _INTEGER_FUNCTION_
 %token <s> _TEXT_STRING_
 %token <s> _HEX_STRING_
 %token <reg> _REGEXP_
@@ -112,23 +106,39 @@ type regexPair struct {
 %left '*' '\\' '%'
 %right _NOT_ '~' UNARY_MINUS
 
-%type <s>   import
-%type <yr>  rule
-%type <ss>  tags
-%type <ss>  tag_list
-%type <m>   meta
-%type <mps> meta_declarations
-%type <mp>  meta_declaration
-%type <yss> strings
-%type <yss> string_declarations
-%type <ys>  string_declaration
-%type <mod> string_modifier
-%type <mod> string_modifiers
-%type <rm>  rule_modifier
-%type <rm>  rule_modifiers
+%type <s>    import
+%type <yr>   rule
+%type <ss>   tags
+%type <ss>   tag_list
+%type <m>    meta
+%type <mps>  meta_declarations
+%type <mp>   meta_declaration
+%type <yss>  strings
+%type <yss>  string_declarations
+%type <ys>   string_declaration
+%type <mod>  string_modifier
+%type <mod>  string_modifiers
+%type <rm>   rule_modifier
+%type <rm>   rule_modifiers
+%type <term> condition
+%type <term> boolean_expression
+%type <term> expression
+%type <pex>  primary_expression
+%type <id>   identifier
+%type <terms> arguments_list
+%type <terms> arguments
+%type <reg>  regexp
+%type <fex>  for_expression
+%type <iset> integer_set
+%type <pexs> integer_enumeration
+%type <rng>  range
+%type <strs> string_set
+%type <stri> string_enumeration_item
+%type <stris> string_enumeration
 
 %union {
     i64           int64
+    f64           float64
     s             string
     ss            []string
 
@@ -137,10 +147,21 @@ type regexPair struct {
     mp            data.Meta
     mps           data.Metas
     mod           data.StringModifiers
-    reg           regexPair
+    reg           data.Regexp
     ys            data.String
     yss           data.Strings
     yr            data.Rule
+    term          data.BooleanExpressionTerm
+    terms         []data.BooleanExpressionTerm
+    pex           data.PrimaryExpression
+    pexs          []data.PrimaryExpression
+    id            data.Identifier
+    fex           data.ForExpression
+    iset          data.IntegerSet
+    rng           data.Range
+    strs          data.StringSet
+    stri          data.StringEnumerationItem
+    stris         []data.StringEnumerationItem
 }
 
 
@@ -222,10 +243,7 @@ rule
       }
       condition _RBRACE_
       {
-          c := conditionBuilder.String()
-          c = strings.TrimLeft(c, ":\n\r\t ")
-          c = strings.TrimRight(c, "}\n\r\t ")
-          $<yr>4.Condition = c
+          $<yr>4.Condition = $10
           $$ = $<yr>4
       }
     ;
@@ -261,6 +279,9 @@ strings
 
 condition
     : _CONDITION_ ':' boolean_expression
+      {
+          $$ = $3
+      }
     ;
 
 
@@ -301,7 +322,6 @@ tag_list
           $$ = append($1, $2)
       }
     ;
-
 
 
 meta_declarations
@@ -360,10 +380,10 @@ string_declaration
       }
       _REGEXP_ string_modifiers
       {
-          $<ys>3.Text = $4.text
+          $<ys>3.Text = $4.Text
 
-          $5.I = $4.mods.I
-          $5.S = $4.mods.S
+          $5.I = $4.Modifiers.I
+          $5.S = $4.Modifiers.S
 
           $<ys>3.Modifiers = $5
 
@@ -403,237 +423,313 @@ string_modifier
     ;
 
 
+
 identifier
     : _IDENTIFIER_
       {
-        
+          $$ = []data.IdentifierItem{{ Identifier: $1 }}
       }
     | identifier '.' _IDENTIFIER_
       {
-        
+          $$ =  append($1, data.IdentifierItem{ Identifier: $3 } )
       }
     | identifier '[' primary_expression ']'
       {
-        
+          $$ = append($1, data.IdentifierItem{ PrimaryExpression: $3 } )
       }
 
     | identifier '(' arguments ')'
       {
-        
+          $$ = append($1, data.IdentifierItem{ Arguments: $3 })
       }
     ;
 
 
 arguments
-    : /* empty */     { }
-    | arguments_list  { }
+    : /* empty */     { $$ = []data.BooleanExpressionTerm{} }
+    | arguments_list  { $$ = $1 }
 
 
 arguments_list
     : expression
       {
-        
+          $$ = []data.BooleanExpressionTerm{$1}
       }
     | arguments_list ',' expression
       {
-        
+          $$ = append($1, $3)
       }
     ;
 
 
 regexp
-    : _REGEXP_
-      {
-        
-      }
+    : _REGEXP_ { $$ = $1 }
     ;
 
 
 boolean_expression
-    : expression
-      {
-        
-      }
+    : expression { $$ = $1 }
     ;
 
 expression
     : _TRUE_
       {
-          
+          $$ = data.BooleanExpressionTerm{ BoolValue: true }
       }
     | _FALSE_
       {
-        
+          $$ = data.BooleanExpressionTerm{ BoolValue: false }
       }
     | primary_expression _MATCHES_ regexp
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.MatchesOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | primary_expression _CONTAINS_ primary_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.ContainsOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | _STRING_IDENTIFIER_
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              StringIdentifier: $1,
+          }
       }
     | _STRING_IDENTIFIER_ _AT_ primary_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.AtOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | _STRING_IDENTIFIER_ _IN_ range
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.InOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
-    | _FOR_ for_expression error
+    | _FOR_ for_expression error { }
+    | _FOR_ for_expression _IDENTIFIER_ _IN_ integer_set ':' '(' boolean_expression ')'
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              ForInExpression: &data.ForInExpression {
+                  ForExpression: $2,
+                  Identifier: $3,
+                  IntegerSet: $5,
+                  Expression: $8,
+              },
+          }
       }
-    | _FOR_ for_expression _IDENTIFIER_ _IN_
+    | _FOR_ for_expression _OF_ string_set ':' '(' boolean_expression ')'
       {
-        
-      }
-      integer_set ':'
-      {
-        
-      }
-      '(' boolean_expression ')'
-      {
-        
-      }
-    | _FOR_ for_expression _OF_ string_set ':'
-      {
-        
-      }
-      '(' boolean_expression ')'
-      {
-        
+          $$ = data.BooleanExpressionTerm{
+              ForOfExpression: &data.ForOfExpression {
+                  ForExpression: $2,
+                  StringSet: $4,
+                  Expression: $7,
+              },
+          }
       }
     | for_expression _OF_ string_set
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              ForOfExpression: &data.ForOfExpression {
+                  ForExpression: $1,
+                  StringSet: $3,
+              },
+          }
       }
     | _NOT_ boolean_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              NotExpression: &$2,
+          }
       }
-    | boolean_expression _AND_
+    | boolean_expression _AND_ boolean_expression
       {
-        
+          and := createAndExpression($1, $3)
+          $$ = data.BooleanExpressionTerm{
+              AndExpression: &and,
+          }
       }
-      boolean_expression
+    | boolean_expression _OR_ boolean_expression
       {
-        
-      }
-    | boolean_expression _OR_
-      {
-        
-      }
-      boolean_expression
-      {
-        
+          or := createOrExpression($1, $3)
+          $$ = data.BooleanExpressionTerm{
+              OrExpression: &or,
+          }
       }
     | primary_expression _LT_ primary_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.LtOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | primary_expression _GT_ primary_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.GtOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | primary_expression _LE_ primary_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.LeOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | primary_expression _GE_ primary_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.GeOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | primary_expression _EQ_ primary_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.EqOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | primary_expression _NEQ_ primary_expression
       {
-        
+          $$ = data.BooleanExpressionTerm{
+              BinaryExpression: &data.BinaryExpression{
+                  Operator: data.NeqOperator,
+                  Left: $1,
+                  Right: $3,
+              },
+          }
       }
     | primary_expression
       {
-        
+           $$ =  data.BooleanExpressionTerm { PrimaryExpression: $1 }
       }
     |'(' expression ')'
       {
-        
+          $$ = $2
       }
     ;
 
 
 integer_set
-    : '(' integer_enumeration ')'  { }
-    | range                        { }
+    : '(' integer_enumeration ')'
+      {
+          $$  = data.IntegerSet{ IntegerEnumeration: $2 }
+      }
+    | range
+      {
+          $$ = data.IntegerSet{ Range: &$1 }
+      }
     ;
 
 
 range
     : '(' primary_expression _DOT_DOT_  primary_expression ')'
       {
-        
+          $$ = data.Range{
+              Start: $2,
+              End: $4,
+          }
       }
     ;
 
 
 integer_enumeration
-    : primary_expression
-      {
-        
+    : primary_expression { $$ = []data.PrimaryExpression{$1} }
+    | integer_enumeration ',' primary_expression {
+          $$ = append($1, $3)
       }
-    | integer_enumeration ',' primary_expression
-      {
-        
-      }
-    ;
+   ;
 
 
 string_set
-    : '('
+    : '(' string_enumeration ')'
       {
-        
+          $$ = data.StringSet{ StringEnumeration: $2 }
       }
-      string_enumeration ')'
     | _THEM_
       {
-        
+          $$ = data.StringSet { Keyword: data.ThemKeyword }
       }
     ;
 
 
 string_enumeration
-    : string_enumeration_item
+    : string_enumeration_item { $$ = []data.StringEnumerationItem{$1} }
     | string_enumeration ',' string_enumeration_item
+      {
+          $$ = append($1, $3)
+      }
     ;
 
 
 string_enumeration_item
     : _STRING_IDENTIFIER_
       {
-
+        $$ = data.StringEnumerationItem{
+            StringIdentifier: $1,
+            HasWildcard: false,
+        }
       }
     | _STRING_IDENTIFIER_WITH_WILDCARD_
       {
-        
+        $$ = data.StringEnumerationItem{
+            StringIdentifier: $1,
+            HasWildcard: true,
+        }
       }
     ;
 
 
 for_expression
     : primary_expression
+      {
+          $$ = data.ForExpression{ PrimaryExpression: $1 }
+      }
     | _ALL_
       {
-        
+          $$ = data.ForExpression { Keyword: data.AllKeyword }
       }
     | _ANY_
       {
-        
+          $$ = data.ForExpression { Keyword: data.AnyKeyword }
       }
     ;
 
@@ -641,108 +737,192 @@ for_expression
 primary_expression
     : '(' primary_expression ')'
       {
-        
+          $$ = $2
       }
     | _FILESIZE_
       {
-        
+          $$ = data.FilesizeKeyword
       }
     | _ENTRYPOINT_
       {
-        
+          $$ = data.EntrypointKeyword
       }
     | _INTEGER_FUNCTION_ '(' primary_expression ')'
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.IntegerFunctionOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | _NUMBER_
       {
-        
+          $$ = $1
       }
     | _DOUBLE_
       {
-        
+          $$ = $1
       }
     | _TEXT_STRING_
       {
-        
+          $$ = $1
       }
     | _STRING_COUNT_
       {
-        
+          $$ = data.StringCount{ StringIdentifier: $1 }
       }
     | _STRING_OFFSET_ '[' primary_expression ']'
       {
-        
+          $$ = data.StringOffset{
+              StringIdentifier: $1,
+              Index: $3,
+          }
       }
     | _STRING_OFFSET_
       {
-        
+          $$ = data.StringOffset{
+              StringIdentifier: $1,
+          }
       }
     | _STRING_LENGTH_ '[' primary_expression ']'
       {
-        
+          $$ = data.StringLength{
+              StringIdentifier: $1,
+              Index: $3,
+          }
       }
     | _STRING_LENGTH_
       {
-        
+          $$ = data.StringLength{
+              StringIdentifier: $1,
+          }
       }
     | identifier
       {
-        
+          $$ = $1
       }
     | '-' primary_expression %prec UNARY_MINUS
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.UnaryMinusOperator,
+              Left: $2,
+          }
       }
     | primary_expression '+' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.PlusOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | primary_expression '-' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.MinusOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | primary_expression '*' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.TimesOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | primary_expression '\\' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.DivOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | primary_expression '%' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.ModOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | primary_expression '^' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.XorOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | primary_expression '&' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.BitwiseAndOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | primary_expression '|' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.BitwiseOrOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | '~' primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.BitwiseNotOperator,
+              Left: $2,
+          }
       }
     | primary_expression _SHIFT_LEFT_ primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.ShiftLeftOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | primary_expression _SHIFT_RIGHT_ primary_expression
       {
-        
+          $$ = data.BinaryPrimaryExpression{
+              Operator: data.ShiftRightOperator,
+              Left: $1,
+              Right: $3,
+          }
       }
     | regexp
       {
-        
+          $$ = $1
       }
     ;
 
 %%
+
+func createOrExpression(terms ...data.BooleanExpressionTerm) (or data.OrExpression) {
+    for _, term := range terms {
+        if term.OrExpression == nil {
+           or = append(or, term)
+        } else {
+           or = append(or, *term.OrExpression...)
+        }
+    }
+
+    return
+}
+
+func createAndExpression(terms ...data.BooleanExpressionTerm) (and data.AndExpression) {
+    for _, term := range terms {
+        if term.AndExpression == nil {
+           and = append(and, term)
+        } else {
+           and = append(and, *term.AndExpression...)
+        }
+    }
+
+    return
+}

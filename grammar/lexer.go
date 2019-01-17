@@ -1452,6 +1452,7 @@ case 48:
 
 //line /grammar/lexer.l:192
 {
+  yylval.s = string(yytext)
   return _STRING_COUNT_;
 }
 case 49:
@@ -1468,8 +1469,9 @@ case 49:
   }
 
 
-//line /grammar/lexer.l:197
+//line /grammar/lexer.l:198
 {
+  yylval.s = string(yytext)
   return _STRING_OFFSET_;
 }
 case 50:
@@ -1486,8 +1488,9 @@ case 50:
   }
 
 
-//line /grammar/lexer.l:202
+//line /grammar/lexer.l:204
 {
+  yylval.s = string(yytext)
   return _STRING_LENGTH_;
 }
 case 51:
@@ -1504,8 +1507,9 @@ case 51:
   }
 
 
-//line /grammar/lexer.l:207
+//line /grammar/lexer.l:210
 {
+  yylval.s = string(yytext)
   return _INTEGER_FUNCTION_;
 }
 case 52:
@@ -1522,7 +1526,7 @@ case 52:
   }
 
 
-//line /grammar/lexer.l:212
+//line /grammar/lexer.l:216
 {
   yylval.s = string(yytext)
   return _IDENTIFIER_;
@@ -1541,7 +1545,7 @@ case 53:
   }
 
 
-//line /grammar/lexer.l:218
+//line /grammar/lexer.l:222
 {
   var err error
   s := strings.TrimRight(YYtext, "MKB")
@@ -1583,7 +1587,7 @@ case 54:
   }
 
 
-//line /grammar/lexer.l:246
+//line /grammar/lexer.l:250
 {
   return _DOUBLE_;
 }
@@ -1601,7 +1605,7 @@ case 55:
   }
 
 
-//line /grammar/lexer.l:250
+//line /grammar/lexer.l:254
 {
   var err error
   yylval.i64, err = strconv.ParseInt(YYtext, 0, 64)
@@ -1625,7 +1629,7 @@ case 56:
   }
 
 
-//line /grammar/lexer.l:260
+//line /grammar/lexer.l:264
 {
   var err error
   s := strings.TrimLeft(YYtext, "0o")
@@ -1649,7 +1653,7 @@ case 57:
   }
 
 
-//line /grammar/lexer.l:271
+//line /grammar/lexer.l:275
 {     /* saw closing quote - all done */
 
   // NOTE: textBuilder.String() will end with `"` char
@@ -1674,7 +1678,7 @@ case 58:
   }
 
 
-//line /grammar/lexer.l:283
+//line /grammar/lexer.l:287
 {
 }
 case 59:
@@ -1691,7 +1695,7 @@ case 59:
   }
 
 
-//line /grammar/lexer.l:287
+//line /grammar/lexer.l:291
 {
 }
 case 60:
@@ -1708,7 +1712,7 @@ case 60:
   }
 
 
-//line /grammar/lexer.l:291
+//line /grammar/lexer.l:295
 {
 }
 case 61:
@@ -1725,7 +1729,7 @@ case 61:
   }
 
 
-//line /grammar/lexer.l:295
+//line /grammar/lexer.l:299
 {
 }
 case 62:
@@ -1742,7 +1746,7 @@ case 62:
   }
 
 
-//line /grammar/lexer.l:299
+//line /grammar/lexer.l:303
 {
 }
 case 63:
@@ -1759,7 +1763,7 @@ case 63:
   }
 
 
-//line /grammar/lexer.l:303
+//line /grammar/lexer.l:307
 { }
 case 64:
 /* rule 64 can match eol */
@@ -1776,7 +1780,7 @@ case 64:
   }
 
 
-//line /grammar/lexer.l:306
+//line /grammar/lexer.l:310
 {
   panic(fmt.Errorf("unterminated string"))
 }
@@ -1795,7 +1799,7 @@ case 65:
   }
 
 
-//line /grammar/lexer.l:311
+//line /grammar/lexer.l:315
 {
   panic(fmt.Errorf("illegal escape sequence"))
 }
@@ -1813,7 +1817,7 @@ case 66:
   }
 
 
-//line /grammar/lexer.l:316
+//line /grammar/lexer.l:320
 {
   collectText = false
 
@@ -1838,9 +1842,9 @@ case 66:
       }
   }
 
-  yylval.reg = regexPair {
-      txt,
-      mods,
+  yylval.reg = data.Regexp {
+      Text: txt,
+      Modifiers: mods,
   }
 
   yy.start = 1 + 2*  (yyInitial );
@@ -1860,7 +1864,7 @@ case 67:
   }
 
 
-//line /grammar/lexer.l:350
+//line /grammar/lexer.l:354
 {
 }
 case 68:
@@ -1877,7 +1881,7 @@ case 68:
   }
 
 
-//line /grammar/lexer.l:354
+//line /grammar/lexer.l:358
 {
 }
 case 69:
@@ -1894,7 +1898,7 @@ case 69:
   }
 
 
-//line /grammar/lexer.l:358
+//line /grammar/lexer.l:362
 { }
 case 70:
 /* rule 70 can match eol */
@@ -1911,7 +1915,7 @@ case 70:
   }
 
 
-//line /grammar/lexer.l:361
+//line /grammar/lexer.l:365
 {
   panic(fmt.Errorf("unterminated regular expression"))
 }
@@ -1929,7 +1933,7 @@ case 71:
   }
 
 
-//line /grammar/lexer.l:366
+//line /grammar/lexer.l:370
 {
   collectText = true
   textBuilder.Reset()
@@ -1949,7 +1953,7 @@ case 72:
   }
 
 
-//line /grammar/lexer.l:373
+//line /grammar/lexer.l:377
 {
   collectText = true
   textBuilder.Reset()
@@ -1970,7 +1974,7 @@ case 73:
   }
 
 
-//line /grammar/lexer.l:380
+//line /grammar/lexer.l:384
 {
   // Match hex-digits with whitespace or comments. The latter are stripped
   // out by hex_lexer.l
@@ -1978,7 +1982,7 @@ case 73:
   // NOTE: The above comment may not apply. We plan to not use hex_lexer.l
 
   // No need to collect like str and regexp start conditions
-  yylval.s = strings.Trim(YYtext, "{}")
+  yylval.s = strings.TrimSpace(strings.Trim(YYtext, "{}"))
 
   return _HEX_STRING_;
 }
@@ -1997,7 +2001,7 @@ case 74:
   }
 
 
-//line /grammar/lexer.l:393
+//line /grammar/lexer.l:397
 /* skip whitespace */
 case 75:
 
@@ -2013,7 +2017,7 @@ case 75:
   }
 
 
-//line /grammar/lexer.l:395
+//line /grammar/lexer.l:399
 {
 
   r := int(yytext[0])
@@ -2038,9 +2042,9 @@ case 76:
   }
 
 
-//line /grammar/lexer.l:406
+//line /grammar/lexer.l:410
 yyout.Write(yytext) 
-//line /grammar/lexer.go:2044
+//line /grammar/lexer.go:2048
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -2501,7 +2505,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line /grammar/lexer.l:406
+//line /grammar/lexer.l:410
 
 
 

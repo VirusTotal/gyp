@@ -190,21 +190,25 @@ $({letter}|{digit}|_)*  {
 
 
 #({letter}|{digit}|_)*  {
+  yylval.s = string(yytext)
   return _STRING_COUNT_;
 }
 
 
 @({letter}|{digit}|_)*  {
+  yylval.s = string(yytext)
   return _STRING_OFFSET_;
 }
 
 
 !({letter}|{digit}|_)*  {
+  yylval.s = string(yytext)
   return _STRING_LENGTH_;
 }
 
 
 u?int(8|16|32)(be)? {
+  yylval.s = string(yytext)
   return _INTEGER_FUNCTION_;
 }
 
@@ -337,9 +341,9 @@ u?int(8|16|32)(be)? {
       }
   }
 
-  yylval.reg = regexPair {
-      txt,
-      mods,
+  yylval.reg = data.Regexp {
+      Text: txt,
+      Modifiers: mods,
   }
 
   BEGIN (INITIAL);
@@ -384,7 +388,7 @@ u?int(8|16|32)(be)? {
   // NOTE: The above comment may not apply. We plan to not use hex_lexer.l
 
   // No need to collect like str and regexp start conditions
-  yylval.s = strings.Trim(YYtext, "{}")
+  yylval.s = strings.TrimSpace(strings.Trim(YYtext, "{}"))
 
   return _HEX_STRING_;
 }

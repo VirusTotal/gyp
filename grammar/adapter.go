@@ -31,7 +31,6 @@ func Parse(input io.Reader, output io.Writer) (rs data.RuleSet, err error) {
 
 	result := xxParse(&lexer)
 	if result != 0 {
-
 		err = fmt.Errorf(`Parser result: "%d" %s`, result, errParser)
 	}
 
