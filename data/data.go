@@ -10,12 +10,12 @@ type RuleSet struct {
 
 // A Rule is a single yara rule
 type Rule struct {
-	Modifiers  RuleModifiers `json:"modifiers"`
-	Identifier string        `json:"identifier"`
-	Tags       []string      `json:"tags"`
-	Meta       Metas         `json:"meta"`
-	Strings    Strings       `json:"strings"`
-	Condition  string        `json:"condition"`
+	Modifiers  RuleModifiers          `json:"modifiers"`
+	Identifier string                 `json:"identifier"`
+	Tags       []string               `json:"tags"`
+	Meta       Metas                  `json:"meta"`
+	Strings    Strings                `json:"strings"`
+	Condition  BooleanExpressionTerm  `json:"condition"`
 }
 
 // RuleModifiers denote whether a Rule is global, private, neither, or both.
@@ -65,4 +65,9 @@ type StringModifiers struct {
 	Xor      bool `json:"xor"`
 	I        bool `json:"i"` // for regex
 	S        bool `json:"s"` // for regex
+}
+
+type Regexp struct {
+  Text string
+  Modifiers StringModifiers
 }

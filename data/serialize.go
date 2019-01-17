@@ -82,7 +82,7 @@ func (r *Rule) Serialize() (out string, err error) {
 
 	b.WriteString("condition:\n")
 	b.WriteString("  ") // TODO: Don't assume indent...
-	b.WriteString(r.Condition)
+	b.WriteString(r.Condition.String())
 	b.WriteString("\n}\n\n")
 
 	out = b.String()
