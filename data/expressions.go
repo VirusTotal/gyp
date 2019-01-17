@@ -37,7 +37,7 @@ type AndExpression []BooleanExpressionTerm
 
 // Only one of them
 type BooleanExpressionTerm struct {
-  BoolValue bool                            `json:"bool_value,omitempty"`
+  BoolValue *bool                           `json:"bool_value,omitempty"`
   *BinaryExpression                         `json:"binary_expression,omitempty"`
   StringIdentifier  string                  `json:"string_identifier,omitempty"`
   *ForInExpression                          `json:"for_in_expression,omitempty"`

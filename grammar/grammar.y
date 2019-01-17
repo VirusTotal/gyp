@@ -474,11 +474,13 @@ boolean_expression
 expression
     : _TRUE_
       {
-          $$ = data.BooleanExpressionTerm{ BoolValue: true }
+          value := true
+          $$ = data.BooleanExpressionTerm{ BoolValue: &value }
       }
     | _FALSE_
       {
-          $$ = data.BooleanExpressionTerm{ BoolValue: false }
+          value := false
+          $$ = data.BooleanExpressionTerm{ BoolValue: &value }
       }
     | primary_expression _MATCHES_ regexp
       {
