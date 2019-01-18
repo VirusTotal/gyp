@@ -330,77 +330,77 @@ func (o *BinaryPrimaryExpressionOperand) Serialize() (out string, err error) {
 }
 
 func (s *StringCount) Serialize() (out string, err error) {
-    return s.StringIdentifier, nil
+  return s.StringIdentifier, nil
 }
 
 func (s *StringOffset) Serialize() (string, error) {
-    var b strings.Builder
-    b.WriteString(s.StringIdentifier)
+  var b strings.Builder
+  b.WriteString(s.StringIdentifier)
 
-    if (s.Index != nil) {
-        b.WriteString("[")
-        str, err := s.Index.Serialize()
-        if err != nil {
-          return "", err
-        }
-        b.WriteString(str)
-        b.WriteString("]")
+  if (s.Index != nil) {
+    b.WriteString("[")
+    str, err := s.Index.Serialize()
+    if err != nil {
+      return "", err
     }
+    b.WriteString(str)
+    b.WriteString("]")
+  }
 
-    return b.String(), nil
+  return b.String(), nil
 }
 
 func (s *StringLength) Serialize() (string, error) {
-    var b strings.Builder
-    b.WriteString(s.StringIdentifier)
+  var b strings.Builder
+  b.WriteString(s.StringIdentifier)
 
-    if (s.Index != nil) {
-        b.WriteString("[")
-        str, err := s.Index.Serialize()
-        if err != nil {
-          return "", err
-        }
-        b.WriteString(str)
-        b.WriteString("]")
+  if (s.Index != nil) {
+    b.WriteString("[")
+    str, err := s.Index.Serialize()
+    if err != nil {
+      return "", err
     }
+    b.WriteString(str)
+    b.WriteString("]")
+  }
 
-    return b.String(), nil
+  return b.String(), nil
 }
 
 func (i *Identifier) Serialize() (string, error) {
-    items := []IdentifierItem(*i)
-    var b strings.Builder
-    for i, item := range items {
-        if item.Identifier != "" {
-            if i > 0  {
-                b.WriteString(".")
-            }
-            b.WriteString(item.Identifier)
-        } else if item.PrimaryExpression != nil {
-          b.WriteString("[")
-          str, err := item.PrimaryExpression.Serialize()
-          if err != nil {
-              return "", err
-          }
-          b.WriteString(str)
-          b.WriteString("]")
-        } else if item.Arguments != nil {
-          args := []string{}
-          for _, arg := range item.Arguments {
-              str, err := arg.Serialize()
-              if err != nil {
-                  return "", err
-              }
-              args = append(args, str)
-          }
-
-          b.WriteString("(")
-          b.WriteString(strings.Join(args, ","))
-          b.WriteString(")")
+  items := []IdentifierItem(*i)
+  var b strings.Builder
+  for i, item := range items {
+    if item.Identifier != "" {
+      if i > 0  {
+        b.WriteString(".")
+      }
+      b.WriteString(item.Identifier)
+    } else if item.PrimaryExpression != nil {
+      b.WriteString("[")
+      str, err := item.PrimaryExpression.Serialize()
+      if err != nil {
+        return "", err
+      }
+      b.WriteString(str)
+      b.WriteString("]")
+    } else if item.Arguments != nil {
+      args := []string{}
+      for _, arg := range item.Arguments {
+        str, err := arg.Serialize()
+        if err != nil {
+          return "", err
         }
-    }
+        args = append(args, str)
+      }
 
-    return b.String(), nil
+      b.WriteString("(")
+      b.WriteString(strings.Join(args, ","))
+      b.WriteString(")")
+    }
+  }
+
+  return b.String(), nil
 }
 
 func (r *Range) Serialize() (string, error) {

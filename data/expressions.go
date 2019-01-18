@@ -8,11 +8,12 @@ package data
 // 5. A primary expression.
 // 6. A NOT expression.
 // 7. An OR expression.
+// 8. An AND expression.
 
 // A primary expression (i.e., expressions not containing boolean expressions) can be:
 // 1. A keyword (e.g., filesize) (Keyword).
 // 2. A binary primary expression (BinaryPrimaryExpression).
-// 3. An integer number (int).
+// 3. An integer number (int64).
 // 4. A double number (float64).
 // 5. A text string (string).
 // 6. A string count (StringCount).
@@ -124,12 +125,12 @@ type StringCount struct {
 }
 
 type StringOffset struct {
-  StringIdentifier string            `json:"string_identifier"`
+  StringIdentifier string             `json:"string_identifier"`
   Index            *PrimaryExpression `json:"index,omitempty"`
 }
 
 type StringLength struct {
-  StringIdentifier string            `json:"string_identifier"`
+  StringIdentifier string             `json:"string_identifier"`
   Index            *PrimaryExpression `json:"index,omitempty"`
 }
 
