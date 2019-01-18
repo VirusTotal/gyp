@@ -82,12 +82,360 @@ func (r *Rule) Serialize() (out string, err error) {
 
 	b.WriteString("condition:\n")
 	b.WriteString("  ") // TODO: Don't assume indent...
-	b.WriteString(r.Condition.String())
+  str, err := r.Condition.Serialize()
+  if err != nil {
+    return
+  }
+	b.WriteString(str)
 	b.WriteString("\n}\n\n")
 
 	out = b.String()
 
 	return
+}
+
+// Serialize for BooleanExpressionTerm.
+// Returns the "condition:" section in the YARA rule.
+func (c *BooleanExpressionTerm) Serialize() (out string, err error) {
+  if c == nil {
+    return
+  }
+
+  if (c.BoolValue != nil) {
+    return fmt.Sprint(*c.BoolValue), nil
+  }
+
+  if (c.BinaryExpression != nil) {
+    out, err = c.BinaryExpression.Serialize()
+    return
+  }
+
+  if (c.StringIdentifier != "") {
+    return c.StringIdentifier, nil
+  }
+
+  if (c.PrimaryExpression != nil) {
+    out, err = c.PrimaryExpression.Serialize()
+    return
+  }
+
+  if (c.NotExpression != nil) {
+    out, err = c.NotExpression.Serialize()
+    return
+  }
+
+  if (c.OrExpression != nil) {
+    out, err = c.OrExpression.Serialize()
+    return
+  }
+
+  if (c.AndExpression != nil) {
+    out, err = c.AndExpression.Serialize()
+    return
+  }
+
+  return
+}
+
+func (e *OrExpression) Serialize() (string, error) {
+  strs, err := mapTermsToStrings(*e)
+  if err != nil {
+    return "", err
+  }
+
+  return strings.Join(strs, " or "), nil
+}
+
+func (e *AndExpression) Serialize() (string, error) {
+  strs, err := mapTermsToStrings(*e)
+  if err != nil {
+    return "", err
+  }
+
+  return strings.Join(strs, " and "), nil
+}
+
+func mapTermsToStrings(t []BooleanExpressionTerm) (strs []string, err error) {
+  for _, expr := range t {
+    str, err := expr.Serialize()
+    if err != nil {
+      return []string{}, err
+    }
+    strs = append(strs, str)
+  }
+
+  return
+}
+
+func (e *NotExpression) Serialize() (string, error) {
+  var b strings.Builder
+  b.WriteString("not ")
+
+  str, err := (*BooleanExpressionTerm)(e).Serialize()
+  if err != nil {
+    return "", err
+  }
+  b.WriteString(str)
+
+  return b.String(), nil
+}
+
+func (e *BinaryExpression) Serialize() (out string, err error) {
+  var b strings.Builder
+  var str string
+  if e.Left != nil {
+    str, err = e.Left.Serialize()
+    if err != nil {
+      return
+    }
+    b.WriteString(str)
+  }
+
+  b.WriteString(" ")
+  b.WriteString(string(e.Operator))
+  b.WriteString(" ")
+
+  if e.Right != nil {
+    str, err = e.Right.Serialize()
+    if err != nil {
+      return
+    }
+    b.WriteString(str)
+  }
+
+  return b.String(), nil
+}
+
+func (o *BinaryExpressionOperand) Serialize() (out string, err error) {
+  if o.PrimaryExpression != nil {
+    out, err = o.PrimaryExpression.Serialize()
+    return
+  }
+
+  if o.Regexp != nil {
+    out, err = o.Regexp.Serialize()
+    return
+  }
+
+  if o.StringIdentifier != "" {
+    return o.StringIdentifier, nil
+  }
+
+  if o.Range != nil {
+    out, err = o.Range.Serialize()
+    return
+  }
+
+  return
+}
+
+func (e *PrimaryExpression) Serialize() (out string, err error) {
+    if e == nil {
+      return "", nil
+    }
+    if e.Keyword != "" {
+      return string(e.Keyword), nil
+    }
+
+    if e.BinaryPrimaryExpression != nil {
+      out, err = e.BinaryPrimaryExpression.Serialize()
+      return
+    }
+
+    if e.Number != nil {
+      return fmt.Sprintf("%d", *e.Number), nil
+    }
+
+    if e.Double != nil {
+      return fmt.Sprintf("%f", *e.Double), nil
+    }
+
+    if e.Text != nil {
+      return *e.Text, nil
+    }
+
+    if e.StringCount != nil {
+      out, err = e.StringCount.Serialize()
+      return
+    }
+
+    if e.StringOffset != nil {
+      out, err = e.StringOffset.Serialize()
+      return
+    }
+
+    if e.StringLength != nil {
+      out, err = e.StringLength.Serialize()
+      return
+    }
+
+    if e.Identifier != nil {
+      out, err = e.Identifier.Serialize()
+      return
+    }
+
+    if e.Regexp != nil {
+      out, err = e.Regexp.Serialize()
+      return
+    }
+
+    return
+}
+
+func (e *BinaryPrimaryExpression) Serialize() (out string, err error) {
+    var b strings.Builder
+    var str string
+    if e.Left != nil {
+      str, err = e.Left.Serialize()
+      if err != nil {
+        return
+      }
+      b.WriteString(str)
+    }
+
+    if e.Operator == IntegerFunctionOperator {
+      b.WriteString("(")
+    } else {
+      b.WriteString(" ")
+      b.WriteString(string(e.Operator))
+      b.WriteString(" ")
+    }
+
+    if e.Right != nil {
+      str, err = e.Right.Serialize()
+      if err != nil {
+        return
+      }
+      b.WriteString(str)
+    }
+
+    if e.Operator == IntegerFunctionOperator {
+      b.WriteString(")")
+    }
+
+    return b.String(), nil
+}
+
+func (o *BinaryPrimaryExpressionOperand) Serialize() (out string, err error) {
+  if o.IntegerFunction != nil {
+    return *o.IntegerFunction, nil
+  }
+
+  if o.PrimaryExpression != nil {
+    out, err = o.PrimaryExpression.Serialize()
+    return
+  }
+
+  return
+}
+
+func (s *StringCount) Serialize() (out string, err error) {
+    return s.StringIdentifier, nil
+}
+
+func (s *StringOffset) Serialize() (string, error) {
+    var b strings.Builder
+    b.WriteString(s.StringIdentifier)
+
+    if (s.Index != nil) {
+        b.WriteString("[")
+        str, err := s.Index.Serialize()
+        if err != nil {
+          return "", err
+        }
+        b.WriteString(str)
+        b.WriteString("]")
+    }
+
+    return b.String(), nil
+}
+
+func (s *StringLength) Serialize() (string, error) {
+    var b strings.Builder
+    b.WriteString(s.StringIdentifier)
+
+    if (s.Index != nil) {
+        b.WriteString("[")
+        str, err := s.Index.Serialize()
+        if err != nil {
+          return "", err
+        }
+        b.WriteString(str)
+        b.WriteString("]")
+    }
+
+    return b.String(), nil
+}
+
+func (i *Identifier) Serialize() (string, error) {
+    items := []IdentifierItem(*i)
+    var b strings.Builder
+    for i, item := range items {
+        if item.Identifier != "" {
+            if i > 0  {
+                b.WriteString(".")
+            }
+            b.WriteString(item.Identifier)
+        } else if item.PrimaryExpression != nil {
+          b.WriteString("[")
+          str, err := item.PrimaryExpression.Serialize()
+          if err != nil {
+              return "", err
+          }
+          b.WriteString(str)
+          b.WriteString("]")
+        } else if item.Arguments != nil {
+          args := []string{}
+          for _, arg := range item.Arguments {
+              str, err := arg.Serialize()
+              if err != nil {
+                  return "", err
+              }
+              args = append(args, str)
+          }
+
+          b.WriteString("(")
+          b.WriteString(strings.Join(args, ","))
+          b.WriteString(")")
+        }
+    }
+
+    return b.String(), nil
+}
+
+func (r *Range) Serialize() (string, error) {
+  var b strings.Builder
+  str, err := r.Start.Serialize()
+  if err != nil {
+    return "", err
+  }
+  b.WriteString(str)
+
+  b.WriteString("..")
+
+  str, err = r.End.Serialize()
+  if err != nil {
+    return "", err
+  }
+  b.WriteString(str)
+
+  return b.String(), nil
+}
+
+func (r *Regexp) Serialize() (string, error) {
+  var b strings.Builder
+  b.WriteString("/")
+  b.WriteString(r.Text)
+  b.WriteString("/")
+
+  if (r.Modifiers.I) {
+    b.WriteString("i")
+  }
+  if (r.Modifiers.S) {
+    b.WriteString("s")
+  }
+
+  return b.String(), nil
 }
 
 // Serialize for Metas returns the "meta:" section in the YARA rule

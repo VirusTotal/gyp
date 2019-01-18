@@ -435,7 +435,8 @@ identifier
       }
     | identifier '[' primary_expression ']'
       {
-          $$ = append($1, data.IdentifierItem{ PrimaryExpression: $3 } )
+          expr := data.PrimaryExpression($3)
+          $$ = append($1, data.IdentifierItem{ PrimaryExpression: &expr } )
       }
 
     | identifier '(' arguments ')'
@@ -484,21 +485,25 @@ expression
       }
     | primary_expression _MATCHES_ regexp
       {
+          eLeft := $1
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.MatchesOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ PrimaryExpression: &eLeft },
+                  Right: &data.BinaryExpressionOperand{ Regexp: &eRight },
               },
           }
       }
     | primary_expression _CONTAINS_ primary_expression
       {
+          eLeft := $1
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.ContainsOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ PrimaryExpression: &eLeft },
+                  Right: &data.BinaryExpressionOperand{ PrimaryExpression: &eRight },
               },
           }
       }
@@ -510,21 +515,23 @@ expression
       }
     | _STRING_IDENTIFIER_ _AT_ primary_expression
       {
+          expr := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.AtOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ StringIdentifier: $1 },
+                  Right: &data.BinaryExpressionOperand{ PrimaryExpression: &expr },
               },
           }
       }
     | _STRING_IDENTIFIER_ _IN_ range
       {
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.InOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ StringIdentifier: $1 },
+                  Right: &data.BinaryExpressionOperand{ Range: &eRight },
               },
           }
       }
@@ -542,11 +549,12 @@ expression
       }
     | _FOR_ for_expression _OF_ string_set ':' '(' boolean_expression ')'
       {
+          expr := $7
           $$ = data.BooleanExpressionTerm{
               ForOfExpression: &data.ForOfExpression {
                   ForExpression: $2,
                   StringSet: $4,
-                  Expression: $7,
+                  Expression: &expr,
               },
           }
       }
@@ -561,87 +569,101 @@ expression
       }
     | _NOT_ boolean_expression
       {
+          expr := $2
           $$ = data.BooleanExpressionTerm{
-              NotExpression: &$2,
+              NotExpression: &expr,
           }
       }
     | boolean_expression _AND_ boolean_expression
       {
           and := createAndExpression($1, $3)
           $$ = data.BooleanExpressionTerm{
-              AndExpression: &and,
+              AndExpression: and,
           }
       }
     | boolean_expression _OR_ boolean_expression
       {
           or := createOrExpression($1, $3)
           $$ = data.BooleanExpressionTerm{
-              OrExpression: &or,
+              OrExpression: or,
           }
       }
     | primary_expression _LT_ primary_expression
       {
+          eLeft := $1
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.LtOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ PrimaryExpression: &eLeft },
+                  Right: &data.BinaryExpressionOperand{ PrimaryExpression: &eRight },
               },
           }
       }
     | primary_expression _GT_ primary_expression
       {
+          eLeft := $1
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.GtOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ PrimaryExpression: &eLeft },
+                  Right: &data.BinaryExpressionOperand{ PrimaryExpression: &eRight },
               },
           }
       }
     | primary_expression _LE_ primary_expression
       {
+          eLeft := $1
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.LeOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ PrimaryExpression: &eLeft },
+                  Right: &data.BinaryExpressionOperand{ PrimaryExpression: &eRight },
               },
           }
       }
     | primary_expression _GE_ primary_expression
       {
+          eLeft := $1
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.GeOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ PrimaryExpression: &eLeft },
+                  Right: &data.BinaryExpressionOperand{ PrimaryExpression: &eRight },
               },
           }
       }
     | primary_expression _EQ_ primary_expression
       {
+          eLeft := $1
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.EqOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ PrimaryExpression: &eLeft },
+                  Right: &data.BinaryExpressionOperand{ PrimaryExpression: &eRight },
               },
           }
       }
     | primary_expression _NEQ_ primary_expression
       {
+          eLeft := $1
+          eRight := $3
           $$ = data.BooleanExpressionTerm{
               BinaryExpression: &data.BinaryExpression{
                   Operator: data.NeqOperator,
-                  Left: $1,
-                  Right: $3,
+                  Left: &data.BinaryExpressionOperand{ PrimaryExpression: &eLeft },
+                  Right: &data.BinaryExpressionOperand{ PrimaryExpression: &eRight },
               },
           }
       }
     | primary_expression
       {
-           $$ =  data.BooleanExpressionTerm { PrimaryExpression: $1 }
+          expr := $1
+           $$ =  data.BooleanExpressionTerm { PrimaryExpression: &expr }
       }
     |'(' expression ')'
       {
@@ -657,7 +679,8 @@ integer_set
       }
     | range
       {
-          $$ = data.IntegerSet{ Range: &$1 }
+          r := $1
+          $$ = data.IntegerSet{ Range: &r }
       }
     ;
 
@@ -743,163 +766,279 @@ primary_expression
       }
     | _FILESIZE_
       {
-          $$ = data.FilesizeKeyword
+          $$ = data.PrimaryExpression{ Keyword: data.FilesizeKeyword }
       }
     | _ENTRYPOINT_
       {
-          $$ = data.EntrypointKeyword
+          $$ = data.PrimaryExpression{ Keyword: data.EntrypointKeyword }
       }
     | _INTEGER_FUNCTION_ '(' primary_expression ')'
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.IntegerFunctionOperator,
-              Left: $1,
-              Right: $3,
+          intFunction := $1
+          expr := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.IntegerFunctionOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      IntegerFunction: &intFunction,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &expr,
+                  },
+              },
           }
       }
     | _NUMBER_
       {
-          $$ = $1
+          val := $1
+          $$ = data.PrimaryExpression{ Number: &val }
       }
     | _DOUBLE_
       {
-          $$ = $1
+          val := $1
+          $$ = data.PrimaryExpression{ Double: &val }
       }
     | _TEXT_STRING_
       {
-          $$ = $1
+          val := $1
+          $$ = data.PrimaryExpression{ Text: &val }
       }
     | _STRING_COUNT_
       {
-          $$ = data.StringCount{ StringIdentifier: $1 }
+          $$ = data.PrimaryExpression{
+              StringCount: &data.StringCount{
+                  StringIdentifier: $1,
+              },
+          }
       }
     | _STRING_OFFSET_ '[' primary_expression ']'
       {
-          $$ = data.StringOffset{
-              StringIdentifier: $1,
-              Index: $3,
+          expr := $3
+          $$ = data.PrimaryExpression{
+              StringOffset: &data.StringOffset{
+                  StringIdentifier: $1,
+                  Index: &expr,
+              },
           }
       }
     | _STRING_OFFSET_
       {
-          $$ = data.StringOffset{
-              StringIdentifier: $1,
+          $$ = data.PrimaryExpression{
+              StringOffset: &data.StringOffset{
+                  StringIdentifier: $1,
+              },
           }
       }
     | _STRING_LENGTH_ '[' primary_expression ']'
       {
-          $$ = data.StringLength{
-              StringIdentifier: $1,
-              Index: $3,
+          expr := $3
+          $$ = data.PrimaryExpression{
+              StringLength: &data.StringLength{
+                  StringIdentifier: $1,
+                  Index: &expr,
+              },
           }
       }
     | _STRING_LENGTH_
       {
-          $$ = data.StringLength{
-              StringIdentifier: $1,
+          $$ = data.PrimaryExpression{
+              StringLength: &data.StringLength{
+                  StringIdentifier: $1,
+              },
           }
       }
     | identifier
       {
-          $$ = $1
+          $$ = data.PrimaryExpression{ Identifier: &$1 }
       }
     | '-' primary_expression %prec UNARY_MINUS
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.UnaryMinusOperator,
-              Left: $2,
+          expr := $2
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.UnaryMinusOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &expr,
+                  },
+              },
           }
       }
     | primary_expression '+' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.PlusOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.PlusOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression '-' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.MinusOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.MinusOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression '*' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.TimesOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.TimesOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression '\\' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.DivOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.DivOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression '%' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.ModOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.ModOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression '^' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.XorOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.XorOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression '&' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.BitwiseAndOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.BitwiseAndOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression '|' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.BitwiseOrOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.BitwiseOrOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | '~' primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.BitwiseNotOperator,
-              Left: $2,
+          eRight := $2
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.BitwiseNotOperator,
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression _SHIFT_LEFT_ primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.ShiftLeftOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.ShiftLeftOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | primary_expression _SHIFT_RIGHT_ primary_expression
       {
-          $$ = data.BinaryPrimaryExpression{
-              Operator: data.ShiftRightOperator,
-              Left: $1,
-              Right: $3,
+          eLeft := $1
+          eRight := $3
+          $$ = data.PrimaryExpression{
+              BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+                  Operator: data.ShiftRightOperator,
+                  Left: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eLeft,
+                  },
+                  Right: &data.BinaryPrimaryExpressionOperand{
+                      PrimaryExpression: &eRight,
+                  },
+              },
           }
       }
     | regexp
       {
-          $$ = $1
+          expr := $1
+          $$ = data.PrimaryExpression{ Regexp: &expr }
       }
     ;
 
@@ -910,7 +1049,7 @@ func createOrExpression(terms ...data.BooleanExpressionTerm) (or data.OrExpressi
         if term.OrExpression == nil {
            or = append(or, term)
         } else {
-           or = append(or, *term.OrExpression...)
+           or = append(or, term.OrExpression...)
         }
     }
 
@@ -922,7 +1061,7 @@ func createAndExpression(terms ...data.BooleanExpressionTerm) (and data.AndExpre
         if term.AndExpression == nil {
            and = append(and, term)
         } else {
-           and = append(and, *term.AndExpression...)
+           and = append(and, term.AndExpression...)
         }
     }
 

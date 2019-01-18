@@ -181,14 +181,14 @@ const xxEofCode = 1
 const xxErrCode = 2
 const xxInitialStackSize = 16
 
-//line /grammar/grammar.y:904
+//line /grammar/grammar.y:1045
 
 func createOrExpression(terms ...data.BooleanExpressionTerm) (or data.OrExpression) {
 	for _, term := range terms {
 		if term.OrExpression == nil {
 			or = append(or, term)
 		} else {
-			or = append(or, *term.OrExpression...)
+			or = append(or, term.OrExpression...)
 		}
 	}
 
@@ -200,7 +200,7 @@ func createAndExpression(terms ...data.BooleanExpressionTerm) (and data.AndExpre
 		if term.AndExpression == nil {
 			and = append(and, term)
 		} else {
-			and = append(and, *term.AndExpression...)
+			and = append(and, term.AndExpression...)
 		}
 	}
 
@@ -1089,89 +1089,96 @@ xxdefault:
 		xxDollar = xxS[xxpt-4 : xxpt+1]
 //line /grammar/grammar.y:437
 		{
-			xxVAL.id = append(xxDollar[1].id, data.IdentifierItem{PrimaryExpression: xxDollar[3].pex})
+			expr := data.PrimaryExpression(xxDollar[3].pex)
+			xxVAL.id = append(xxDollar[1].id, data.IdentifierItem{PrimaryExpression: &expr})
 		}
 	case 47:
 		xxDollar = xxS[xxpt-4 : xxpt+1]
-//line /grammar/grammar.y:442
+//line /grammar/grammar.y:443
 		{
 			xxVAL.id = append(xxDollar[1].id, data.IdentifierItem{Arguments: xxDollar[3].terms})
 		}
 	case 48:
 		xxDollar = xxS[xxpt-0 : xxpt+1]
-//line /grammar/grammar.y:449
+//line /grammar/grammar.y:450
 		{
 			xxVAL.terms = []data.BooleanExpressionTerm{}
 		}
 	case 49:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:450
+//line /grammar/grammar.y:451
 		{
 			xxVAL.terms = xxDollar[1].terms
 		}
 	case 50:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:455
+//line /grammar/grammar.y:456
 		{
 			xxVAL.terms = []data.BooleanExpressionTerm{xxDollar[1].term}
 		}
 	case 51:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:459
+//line /grammar/grammar.y:460
 		{
 			xxVAL.terms = append(xxDollar[1].terms, xxDollar[3].term)
 		}
 	case 52:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:466
+//line /grammar/grammar.y:467
 		{
 			xxVAL.reg = xxDollar[1].reg
 		}
 	case 53:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:471
+//line /grammar/grammar.y:472
 		{
 			xxVAL.term = xxDollar[1].term
 		}
 	case 54:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:476
+//line /grammar/grammar.y:477
 		{
-			xxVAL.term = data.BooleanExpressionTerm{BoolValue: true}
+			value := true
+			xxVAL.term = data.BooleanExpressionTerm{BoolValue: &value}
 		}
 	case 55:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:480
+//line /grammar/grammar.y:482
 		{
-			xxVAL.term = data.BooleanExpressionTerm{BoolValue: false}
+			value := false
+			xxVAL.term = data.BooleanExpressionTerm{BoolValue: &value}
 		}
 	case 56:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:484
+//line /grammar/grammar.y:487
 		{
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].reg
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.MatchesOperator,
-					Left:     xxDollar[1].pex,
-					Right:    xxDollar[3].reg,
+					Left:     &data.BinaryExpressionOperand{PrimaryExpression: &eLeft},
+					Right:    &data.BinaryExpressionOperand{Regexp: &eRight},
 				},
 			}
 		}
 	case 57:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:494
+//line /grammar/grammar.y:499
 		{
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.ContainsOperator,
-					Left:     xxDollar[1].pex,
-					Right:    xxDollar[3].pex,
+					Left:     &data.BinaryExpressionOperand{PrimaryExpression: &eLeft},
+					Right:    &data.BinaryExpressionOperand{PrimaryExpression: &eRight},
 				},
 			}
 		}
 	case 58:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:504
+//line /grammar/grammar.y:511
 		{
 			xxVAL.term = data.BooleanExpressionTerm{
 				StringIdentifier: xxDollar[1].s,
@@ -1179,36 +1186,38 @@ xxdefault:
 		}
 	case 59:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:510
+//line /grammar/grammar.y:517
 		{
+			expr := xxDollar[3].pex
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.AtOperator,
-					Left:     xxDollar[1].s,
-					Right:    xxDollar[3].pex,
+					Left:     &data.BinaryExpressionOperand{StringIdentifier: xxDollar[1].s},
+					Right:    &data.BinaryExpressionOperand{PrimaryExpression: &expr},
 				},
 			}
 		}
 	case 60:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:520
+//line /grammar/grammar.y:528
 		{
+			eRight := xxDollar[3].rng
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.InOperator,
-					Left:     xxDollar[1].s,
-					Right:    xxDollar[3].rng,
+					Left:     &data.BinaryExpressionOperand{StringIdentifier: xxDollar[1].s},
+					Right:    &data.BinaryExpressionOperand{Range: &eRight},
 				},
 			}
 		}
 	case 61:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:529
+//line /grammar/grammar.y:538
 		{
 		}
 	case 62:
 		xxDollar = xxS[xxpt-9 : xxpt+1]
-//line /grammar/grammar.y:531
+//line /grammar/grammar.y:540
 		{
 			xxVAL.term = data.BooleanExpressionTerm{
 				ForInExpression: &data.ForInExpression{
@@ -1221,19 +1230,20 @@ xxdefault:
 		}
 	case 63:
 		xxDollar = xxS[xxpt-8 : xxpt+1]
-//line /grammar/grammar.y:542
+//line /grammar/grammar.y:551
 		{
+			expr := xxDollar[7].term
 			xxVAL.term = data.BooleanExpressionTerm{
 				ForOfExpression: &data.ForOfExpression{
 					ForExpression: xxDollar[2].fex,
 					StringSet:     xxDollar[4].strs,
-					Expression:    xxDollar[7].term,
+					Expression:    &expr,
 				},
 			}
 		}
 	case 64:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:552
+//line /grammar/grammar.y:562
 		{
 			xxVAL.term = data.BooleanExpressionTerm{
 				ForOfExpression: &data.ForOfExpression{
@@ -1244,129 +1254,144 @@ xxdefault:
 		}
 	case 65:
 		xxDollar = xxS[xxpt-2 : xxpt+1]
-//line /grammar/grammar.y:561
+//line /grammar/grammar.y:571
 		{
+			expr := xxDollar[2].term
 			xxVAL.term = data.BooleanExpressionTerm{
-				NotExpression: &xxDollar[2].term,
+				NotExpression: &expr,
 			}
 		}
 	case 66:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:567
+//line /grammar/grammar.y:578
 		{
 			and := createAndExpression(xxDollar[1].term, xxDollar[3].term)
 			xxVAL.term = data.BooleanExpressionTerm{
-				AndExpression: &and,
+				AndExpression: and,
 			}
 		}
 	case 67:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:574
+//line /grammar/grammar.y:585
 		{
 			or := createOrExpression(xxDollar[1].term, xxDollar[3].term)
 			xxVAL.term = data.BooleanExpressionTerm{
-				OrExpression: &or,
+				OrExpression: or,
 			}
 		}
 	case 68:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:581
+//line /grammar/grammar.y:592
 		{
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.LtOperator,
-					Left:     xxDollar[1].pex,
-					Right:    xxDollar[3].pex,
+					Left:     &data.BinaryExpressionOperand{PrimaryExpression: &eLeft},
+					Right:    &data.BinaryExpressionOperand{PrimaryExpression: &eRight},
 				},
 			}
 		}
 	case 69:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:591
+//line /grammar/grammar.y:604
 		{
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.GtOperator,
-					Left:     xxDollar[1].pex,
-					Right:    xxDollar[3].pex,
+					Left:     &data.BinaryExpressionOperand{PrimaryExpression: &eLeft},
+					Right:    &data.BinaryExpressionOperand{PrimaryExpression: &eRight},
 				},
 			}
 		}
 	case 70:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:601
+//line /grammar/grammar.y:616
 		{
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.LeOperator,
-					Left:     xxDollar[1].pex,
-					Right:    xxDollar[3].pex,
+					Left:     &data.BinaryExpressionOperand{PrimaryExpression: &eLeft},
+					Right:    &data.BinaryExpressionOperand{PrimaryExpression: &eRight},
 				},
 			}
 		}
 	case 71:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:611
+//line /grammar/grammar.y:628
 		{
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.GeOperator,
-					Left:     xxDollar[1].pex,
-					Right:    xxDollar[3].pex,
+					Left:     &data.BinaryExpressionOperand{PrimaryExpression: &eLeft},
+					Right:    &data.BinaryExpressionOperand{PrimaryExpression: &eRight},
 				},
 			}
 		}
 	case 72:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:621
+//line /grammar/grammar.y:640
 		{
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.EqOperator,
-					Left:     xxDollar[1].pex,
-					Right:    xxDollar[3].pex,
+					Left:     &data.BinaryExpressionOperand{PrimaryExpression: &eLeft},
+					Right:    &data.BinaryExpressionOperand{PrimaryExpression: &eRight},
 				},
 			}
 		}
 	case 73:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:631
+//line /grammar/grammar.y:652
 		{
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
 			xxVAL.term = data.BooleanExpressionTerm{
 				BinaryExpression: &data.BinaryExpression{
 					Operator: data.NeqOperator,
-					Left:     xxDollar[1].pex,
-					Right:    xxDollar[3].pex,
+					Left:     &data.BinaryExpressionOperand{PrimaryExpression: &eLeft},
+					Right:    &data.BinaryExpressionOperand{PrimaryExpression: &eRight},
 				},
 			}
 		}
 	case 74:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:641
+//line /grammar/grammar.y:664
 		{
-			xxVAL.term = data.BooleanExpressionTerm{PrimaryExpression: xxDollar[1].pex}
+			expr := xxDollar[1].pex
+			xxVAL.term = data.BooleanExpressionTerm{PrimaryExpression: &expr}
 		}
 	case 75:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:645
+//line /grammar/grammar.y:669
 		{
 			xxVAL.term = xxDollar[2].term
 		}
 	case 76:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:653
+//line /grammar/grammar.y:677
 		{
 			xxVAL.iset = data.IntegerSet{IntegerEnumeration: xxDollar[2].pexs}
 		}
 	case 77:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:657
+//line /grammar/grammar.y:681
 		{
-			xxVAL.iset = data.IntegerSet{Range: &xxDollar[1].rng}
+			r := xxDollar[1].rng
+			xxVAL.iset = data.IntegerSet{Range: &r}
 		}
 	case 78:
 		xxDollar = xxS[xxpt-5 : xxpt+1]
-//line /grammar/grammar.y:665
+//line /grammar/grammar.y:690
 		{
 			xxVAL.rng = data.Range{
 				Start: xxDollar[2].pex,
@@ -1375,43 +1400,43 @@ xxdefault:
 		}
 	case 79:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:675
+//line /grammar/grammar.y:700
 		{
 			xxVAL.pexs = []data.PrimaryExpression{xxDollar[1].pex}
 		}
 	case 80:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:676
+//line /grammar/grammar.y:701
 		{
 			xxVAL.pexs = append(xxDollar[1].pexs, xxDollar[3].pex)
 		}
 	case 81:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:684
+//line /grammar/grammar.y:709
 		{
 			xxVAL.strs = data.StringSet{StringEnumeration: xxDollar[2].stris}
 		}
 	case 82:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:688
+//line /grammar/grammar.y:713
 		{
 			xxVAL.strs = data.StringSet{Keyword: data.ThemKeyword}
 		}
 	case 83:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:695
+//line /grammar/grammar.y:720
 		{
 			xxVAL.stris = []data.StringEnumerationItem{xxDollar[1].stri}
 		}
 	case 84:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:697
+//line /grammar/grammar.y:722
 		{
 			xxVAL.stris = append(xxDollar[1].stris, xxDollar[3].stri)
 		}
 	case 85:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:705
+//line /grammar/grammar.y:730
 		{
 			xxVAL.stri = data.StringEnumerationItem{
 				StringIdentifier: xxDollar[1].s,
@@ -1420,7 +1445,7 @@ xxdefault:
 		}
 	case 86:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:712
+//line /grammar/grammar.y:737
 		{
 			xxVAL.stri = data.StringEnumerationItem{
 				StringIdentifier: xxDollar[1].s,
@@ -1429,237 +1454,353 @@ xxdefault:
 		}
 	case 87:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:723
+//line /grammar/grammar.y:748
 		{
 			xxVAL.fex = data.ForExpression{PrimaryExpression: xxDollar[1].pex}
 		}
 	case 88:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:727
+//line /grammar/grammar.y:752
 		{
 			xxVAL.fex = data.ForExpression{Keyword: data.AllKeyword}
 		}
 	case 89:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:731
+//line /grammar/grammar.y:756
 		{
 			xxVAL.fex = data.ForExpression{Keyword: data.AnyKeyword}
 		}
 	case 90:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:739
+//line /grammar/grammar.y:764
 		{
 			xxVAL.pex = xxDollar[2].pex
 		}
 	case 91:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:743
+//line /grammar/grammar.y:768
 		{
-			xxVAL.pex = data.FilesizeKeyword
+			xxVAL.pex = data.PrimaryExpression{Keyword: data.FilesizeKeyword}
 		}
 	case 92:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:747
+//line /grammar/grammar.y:772
 		{
-			xxVAL.pex = data.EntrypointKeyword
+			xxVAL.pex = data.PrimaryExpression{Keyword: data.EntrypointKeyword}
 		}
 	case 93:
 		xxDollar = xxS[xxpt-4 : xxpt+1]
-//line /grammar/grammar.y:751
+//line /grammar/grammar.y:776
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.IntegerFunctionOperator,
-				Left:     xxDollar[1].s,
-				Right:    xxDollar[3].pex,
+			intFunction := xxDollar[1].s
+			expr := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.IntegerFunctionOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						IntegerFunction: &intFunction,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &expr,
+					},
+				},
 			}
 		}
 	case 94:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:759
+//line /grammar/grammar.y:792
 		{
-			xxVAL.pex = xxDollar[1].i64
+			val := xxDollar[1].i64
+			xxVAL.pex = data.PrimaryExpression{Number: &val}
 		}
 	case 95:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:763
+//line /grammar/grammar.y:797
 		{
-			xxVAL.pex = xxDollar[1].f64
+			val := xxDollar[1].f64
+			xxVAL.pex = data.PrimaryExpression{Double: &val}
 		}
 	case 96:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:767
+//line /grammar/grammar.y:802
 		{
-			xxVAL.pex = xxDollar[1].s
+			val := xxDollar[1].s
+			xxVAL.pex = data.PrimaryExpression{Text: &val}
 		}
 	case 97:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:771
+//line /grammar/grammar.y:807
 		{
-			xxVAL.pex = data.StringCount{StringIdentifier: xxDollar[1].s}
+			xxVAL.pex = data.PrimaryExpression{
+				StringCount: &data.StringCount{
+					StringIdentifier: xxDollar[1].s,
+				},
+			}
 		}
 	case 98:
 		xxDollar = xxS[xxpt-4 : xxpt+1]
-//line /grammar/grammar.y:775
+//line /grammar/grammar.y:815
 		{
-			xxVAL.pex = data.StringOffset{
-				StringIdentifier: xxDollar[1].s,
-				Index:            xxDollar[3].pex,
+			expr := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				StringOffset: &data.StringOffset{
+					StringIdentifier: xxDollar[1].s,
+					Index:            &expr,
+				},
 			}
 		}
 	case 99:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:782
+//line /grammar/grammar.y:825
 		{
-			xxVAL.pex = data.StringOffset{
-				StringIdentifier: xxDollar[1].s,
+			xxVAL.pex = data.PrimaryExpression{
+				StringOffset: &data.StringOffset{
+					StringIdentifier: xxDollar[1].s,
+				},
 			}
 		}
 	case 100:
 		xxDollar = xxS[xxpt-4 : xxpt+1]
-//line /grammar/grammar.y:788
+//line /grammar/grammar.y:833
 		{
-			xxVAL.pex = data.StringLength{
-				StringIdentifier: xxDollar[1].s,
-				Index:            xxDollar[3].pex,
+			expr := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				StringLength: &data.StringLength{
+					StringIdentifier: xxDollar[1].s,
+					Index:            &expr,
+				},
 			}
 		}
 	case 101:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:795
+//line /grammar/grammar.y:843
 		{
-			xxVAL.pex = data.StringLength{
-				StringIdentifier: xxDollar[1].s,
+			xxVAL.pex = data.PrimaryExpression{
+				StringLength: &data.StringLength{
+					StringIdentifier: xxDollar[1].s,
+				},
 			}
 		}
 	case 102:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:801
+//line /grammar/grammar.y:851
 		{
-			xxVAL.pex = xxDollar[1].id
+			xxVAL.pex = data.PrimaryExpression{Identifier: &xxDollar[1].id}
 		}
 	case 103:
 		xxDollar = xxS[xxpt-2 : xxpt+1]
-//line /grammar/grammar.y:805
+//line /grammar/grammar.y:855
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.UnaryMinusOperator,
-				Left:     xxDollar[2].pex,
+			expr := xxDollar[2].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.UnaryMinusOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &expr,
+					},
+				},
 			}
 		}
 	case 104:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:812
+//line /grammar/grammar.y:867
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.PlusOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.PlusOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 105:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:820
+//line /grammar/grammar.y:883
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.MinusOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.MinusOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 106:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:828
+//line /grammar/grammar.y:899
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.TimesOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.TimesOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 107:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:836
+//line /grammar/grammar.y:915
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.DivOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.DivOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 108:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:844
+//line /grammar/grammar.y:931
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.ModOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.ModOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 109:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:852
+//line /grammar/grammar.y:947
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.XorOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.XorOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 110:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:860
+//line /grammar/grammar.y:963
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.BitwiseAndOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.BitwiseAndOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 111:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:868
+//line /grammar/grammar.y:979
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.BitwiseOrOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.BitwiseOrOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 112:
 		xxDollar = xxS[xxpt-2 : xxpt+1]
-//line /grammar/grammar.y:876
+//line /grammar/grammar.y:995
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.BitwiseNotOperator,
-				Left:     xxDollar[2].pex,
+			eRight := xxDollar[2].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.BitwiseNotOperator,
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 113:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:883
+//line /grammar/grammar.y:1007
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.ShiftLeftOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.ShiftLeftOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 114:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line /grammar/grammar.y:891
+//line /grammar/grammar.y:1023
 		{
-			xxVAL.pex = data.BinaryPrimaryExpression{
-				Operator: data.ShiftRightOperator,
-				Left:     xxDollar[1].pex,
-				Right:    xxDollar[3].pex,
+			eLeft := xxDollar[1].pex
+			eRight := xxDollar[3].pex
+			xxVAL.pex = data.PrimaryExpression{
+				BinaryPrimaryExpression: &data.BinaryPrimaryExpression{
+					Operator: data.ShiftRightOperator,
+					Left: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eLeft,
+					},
+					Right: &data.BinaryPrimaryExpressionOperand{
+						PrimaryExpression: &eRight,
+					},
+				},
 			}
 		}
 	case 115:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line /grammar/grammar.y:899
+//line /grammar/grammar.y:1039
 		{
-			xxVAL.pex = xxDollar[1].reg
+			expr := xxDollar[1].reg
+			xxVAL.pex = data.PrimaryExpression{Regexp: &expr}
 		}
 	}
 	goto xxstack /* stack new state and value */

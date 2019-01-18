@@ -1,9 +1,5 @@
 package data
 
-import (
-  "fmt"
-)
-
 // A condition is a term which can be:.
 // 1. A bool value (either true or false)
 // 2. A binary expression, with primary expressions as operands (BinaryExpression).
@@ -25,32 +21,21 @@ import (
 // 9. An identifier (Identifier).
 // 10. A regular expression (Regex).
 
-func (e OrExpression) String() string {
-  return "boolean expression"
-}
-
-type PrimaryExpression interface{}
-
-type OrExpression []BooleanExpressionTerm
-
-type AndExpression []BooleanExpressionTerm
-
 // Only one of them
 type BooleanExpressionTerm struct {
   BoolValue *bool                           `json:"bool_value,omitempty"`
   *BinaryExpression                         `json:"binary_expression,omitempty"`
-  StringIdentifier  string                  `json:"string_identifier,omitempty"`
+  StringIdentifier   string                 `json:"string_identifier,omitempty"`
   *ForInExpression                          `json:"for_in_expression,omitempty"`
   *ForOfExpression                          `json:"for_of_expression,omitempty"`
-  PrimaryExpression                         `json:"primary_expression,omitempty"`
-  NotExpression     *BooleanExpressionTerm  `json:"not_expression,omitempty"`
-  *OrExpression                             `json:"or_expression,omitempty"` 
-  *AndExpression                            `json:"and_expression,omitempty"`
+  *PrimaryExpression                        `json:"primary_expression,omitempty"`
+  NotExpression      *BooleanExpressionTerm `json:"not_expression,omitempty"`
+  OrExpression                              `json:"or_expression,omitempty"`
+  AndExpression                             `json:"and_expression,omitempty"`
 }
 
-func (e BooleanExpressionTerm) String() string {
-  return fmt.Sprintf("%s", e)
-}
+type OrExpression []BooleanExpressionTerm
+type AndExpression []BooleanExpressionTerm
 
 type BinaryOperator string
 const (
@@ -58,20 +43,27 @@ const (
   ContainsOperator = "contains"
   AtOperator = "at"
   InOperator = "in"
-  LtOperator = "lt"
-  GtOperator = "gt"
-  LeOperator = "le"
-  GeOperator = "ge"
-  EqOperator = "eq"
-  NeqOperator = "neq"
+  LtOperator = "<"
+  GtOperator = ">"
+  LeOperator = "<="
+  GeOperator = ">="
+  EqOperator = "=="
+  NeqOperator = "!="
 )
 
 // Models boolean expressions which are non-recursive, i.e., Left and Right cannot
 // be boolean expressions. 
 type BinaryExpression struct {
-  Operator BinaryOperator `json:"operator"`
-  Left interface{}        `json:"left"`
-  Right interface{}       `json:"right"`
+  Operator  BinaryOperator            `json:"operator"`
+  Left      *BinaryExpressionOperand  `json:"left"`
+  Right     *BinaryExpressionOperand  `json:"right,omitempty"`
+}
+
+type BinaryExpressionOperand struct {
+  *PrimaryExpression          `json:"primary_expression,omitempty"`
+  *Regexp                     `json:"regexp,omitempty"`
+  StringIdentifier    string  `json:"string_identifier,omitempty"`
+  *Range                      `json:"range,omitempty"`
 }
 
 type NotExpression BooleanExpressionTerm
@@ -103,40 +95,58 @@ const (
   ShiftRightOperator = ">>"
 )
   
+type PrimaryExpression struct {
+  Keyword                   `json:"keyword,omitempty"`
+  *BinaryPrimaryExpression  `json:"binary_primary_expression,omitempty"`
+  Number          *int64    `json:"number,omitempty"`
+  Double          *float64  `json:"double,omitempty"`
+  Text            *string   `json:"text,omitempty"`
+  *StringCount              `json:"string_count,omitempty"`
+  *StringOffset             `json:"string_offset,omitempty"`
+  *StringLength             `json:"string_length,omitempty"`
+  *Identifier               `json:"identifier,omitempty"`
+  *Regexp                   `json:"regexp,omitempty"`
+}
+
 type BinaryPrimaryExpression struct {
-  Operator PrimaryBinaryOperator  `json:"operator"`
-  Left interface{}                `json:"left"`
-  Right interface{}               `json:"right,omitempty"`
+  Operator PrimaryBinaryOperator            `json:"operator"`
+  Left     *BinaryPrimaryExpressionOperand  `json:"left,omitempty"`
+  Right    *BinaryPrimaryExpressionOperand  `json:"right,omitempty"`
+}
+
+type BinaryPrimaryExpressionOperand struct {
+  IntegerFunction *string `json:"integer_function,omitempty"`
+  *PrimaryExpression      `json:"primary_expression,omitempty"`
 }
 
 type StringCount struct {
-  StringIdentifier string         `json:"string_identifier"`
+  StringIdentifier string `json:"string_identifier"`
 }
 
 type StringOffset struct {
-  StringIdentifier string             `json:"string_identifier"`
-  Index            PrimaryExpression  `json:"index"`
+  StringIdentifier string            `json:"string_identifier"`
+  Index            *PrimaryExpression `json:"index,omitempty"`
 }
 
 type StringLength struct {
-  StringIdentifier string             `json:"string_identifier"`
-  Index            PrimaryExpression  `json:"index"`
+  StringIdentifier string            `json:"string_identifier"`
+  Index            *PrimaryExpression `json:"index,omitempty"`
 }
 
 // Either Identifier, Expression or Arguments
 type IdentifierItem struct {
   Identifier        string                    `json:"identifier,omitempty"`
-  PrimaryExpression                           `json:"primary_expression,omitempty"`
+  *PrimaryExpression                          `json:"primary_expression,omitempty"`
   Arguments         []BooleanExpressionTerm   `json:"arguments,omitempty"`
 }
 
 type Identifier []IdentifierItem
 
 type ForInExpression struct {
-  ForExpression           `json:"for_expression"`
-  Identifier  string      `json:"identifier"`
-  IntegerSet              `json:"integer_set"`
-  Expression  interface{} `json:"expression"` // BooleanExpressionTerm
+  ForExpression                     `json:"for_expression"`
+  Identifier  string                `json:"identifier"`
+  IntegerSet                        `json:"integer_set"`
+  Expression BooleanExpressionTerm  `json:"expression"`
 }
 
 // Either IntegerEnumeration or Range
@@ -157,9 +167,9 @@ type ForExpression struct {
 }
 
 type ForOfExpression struct {
-  ForExpression           `json:"for_expression"`
-  StringSet               `json:"string_set"`
-  Expression interface{}  `json:"expression,omitempty"` // Optional
+  ForExpression                     `json:"for_expression"`
+  StringSet                         `json:"string_set"`
+  Expression *BooleanExpressionTerm `json:"expression,omitempty"` // Optional
 }
 
 // Either StringEnumeration or Keyword
