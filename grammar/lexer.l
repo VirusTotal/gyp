@@ -40,6 +40,7 @@ import (
     "math"
     "strconv"
     "strings"
+    proto "github.com/golang/protobuf/proto"
 
     "github.com/VirusTotal/go-yara-parser/data"
 )
@@ -327,10 +328,10 @@ u?int(8|16|32)(be)? {
   for _, c := range YYtext {
       switch c {
       case 'i':
-          mods.I = true
+          mods.I = proto.Bool(true)
 
       case 's':
-          mods.S = true
+          mods.S = proto.Bool(true)
 
       case '/':
           // Ignore
@@ -342,8 +343,8 @@ u?int(8|16|32)(be)? {
   }
 
   yylval.reg = data.Regexp {
-      Text: txt,
-      Modifiers: mods,
+      Text: &txt,
+      Modifiers: &mods,
   }
 
   BEGIN (INITIAL);
