@@ -1,9 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"io"
 	"os"
+  proto "github.com/golang/protobuf/proto"
+  jsonpb "github.com/golang/protobuf/jsonpb"
 
 	"github.com/VirusTotal/go-yara-parser/grammar"
 )
@@ -26,7 +27,8 @@ func main() {
 		perror(`Couldn't parse YARA ruleset: %s`, err)
 		os.Exit(3)
 	}
-	ruleset.File = opts.Infile
+	ruleset.File = proto.String(opts.Infile)
+
 
 	// Set output to stdout if not specified; otherwise file
 	var out io.Writer
@@ -42,10 +44,10 @@ func main() {
 		out = f
 	}
 
-	enc := json.NewEncoder(out)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", opts.Indent)
-	err = enc.Encode(&ruleset)
+  marshaler := jsonpb.Marshaler{
+    Indent: "  ",
+  }
+  err = marshaler.Marshal(out, &ruleset)
 	if err != nil {
 		perror(`Error writing JSON: %s`, err)
 		os.Exit(6)
