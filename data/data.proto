@@ -1,57 +1,212 @@
-// This file is currently unused but serves as a model
-// for the ruleset data structure. The issue with the
-// Meta message must be solved before using this.
+syntax = "proto2";
 
-syntax = "proto3";
-
-message Modifiers {
-    bool global = 1;
-    bool private = 2;
+message RuleModifiers {
+  optional bool global = 1;
+  optional bool private = 2;
 }
 
-// value here is problematic, since in YARA, they can be string, int, or bool
 message Meta {
-    string key = 1;
-    oneof value {
-        string s = 2;
-        int64 i = 3;
-        bool b = 4;
-    }
+  optional string key = 1;
+  oneof value {
+    string text = 2;
+    int64 number = 3;
+    bool boolean = 4;
+  }
 }
 
 message StringModifiers {
-    bool nocase = 1;
-    bool ascii = 2;
-    bool wide = 3;
-    bool fullword = 4;
-    bool i = 5;
-    bool s = 6;
+  optional bool nocase = 1;
+  optional bool ascii = 2;
+  optional bool wide = 3;
+  optional bool fullword = 4;
+  optional bool xor = 5;
+  optional bool i = 6;
+  optional bool s = 7;
 }
 
 message String {
-    string id = 1;
-    enum Type {
-        TypeString = 0;
-        TypeHexString = 1;
-        TypeRegex = 2;
+  optional string id = 1;
+  enum Type {
+    UNKNOWN = 0;
+    TEXT = 1; 
+    HEX = 2;
+    REGEX = 3;
+  }
+  optional Type type = 2;
+  optional string text = 3;
+  optional StringModifiers modifiers = 4;
+}
+
+message BinaryExpression {
+  enum Operator {
+    UNKNOWN = 0;
+    MATCHES = 1;
+    CONTAINS = 2;
+    AT = 3;
+    IN = 4;
+    LT = 5; 
+    GT = 6;
+    LE = 7;
+    GE = 8;
+    EQ = 9;
+    NEQ = 10;
+    INTEGER_FUNCTION = 11;
+    PLUS = 12;
+    MINUS = 13;
+    TIMES = 14;
+    DIV = 15;
+    MOD = 16;
+    XOR = 17;
+    BITWISE_AND = 18;
+    BITWISE_OR = 19;
+    SHIFT_LEFT = 20;
+    SHIFT_RIGHT = 21;
+  }
+
+  optional Operator operator = 1;
+  optional Expression left = 2;
+  optional Expression right = 3;
+}
+
+message UnaryExpression {
+  enum Operator {
+    UNKNOWN = 0;
+    UNARY_MINUS = 1;
+    BITWISE_NOT = 2;
+  }
+
+  optional Operator operator = 1;
+  optional Expression expression = 2;
+}
+
+message Range {
+  optional Expression start = 1;
+  optional Expression end = 2;
+}
+
+message Regexp {
+  optional string text = 1;
+  optional StringModifiers modifiers = 2;
+}
+
+message ForInExpression {
+  optional ForExpression for_expression = 1;
+  optional IntegerSet integer_set = 2;
+  optional Expression expression = 3;
+}
+
+message IntegerSet {
+  oneof set {
+    IntegerEnumeration integer_enumeration = 1;
+    Range range = 2;
+  }
+}
+
+message IntegerEnumeration {
+  repeated Expression values = 1;
+}
+
+message ForExpression {
+  oneof for {
+    Expression expression = 1;  
+    Keyword keyword = 2;
+  }
+}
+
+message ForOfExpression {
+  optional ForExpression for_expression = 1;
+  optional StringSet string_set = 2;
+  optional Expression expression = 3; // Optional
+}
+
+message StringSet {
+  oneof set {
+    StringEnumeration strings = 1;
+    Keyword keyword = 2;
+  }
+}
+
+message StringEnumeration {
+  message StringEnumerationItem {
+    optional string string_identifier = 1;
+    optional bool has_wildcard = 2;
+  }
+
+  repeated StringEnumerationItem items = 1;
+}
+
+enum Keyword {
+  UNKNOWN = 1;
+  ENTRYPOINT = 2;
+  FILESIZE = 3;
+  THEM = 4;
+  ALL = 5;
+  ANY = 6;
+}
+
+message Expression {
+  oneof expression {
+    bool bool_value = 1;
+    BinaryExpression binary_expression = 2;
+    UnaryExpression unary_expression = 3;
+    string string_identifier = 4;
+    ForInExpression for_in_expression = 5;
+    ForOfExpression for_of_expression = 6; 
+    Expression not_expression = 7;
+    Expressions or_expression = 8;
+    Expressions and_expression = 9;
+    Range range = 10;
+    Regexp regexp = 11;
+    Keyword keyword = 12;
+    int64 number_value = 13;
+    double double_value = 14; 
+    string text = 15;
+    string string_count = 16;
+    StringOffset string_offset = 17;
+    StringLength string_length = 18;
+    Identifier identifier = 19;
+  }
+}
+
+message StringOffset {
+  optional string string_identifier = 1;
+  optional Expression index = 2;  // Optional
+}
+
+message StringLength {
+  optional string string_identifier = 1;
+  optional Expression index = 2;  // Optional
+}
+
+message Identifier {
+  message IdentifierItem {
+    oneof item {
+      string identifier = 1;
+      Expression expression = 2;
+      Expressions arguments = 3;
     }
-    Type type = 2;
-    string text = 3;
-    StringModifiers modifiers = 4;
+  }
+
+  repeated IdentifierItem items = 1;
+}
+
+message Expressions {
+  repeated Expression terms = 1;  
 }
 
 message Rule {
-    Modifiers modifiers = 1;
-    string identifier = 2;
-    repeated string tags = 3;
-    repeated Meta meta = 4;
-    repeated String strings = 5;
-    string condition = 6;
+  optional RuleModifiers modifiers = 1;  // Optional
+  optional string identifier = 2;
+  repeated string tags = 3;
+  repeated Meta meta = 4;
+  repeated String strings = 5;
+  optional Expression condition = 6; // Optional
 }
 
-message Ruleset {
-    string file = 1;
-    repeated string imports = 2;
-    repeated string includes = 3;
-    repeated Rule rules = 4;
+message RuleSet {
+  optional string file = 1;
+  repeated string imports = 2;
+  repeated string includes = 3;
+  repeated Rule rules = 4;
 }
+
