@@ -1,9 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"io"
 	"os"
+  jsonpb "github.com/golang/protobuf/jsonpb"
 
 	"github.com/VirusTotal/go-yara-parser/data"
 )
@@ -22,7 +22,10 @@ func main() {
 	defer handleErr(jsonFile.Close)
 
 	var ruleset data.RuleSet
-	err = json.NewDecoder(jsonFile).Decode(&ruleset)
+  unmarshaler := jsonpb.Unmarshaler{}
+  err = unmarshaler.Unmarshal(jsonFile, &ruleset)
+  
+	// err = json.NewDecoder(jsonFile).Decode(&ruleset)
 	if err != nil {
 		perror(`Couldn't JSON decode file: %s`, err)
 		os.Exit(3)

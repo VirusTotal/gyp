@@ -1,3 +1,4 @@
+// +build ignore
 // Stringer implementations for each type
 
 package data
