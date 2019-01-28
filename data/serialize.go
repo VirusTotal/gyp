@@ -564,12 +564,7 @@ func (e *ForExpression) Serialize() (out string, err error) {
 func (e *StringEnumeration) Serialize() (out string, err error) {
   var strs []string
   for _, item := range e.GetItems() {
-    itemStr := item.GetStringIdentifier()
-    if (item.GetHasWildcard()) {
-      itemStr += "*"
-    }
-
-    strs = append(strs, itemStr)
+    strs = append(strs, item.GetStringIdentifier())
   }
 
   var b strings.Builder
