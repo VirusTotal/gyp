@@ -89,6 +89,11 @@ message Regexp {
   optional StringModifiers modifiers = 2;
 }
 
+message IntegerFunction {
+  optional string function = 1;
+  optional Expression expression = 2;
+}
+
 message ForInExpression {
   optional ForExpression for_expression = 1;
   optional IntegerSet integer_set = 2;
@@ -165,6 +170,7 @@ message Expression {
     StringOffset string_offset = 17;
     StringLength string_length = 18;
     Identifier identifier = 19;
+    IntegerFunction integer_function = 20;
   }
 }
 

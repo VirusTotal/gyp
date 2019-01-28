@@ -830,11 +830,10 @@ primary_expression
     | _INTEGER_FUNCTION_ '(' primary_expression ')'
       {
           $$ = &data.Expression{
-              Expression: &data.Expression_BinaryExpression{
-                  BinaryExpression: &data.BinaryExpression{
-                      Operator: data.BinaryExpression_INTEGER_FUNCTION.Enum(),
-                      Left: &data.Expression{ Expression: &data.Expression_Text{$1} },
-                      Right: $3,
+              Expression: &data.Expression_IntegerFunction{
+                  &data.IntegerFunction{
+                      Function: proto.String($1),
+                      Expression: $3,
                   },
               },
           }
