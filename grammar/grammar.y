@@ -558,7 +558,7 @@ expression
           $$ = &data.Expression{
               Expression: &data.Expression_BinaryExpression{
                   BinaryExpression: &data.BinaryExpression{
-                      Operator: data.BinaryExpression_AT.Enum(),
+                      Operator: data.BinaryExpression_IN.Enum(),
                       Left: &data.Expression{
                           Expression: &data.Expression_StringIdentifier{
                               StringIdentifier: $1,
