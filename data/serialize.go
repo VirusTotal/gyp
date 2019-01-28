@@ -506,7 +506,9 @@ func (e *ForInExpression) Serialize() (out string, err error) {
 
 func (e *ForOfExpression) Serialize() (out string, err error) {
   var b strings.Builder
-  b.WriteString("for ")
+  if e.GetExpression() != nil {
+    b.WriteString("for ")
+  }
   str, err := e.ForExpression.Serialize()
   if err != nil {
     return
