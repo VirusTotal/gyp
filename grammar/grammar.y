@@ -536,7 +536,7 @@ expression
     | _STRING_IDENTIFIER_
       {
           $$ = &data.Expression{
-              Expression: &data.Expression_StringIdentifier{StringIdentifier: $1},
+              Expression: &data.Expression_StringIdentifier{$1},
           }
       }
     | _STRING_IDENTIFIER_ _AT_ primary_expression
@@ -560,9 +560,7 @@ expression
                   BinaryExpression: &data.BinaryExpression{
                       Operator: data.BinaryExpression_IN.Enum(),
                       Left: &data.Expression{
-                          Expression: &data.Expression_StringIdentifier{
-                              StringIdentifier: $1,
-                          },
+                          Expression: &data.Expression_StringIdentifier{$1},
                       },
                       Right: &data.Expression{
                           Expression: &data.Expression_Range{$3},
