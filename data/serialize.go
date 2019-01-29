@@ -1,8 +1,9 @@
-// Functions and methods for reserializing the JSON into YARA rules.
+// Functions and methods for serializing a RuleSet proto to YARA rules.
 
 package data
 
 import (
+  "math"
 	"fmt"
 	"strings"
 )
@@ -30,49 +31,49 @@ var operators = map[BinaryExpression_Operator]string {
   BinaryExpression_MOD: "%",
 }
 
-const precedenceOr = 1
-const precedenceAnd = 2
+const precedenceOrExpression int8 = 1
+const precedenceAndExpression int8 = 2
 
-var binaryOperatorsPrecedence = map[BinaryExpression_Operator]int {
-  BinaryExpression_AT: 3,
-  BinaryExpression_IN: 4,
-  BinaryExpression_MATCHES: 5,
-  BinaryExpression_CONTAINS: 6,
-  BinaryExpression_BITWISE_OR: 7,
-  BinaryExpression_XOR: 8,
-  BinaryExpression_BITWISE_AND: 9,
-  BinaryExpression_EQ: 10,
-  BinaryExpression_NEQ: 10,
-  BinaryExpression_LT: 11,
-  BinaryExpression_LE: 11,
-  BinaryExpression_GT: 11,
-  BinaryExpression_GE: 11,
-  BinaryExpression_SHIFT_LEFT: 12,
-  BinaryExpression_SHIFT_RIGHT: 12,
-  BinaryExpression_PLUS: 13,
-  BinaryExpression_MINUS: 13,
-  BinaryExpression_TIMES: 14,
-  BinaryExpression_DIV: 14,
-  BinaryExpression_MOD: 14,
+// Operators AT, IN, MATCHES and CONTAINS do not have a specified precedence.
+// In those cases, the maximum precedence value should be assumed to prevent
+// adding unnecessary parenthesis.
+var binaryOperatorsPrecedence = map[BinaryExpression_Operator]int8 {
+  BinaryExpression_BITWISE_OR: 3,
+  BinaryExpression_XOR: 4,
+  BinaryExpression_BITWISE_AND: 5,
+  BinaryExpression_EQ: 6,
+  BinaryExpression_NEQ: 6,
+  BinaryExpression_LT: 7,
+  BinaryExpression_LE: 7,
+  BinaryExpression_GT: 7,
+  BinaryExpression_GE: 7,
+  BinaryExpression_SHIFT_LEFT: 8,
+  BinaryExpression_SHIFT_RIGHT: 8,
+  BinaryExpression_PLUS: 9,
+  BinaryExpression_MINUS: 9,
+  BinaryExpression_TIMES: 10,
+  BinaryExpression_DIV: 10,
+  BinaryExpression_MOD: 10,
 }
+const precedenceNotExpression int8 = 15
+const precedenceUnaryExpression int8 = 15
 
-const precedenceNot = 15
-
-func (e *Expression) getPrecedence() int {
+func (e *Expression) getPrecedence() int8 {
   switch e.GetExpression().(type) {
   case *Expression_OrExpression:
-    return precedenceOr
+    return precedenceOrExpression
   case *Expression_AndExpression:
-    return precedenceAnd
+    return precedenceAndExpression
   case *Expression_BinaryExpression:
-    return binaryOperatorsPrecedence[e.GetBinaryExpression().GetOperator()]
+    return e.GetBinaryExpression().getPrecedence()
   case *Expression_NotExpression:
-    return precedenceNot
+    return precedenceNotExpression
   case *Expression_UnaryExpression:
-    return precedenceNot
+    return precedenceUnaryExpression
   }
 
-  return precedenceNot + 1
+  // Expression with no precedence defined. Return maximum value.
+  return math.MaxInt8
 }
 
 // Serialize for RuleSet builds a complete YARA ruleset
@@ -411,7 +412,7 @@ func (e *Expression_NotExpression) Serialize() (out string, err error) {
     return
   }
 
-  if (e.NotExpression.getPrecedence() < precedenceNot) {
+  if (e.NotExpression.getPrecedence() < precedenceNotExpression) {
     b.WriteString("(")
     b.WriteString(str)
     b.WriteString(")")
@@ -617,8 +618,13 @@ func (e *IntegerEnumeration) Serialize() (out string, err error) {
   return
 }
 
-func (e *BinaryExpression) getPrecedence() int {
-  return binaryOperatorsPrecedence[e.GetOperator()]
+func (e *BinaryExpression) getPrecedence() int8 {
+  prec, ok := binaryOperatorsPrecedence[e.GetOperator()]
+  if !ok {
+    return math.MaxInt8
+  }
+
+  return prec
 }
 
 func (e *BinaryExpression) Serialize() (out string, err error) {
