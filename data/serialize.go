@@ -711,7 +711,6 @@ func (i *Identifier) Serialize() (out string, err error) {
       b.WriteString(str)
       b.WriteRune(']')
     case *Identifier_IdentifierItem_Arguments:
-      b.WriteRune('(')
       var args []string
       for _, arg := range item.GetArguments().Terms {
         str, err = arg.Serialize()
