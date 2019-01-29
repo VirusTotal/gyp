@@ -4,8 +4,8 @@ package data
 
 import (
   "math"
-	"fmt"
-	"strings"
+  "fmt"
+  "strings"
 )
 
 var keywords = map[Keyword]string {
@@ -86,66 +86,66 @@ func (e *Expression) getPrecedence() int8 {
 
 // Serializes a complete YARA ruleset.
 func (rs *RuleSet) Serialize() (out string, err error) {
-	var b strings.Builder
+  var b strings.Builder
 
-	if len(rs.Includes) > 0 {
-		for _, include := range rs.Includes {
-			b.WriteString(fmt.Sprintf("include \"%s\"\n", include))
-		}
-		b.WriteRune('\n')
-	}
+  if len(rs.Includes) > 0 {
+    for _, include := range rs.Includes {
+      b.WriteString(fmt.Sprintf("include \"%s\"\n", include))
+    }
+    b.WriteRune('\n')
+  }
 
-	if len(rs.Imports) > 0 {
-		for _, imp := range rs.Imports {
-			b.WriteString(fmt.Sprintf("import \"%s\"\n", imp))
-		}
-		b.WriteRune('\n')
-	}
+  if len(rs.Imports) > 0 {
+    for _, imp := range rs.Imports {
+      b.WriteString(fmt.Sprintf("import \"%s\"\n", imp))
+    }
+    b.WriteRune('\n')
+  }
 
-	for _, rule := range rs.Rules {
-		str, err := rule.Serialize()
-		if err != nil {
-			return "", err
-		}
-		b.WriteString(str)
-	}
+  for _, rule := range rs.Rules {
+    str, err := rule.Serialize()
+    if err != nil {
+      return "", err
+    }
+    b.WriteString(str)
+  }
 
-	out = b.String()
-	return
+  out = b.String()
+  return
 }
 
 // Serializes a YARA rule.
 func (r *Rule) Serialize() (out string, err error) {
-	var b strings.Builder
+  var b strings.Builder
 
-	// Rule modifiers
-	if r.Modifiers.GetGlobal() {
-		b.WriteString("global ")
-	}
-	if r.Modifiers.GetPrivate() {
-		b.WriteString("private ")
-	}
+  // Rule modifiers
+  if r.Modifiers.GetGlobal() {
+    b.WriteString("global ")
+  }
+  if r.Modifiers.GetPrivate() {
+    b.WriteString("private ")
+  }
 
-	// Rule name
-	b.WriteString(fmt.Sprintf("rule %s ", r.GetIdentifier()))
+  // Rule name
+  b.WriteString(fmt.Sprintf("rule %s ", r.GetIdentifier()))
 
-	// Any applicable tags
-	if len(r.Tags) > 0 {
-		b.WriteString(": ")
-		for _, t := range r.Tags {
-			b.WriteString(t)
-			b.WriteRune(' ')
-		}
-	}
+  // Any applicable tags
+  if len(r.Tags) > 0 {
+    b.WriteString(": ")
+    for _, t := range r.Tags {
+      b.WriteString(t)
+      b.WriteRune(' ')
+    }
+  }
 
-	// Start metas, strings, etc.
-	b.WriteString("{\n")
+  // Start metas, strings, etc.
+  b.WriteString("{\n")
 
   metas, err := SerializeMetas(r.Meta)
-	if err != nil {
-		return
-	}
-	b.WriteString(metas)
+  if err != nil {
+    return
+  }
+  b.WriteString(metas)
 
   strs, err := SerializeStrings(r.Strings)
   if err != nil {
@@ -153,58 +153,58 @@ func (r *Rule) Serialize() (out string, err error) {
   }
   b.WriteString(strs)
 
-	b.WriteString("condition:\n")
-	b.WriteString("  ") // TODO: Don't assume indent...
+  b.WriteString("condition:\n")
+  b.WriteString("  ") // TODO: Don't assume indent...
   str, err := r.Condition.Serialize()
   if err != nil {
      return
    }
-	b.WriteString(str)
-	b.WriteString("\n}\n\n")
+  b.WriteString(str)
+  b.WriteString("\n}\n\n")
 
-	out = b.String()
-	return
+  out = b.String()
+  return
 }
 
 // Serializes the "meta:" section in a YARA rule.
 func SerializeMetas(ms []*Meta) (out string, err error) {
- 	if ms == nil || len(ms) == 0 {
- 		return
- 	}
+   if ms == nil || len(ms) == 0 {
+     return
+   }
  
- 	var b strings.Builder
- 	b.WriteString("meta:\n")
+   var b strings.Builder
+   b.WriteString("meta:\n")
  
- 	for _, m := range ms {
- 		meta, e := m.Serialize()
- 		if e != nil {
- 			err = e
- 			return
- 		}
- 		b.WriteString("  ") // TODO: make indent customizable
- 		b.WriteString(meta)
- 		b.WriteRune('\n')
- 	}
+   for _, m := range ms {
+     meta, e := m.Serialize()
+     if e != nil {
+       err = e
+       return
+     }
+     b.WriteString("  ") // TODO: make indent customizable
+     b.WriteString(meta)
+     b.WriteRune('\n')
+   }
  
- 	out = b.String()
- 	return
+   out = b.String()
+   return
 }
 
 // Serializes a Meta declaration (key/value pair) in a YARA rule.
 func (m *Meta) Serialize() (out string, err error) {
- 	switch val := m.GetValue().(type) {
- 	case *Meta_Text:
- 		out = fmt.Sprintf(`%s = "%s"`, m.GetKey(), m.GetText())
+   switch val := m.GetValue().(type) {
+   case *Meta_Text:
+     out = fmt.Sprintf(`%s = "%s"`, m.GetKey(), m.GetText())
   case *Meta_Number:
- 		out = fmt.Sprintf(`%s = %v`, m.GetKey(), m.GetNumber())
+     out = fmt.Sprintf(`%s = %v`, m.GetKey(), m.GetNumber())
   case *Meta_Boolean:
- 		out = fmt.Sprintf(`%s = %v`, m.GetKey(), m.GetBoolean())
- 	default:
- 		err = fmt.Errorf(`Unsupported meta value type "%s"`, val)
+     out = fmt.Sprintf(`%s = %v`, m.GetKey(), m.GetBoolean())
+   default:
+     err = fmt.Errorf(`Unsupported meta value type "%s"`, val)
     return
- 	}
+   }
  
- 	return
+   return
 }
 
 // Serializes the "strings:" section in a YARA rule.
@@ -268,17 +268,17 @@ func (s *String) Serialize() (out string, err error) {
     encapsOpen, encapsClose = "{", "}"
   case String_REGEX:
     encapsOpen = "/"
-	  var closeBuilder strings.Builder
+    var closeBuilder strings.Builder
       closeBuilder.WriteRune('/')
-	  if s.Modifiers.GetI() {
-		  closeBuilder.WriteRune('i')
-	  }
-	  if s.Modifiers.GetS() {
-		  closeBuilder.WriteRune('s')
-	  }
-	  encapsClose = closeBuilder.String()
+    if s.Modifiers.GetI() {
+      closeBuilder.WriteRune('i')
+    }
+    if s.Modifiers.GetS() {
+      closeBuilder.WriteRune('s')
+    }
+    encapsClose = closeBuilder.String()
   default:
-	  err = fmt.Errorf("No such string type %s (%d)", t, t)
+    err = fmt.Errorf("No such string type %s (%d)", t, t)
     return
   }
 
@@ -292,25 +292,25 @@ func (s *String) Serialize() (out string, err error) {
 // The returned error must be nil.
 func (m *StringModifiers) Serialize() (out string, _ error) {
   const modsAvailable = 4
-	modifiers := make([]string, 0, modsAvailable)
-	if m.GetAscii() {
-		modifiers = append(modifiers, "ascii")
-	}
-	if m.GetWide() {
-		modifiers = append(modifiers, "wide")
-	}
-	if m.GetNocase() {
-		modifiers = append(modifiers, "nocase")
-	}
-	if m.GetFullword() {
-		modifiers = append(modifiers, "fullword")
-	}
-	if m.GetXor() {
-		modifiers = append(modifiers, "xor")
-	}
+  modifiers := make([]string, 0, modsAvailable)
+  if m.GetAscii() {
+    modifiers = append(modifiers, "ascii")
+  }
+  if m.GetWide() {
+    modifiers = append(modifiers, "wide")
+  }
+  if m.GetNocase() {
+    modifiers = append(modifiers, "nocase")
+  }
+  if m.GetFullword() {
+    modifiers = append(modifiers, "fullword")
+  }
+  if m.GetXor() {
+    modifiers = append(modifiers, "xor")
+  }
 
-	out = strings.Join(modifiers, " ")
-	return
+  out = strings.Join(modifiers, " ")
+  return
 }
 
 // Serializes an Expression in a YARA rule condition.
