@@ -25,7 +25,6 @@ func main() {
   unmarshaler := jsonpb.Unmarshaler{}
   err = unmarshaler.Unmarshal(jsonFile, &ruleset)
   
-	// err = json.NewDecoder(jsonFile).Decode(&ruleset)
 	if err != nil {
 		perror(`Couldn't JSON decode file: %s`, err)
 		os.Exit(3)

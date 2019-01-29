@@ -1,4 +1,4 @@
-// Functions and methods for serializing a RuleSet proto to YARA rules.
+// Functions and methods for serializing a RuleSet proto to YARA rules as strings.
 
 package data
 
@@ -7,6 +7,14 @@ import (
 	"fmt"
 	"strings"
 )
+
+var keywords = map[Keyword]string {
+  Keyword_ENTRYPOINT: "entrypoint",
+  Keyword_FILESIZE: "filesize",
+  Keyword_THEM: "them",
+  Keyword_ALL: "all",
+  Keyword_ANY: "any",
+}
 
 var operators = map[BinaryExpression_Operator]string {
   BinaryExpression_MATCHES: "matches",
@@ -76,7 +84,7 @@ func (e *Expression) getPrecedence() int8 {
   return math.MaxInt8
 }
 
-// Serialize for RuleSet builds a complete YARA ruleset
+// Serializes a complete YARA ruleset.
 func (rs *RuleSet) Serialize() (out string, err error) {
 	var b strings.Builder
 
@@ -86,6 +94,7 @@ func (rs *RuleSet) Serialize() (out string, err error) {
 		}
 		b.WriteRune('\n')
 	}
+
 	if len(rs.Imports) > 0 {
 		for _, imp := range rs.Imports {
 			b.WriteString(fmt.Sprintf("import \"%s\"\n", imp))
@@ -102,11 +111,10 @@ func (rs *RuleSet) Serialize() (out string, err error) {
 	}
 
 	out = b.String()
-
 	return
 }
 
-// Serialize for Rule builds a YARA rule as a string
+// Serializes a YARA rule.
 func (r *Rule) Serialize() (out string, err error) {
 	var b strings.Builder
 
@@ -155,11 +163,10 @@ func (r *Rule) Serialize() (out string, err error) {
 	b.WriteString("\n}\n\n")
 
 	out = b.String()
-
 	return
 }
 
-// Returns the "meta:" section in the YARA rule
+// Serializes the "meta:" section in a YARA rule.
 func SerializeMetas(ms []*Meta) (out string, err error) {
  	if ms == nil || len(ms) == 0 {
  		return
@@ -183,7 +190,7 @@ func SerializeMetas(ms []*Meta) (out string, err error) {
  	return
 }
 
-// Serialize for Meta returns the string representation of the key/value pair
+// Serializes a Meta declaration (key/value pair) in a YARA rule.
 func (m *Meta) Serialize() (out string, err error) {
  	switch val := m.GetValue().(type) {
  	case *Meta_Text:
@@ -194,11 +201,13 @@ func (m *Meta) Serialize() (out string, err error) {
  		out = fmt.Sprintf(`%s = %v`, m.GetKey(), m.GetBoolean())
  	default:
  		err = fmt.Errorf(`Unsupported meta value type "%s"`, val)
+    return
  	}
  
  	return
 }
 
+// Serializes the "strings:" section in a YARA rule.
 func SerializeStrings(strs []*String) (out string, err error) {
   if strs == nil || len(strs) == 0 {
     return
@@ -216,27 +225,30 @@ func SerializeStrings(strs []*String) (out string, err error) {
 
     b.WriteString("  ")
     b.WriteString(str)
-    b.WriteString("\n")
+    b.WriteRune('\n')
   }
 
   out = b.String()
   return
 }
 
-func (r *Regexp) Serialize() (string, error) {
+// Serializes a RegExp, appending the i and s modifiers if included.
+// The returned error must be nil.
+func (r *Regexp) Serialize() (out string, _ error) {
   var b strings.Builder
-  b.WriteString("/")
+  b.WriteRune('/')
   b.WriteString(r.GetText())
-  b.WriteString("/")
+  b.WriteRune('/')
 
   if (r.Modifiers.GetI()) {
-    b.WriteString("i")
+    b.WriteRune('i')
   }
   if (r.Modifiers.GetS()) {
-    b.WriteString("s")
+    b.WriteRune('s')
   }
 
-  return b.String(), nil
+  out = b.String()
+  return
 }
 
 // Serialize for String returns a String as a string
@@ -301,14 +313,13 @@ func (m *StringModifiers) Serialize() (out string, _ error) {
 	return
 }
 
+// Serializes an Expression in a YARA rule condition.
 func (e *Expression) Serialize() (out string, err error) {
   switch val := e.GetExpression().(type) {
   case *Expression_OrExpression:
-    or := e.GetExpression().(*Expression_OrExpression)
-    out, err = or.Serialize()
+    out, err = e.GetExpression().(*Expression_OrExpression).Serialize()
   case *Expression_AndExpression:
-    and := e.GetExpression().(*Expression_AndExpression)
-    out, err = and.Serialize()
+    out, err = e.GetExpression().(*Expression_AndExpression).Serialize()
   case *Expression_StringIdentifier:
     out = e.GetStringIdentifier()
   case *Expression_ForInExpression:
@@ -348,62 +359,67 @@ func (e *Expression) Serialize() (out string, err error) {
     out = e.GetStringCount()
   default:
     err = fmt.Errorf(`Unsupported expression type "%T"`, val)
+    return
   }
 
   return
 }
 
+// Serializes a StringOffset.
 func (e *StringOffset) Serialize() (out string, err error) {
   var b strings.Builder
   b.WriteString(e.GetStringIdentifier())
   if (e.GetIndex() != nil) {
-    b.WriteString("[")
+    b.WriteRune('[')
     var str string
     str, err = e.GetIndex().Serialize()
     if err != nil {
       return
     }
     b.WriteString(str)
-    b.WriteString("]")
+    b.WriteRune(']')
   }
 
   out = b.String()
   return
 }
 
+// Serializes a StringLength.
 func (e *StringLength) Serialize() (out string, err error) {
   var b strings.Builder
   b.WriteString(e.GetStringIdentifier())
   if (e.GetIndex() != nil) {
-    b.WriteString("[")
+    b.WriteRune('[')
     var str string
     str, err = e.GetIndex().Serialize()
     if err != nil {
       return
     }
     b.WriteString(str)
-    b.WriteString("]")
+    b.WriteRune(']')
   }
 
   out = b.String()
   return
 }
 
+// Serializes an IntegerFunction.
 func (e *IntegerFunction) Serialize() (out string, err error) {
   var b strings.Builder
   b.WriteString(e.GetFunction())
-  b.WriteString("(")
+  b.WriteRune('(')
   str, err := e.GetExpression().Serialize()
   if err != nil {
     return
   }
   b.WriteString(str)
-  b.WriteString(")")
+  b.WriteRune(')')
 
   out = b.String()
   return
 }
 
+// Serializes a NOT expression.
 func (e *Expression_NotExpression) Serialize() (out string, err error) {
   var b strings.Builder
   b.WriteString("not ")
@@ -413,9 +429,9 @@ func (e *Expression_NotExpression) Serialize() (out string, err error) {
   }
 
   if (e.NotExpression.getPrecedence() < precedenceNotExpression) {
-    b.WriteString("(")
+    b.WriteRune('(')
     b.WriteString(str)
-    b.WriteString(")")
+    b.WriteRune(')')
   } else {
     b.WriteString(str)
   }
@@ -423,6 +439,7 @@ func (e *Expression_NotExpression) Serialize() (out string, err error) {
   return
 }
 
+// Serializes an OR expression.
 func (e *Expression_OrExpression) Serialize() (out string, err error) {
   strs, err := mapTermsToStrings(e.OrExpression.Terms)
   if err != nil {
@@ -433,6 +450,7 @@ func (e *Expression_OrExpression) Serialize() (out string, err error) {
   return
 }
 
+// Serializes an AND expression.
 func (e *Expression_AndExpression) Serialize() (out string, err error) {
   strs, err := mapTermsToStrings(e.AndExpression.Terms)
   if err != nil {
@@ -440,12 +458,11 @@ func (e *Expression_AndExpression) Serialize() (out string, err error) {
   }
 
   for i, term := range e.AndExpression.Terms {
-    switch term.GetExpression().(type) {
-    case *Expression_OrExpression:
+    if term.getPrecedence() < precedenceAndExpression {
       var b strings.Builder
-      b.WriteString("(")
+      b.WriteRune('(')
       b.WriteString(strs[i])
-      b.WriteString(")")
+      b.WriteRune(')')
       strs[i] = b.String()
     }
   }
@@ -454,6 +471,7 @@ func (e *Expression_AndExpression) Serialize() (out string, err error) {
   return
 }
 
+// Serializes a Range expression.
 func (e *Range) Serialize() (out string, err error) {
   var b strings.Builder
   b.WriteRune('(')
@@ -475,6 +493,7 @@ func (e *Range) Serialize() (out string, err error) {
   return
 }
 
+// Serializes a for..in expression
 func (e *ForInExpression) Serialize() (out string, err error) {
   var b strings.Builder
   b.WriteString("for ")
@@ -501,10 +520,12 @@ func (e *ForInExpression) Serialize() (out string, err error) {
 
   b.WriteString(str)
   b.WriteRune(')')
+
   out = b.String()
   return
 }
 
+// Serializes a for..of expression
 func (e *ForOfExpression) Serialize() (out string, err error) {
   var b strings.Builder
   if e.GetExpression() != nil {
@@ -540,6 +561,7 @@ func (e *ForOfExpression) Serialize() (out string, err error) {
   return
 }
 
+// Serializes a StringSet.
 func (e* StringSet) Serialize() (out string, err error) {
   switch e.GetSet().(type) {
   case *StringSet_Strings:
@@ -551,6 +573,7 @@ func (e* StringSet) Serialize() (out string, err error) {
   return
 }
 
+// Serializes a ForExpression.
 func (e *ForExpression) Serialize() (out string, err error) {
   switch e.GetFor().(type) {
   case *ForExpression_Expression:
@@ -562,20 +585,24 @@ func (e *ForExpression) Serialize() (out string, err error) {
   return
 }
 
-func (e *StringEnumeration) Serialize() (out string, err error) {
+// Serializes a StringEnumeration.
+// The returned error must be nil.
+func (e *StringEnumeration) Serialize() (out string, _ error) {
   var strs []string
   for _, item := range e.GetItems() {
     strs = append(strs, item.GetStringIdentifier())
   }
 
   var b strings.Builder
-  b.WriteString("(")
+  b.WriteRune('(')
   b.WriteString(strings.Join(strs, ", "))
-  b.WriteString(")")
+  b.WriteRune(')')
+
   out = b.String()
   return
 }
 
+// Serializes an IntegerSet.
 func (e *IntegerSet) Serialize() (out string, err error) {
   switch e.GetSet().(type) {
   case *IntegerSet_IntegerEnumeration:
@@ -587,23 +614,18 @@ func (e *IntegerSet) Serialize() (out string, err error) {
   return
 }
 
+// Serializes a Keyword.
 func (e Keyword) Serialize() (out string, err error) {
-  switch e {
-  case Keyword_ENTRYPOINT:
-    out = "entrypoint"
-  case Keyword_FILESIZE:
-    out = "filesize"
-  case Keyword_THEM:
-    out = "them"
-  case Keyword_ALL:
-    out = "all"
-  case Keyword_ANY:
-    out = "any"
+  out, ok := keywords[e]
+  if !ok {
+    err = fmt.Errorf(`Unknown keyword "%v"`, e)
+    return
   }
 
   return
 }
 
+// Serializes an IntegerEnumeration.
 func (e *IntegerEnumeration) Serialize() (out string, err error) {
   strs, err := mapTermsToStrings(e.Values)
   if err != nil {
@@ -611,13 +633,15 @@ func (e *IntegerEnumeration) Serialize() (out string, err error) {
   }
 
   var b strings.Builder
-  b.WriteString("(")
+  b.WriteRune('(')
   b.WriteString(strings.Join(strs, ", "))
-  b.WriteString(")")
+  b.WriteRune(')')
+
   out = b.String()
   return
 }
 
+// Returns the precedence of a BinaryExpression.
 func (e *BinaryExpression) getPrecedence() int8 {
   prec, ok := binaryOperatorsPrecedence[e.GetOperator()]
   if !ok {
@@ -627,19 +651,20 @@ func (e *BinaryExpression) getPrecedence() int8 {
   return prec
 }
 
+// Serializes a BinaryExpression.
 func (e *BinaryExpression) Serialize() (out string, err error) {
   var b strings.Builder
 
-  // Left expression. If it's a binary expression and has less precedence, enclose it in params
   str, err := e.Left.Serialize()
   if err != nil {
     return
   }
 
+  // Left operand
   if (e.Left.getPrecedence() < e.getPrecedence()) {
-    b.WriteString("(")
+    b.WriteRune('(')
     b.WriteString(str)
-    b.WriteString(")")
+    b.WriteRune(')')
   } else {
     b.WriteString(str)
   }
@@ -649,7 +674,7 @@ func (e *BinaryExpression) Serialize() (out string, err error) {
   b.WriteString(operators[e.GetOperator()])
   b.WriteRune(' ')
 
-  // Right expression. If it's a binary expression and has less precedence, enclose it in params
+  // Right operand
   str, err = e.Right.Serialize()
   if err != nil {
     return
@@ -666,6 +691,7 @@ func (e *BinaryExpression) Serialize() (out string, err error) {
   return
 }
 
+// Serializes an Identifier.
 func (i *Identifier) Serialize() (out string, err error) {
   var b strings.Builder
   var str string
@@ -708,7 +734,8 @@ func (i *Identifier) Serialize() (out string, err error) {
   return
 }
 
-
+// Returns an array with the string representation of the array of Expressions
+// provided as an input.
 func mapTermsToStrings(expressions []*Expression) (strs []string, err error) {
   for _, expr := range expressions {
     str, err := expr.Serialize()

@@ -1,12 +1,15 @@
+// Data model of a ruleset.
+// See YARA's documentation for more details.
+
 syntax = "proto2";
 
 message RuleModifiers {
-  optional bool global = 1;
-  optional bool private = 2;
+  optional bool global = 1;  // Required
+  optional bool private = 2;  // Required
 }
 
 message Meta {
-  optional string key = 1;
+  optional string key = 1;  // Required
   oneof value {
     string text = 2;
     int64 number = 3;
@@ -25,16 +28,16 @@ message StringModifiers {
 }
 
 message String {
-  optional string id = 1;
+  optional string id = 1;  // Required
   enum Type {
     UNKNOWN = 0;
     TEXT = 1; 
     HEX = 2;
     REGEX = 3;
   }
-  optional Type type = 2;
-  optional string text = 3;
-  optional StringModifiers modifiers = 4;
+  optional Type type = 2;  // Required
+  optional string text = 3;  // Required
+  optional StringModifiers modifiers = 4;  // Required
 }
 
 message BinaryExpression {
@@ -63,9 +66,9 @@ message BinaryExpression {
     SHIFT_RIGHT = 21;
   }
 
-  optional Operator operator = 1;
-  optional Expression left = 2;
-  optional Expression right = 3;
+  optional Operator operator = 1;  // Required
+  optional Expression left = 2;  // Required
+  optional Expression right = 3;  // Required
 }
 
 message UnaryExpression {
@@ -75,29 +78,29 @@ message UnaryExpression {
     BITWISE_NOT = 2;
   }
 
-  optional Operator operator = 1;
-  optional Expression expression = 2;
+  optional Operator operator = 1;  // Required
+  optional Expression expression = 2;  // Required
 }
 
 message Range {
-  optional Expression start = 1;
-  optional Expression end = 2;
+  optional Expression start = 1;  // Required
+  optional Expression end = 2;  // Required
 }
 
 message Regexp {
-  optional string text = 1;
-  optional StringModifiers modifiers = 2;
+  optional string text = 1;  // Required
+  optional StringModifiers modifiers = 2;  // Required
 }
 
 message IntegerFunction {
-  optional string function = 1;
-  optional Expression expression = 2;
+  optional string function = 1;  // Required
+  optional Expression expression = 2;  // Required
 }
 
 message ForInExpression {
-  optional ForExpression for_expression = 1;
-  optional IntegerSet integer_set = 2;
-  optional Expression expression = 3;
+  optional ForExpression for_expression = 1;  // Required
+  optional IntegerSet integer_set = 2;  // Required
+  optional Expression expression = 3;  // Required
 }
 
 message IntegerSet {
@@ -119,9 +122,9 @@ message ForExpression {
 }
 
 message ForOfExpression {
-  optional ForExpression for_expression = 1;
-  optional StringSet string_set = 2;
-  optional Expression expression = 3; // Optional
+  optional ForExpression for_expression = 1;  // Required
+  optional StringSet string_set = 2;  // Required
+  optional Expression expression = 3;
 }
 
 message StringSet {
@@ -175,13 +178,13 @@ message Expression {
 }
 
 message StringOffset {
-  optional string string_identifier = 1;
-  optional Expression index = 2;  // Optional
+  optional string string_identifier = 1;  // Required
+  optional Expression index = 2;
 }
 
 message StringLength {
-  optional string string_identifier = 1;
-  optional Expression index = 2;  // Optional
+  optional string string_identifier = 1;  // Required
+  optional Expression index = 2;
 }
 
 message Identifier {
@@ -201,12 +204,12 @@ message Expressions {
 }
 
 message Rule {
-  optional RuleModifiers modifiers = 1;  // Optional
-  optional string identifier = 2;
+  optional RuleModifiers modifiers = 1;
+  optional string identifier = 2;  // Required
   repeated string tags = 3;
   repeated Meta meta = 4;
   repeated String strings = 5;
-  optional Expression condition = 6; // Optional
+  optional Expression condition = 6;
 }
 
 message RuleSet {
