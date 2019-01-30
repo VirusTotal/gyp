@@ -862,6 +862,7 @@ xxdefault:
 		xxDollar = xxS[xxpt-0 : xxpt+1]
 //line grammar/grammar.y:256
 		{
+			xxVAL.m = []*data.Meta{}
 		}
 	case 11:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
@@ -877,6 +878,7 @@ xxdefault:
 		xxDollar = xxS[xxpt-0 : xxpt+1]
 //line grammar/grammar.y:269
 		{
+			xxVAL.yss = []*data.String{}
 		}
 	case 13:
 		xxDollar = xxS[xxpt-3 : xxpt+1]

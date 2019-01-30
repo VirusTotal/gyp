@@ -253,7 +253,7 @@ rule
 
 
 meta
-    : /* empty */ { }
+    : /* empty */ { $$ = []*data.Meta{} }
     | _META_ ':' meta_declarations
       {
           $$ = make([]*data.Meta, 0, len($3))
@@ -266,7 +266,7 @@ meta
 
 
 strings
-    : /* empty */ { }
+    : /* empty */ { $$ = []*data.String{} }
     | _STRINGS_ ':' string_declarations { $$ = $3 }
     ;
 
