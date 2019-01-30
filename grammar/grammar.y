@@ -576,6 +576,7 @@ expression
               Expression: &data.Expression_ForInExpression{
                   ForInExpression: &data.ForInExpression{
                       ForExpression: $2,
+                      Identifier: proto.String($3),
                       IntegerSet: $5,
                       Expression: $8,
                   },

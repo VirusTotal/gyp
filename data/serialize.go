@@ -407,8 +407,11 @@ func (s YaraSerializer) serializeForInExpression(e *ForInExpression) (out string
   if err != nil {
     return
   }
-
   b.WriteString(str)
+
+  b.WriteRune(' ')
+  b.WriteString(e.GetIdentifier())
+
   b.WriteString(" in ")
 
   str, err = s.serializeIntegerSet(e.IntegerSet)

@@ -99,8 +99,9 @@ message IntegerFunction {
 
 message ForInExpression {
   optional ForExpression for_expression = 1;  // Required
-  optional IntegerSet integer_set = 2;  // Required
-  optional Expression expression = 3;  // Required
+  optional string identifier = 2;  // Required
+  optional IntegerSet integer_set = 3;  // Required
+  optional Expression expression = 4;  // Required
 }
 
 message IntegerSet {
