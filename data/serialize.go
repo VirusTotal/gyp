@@ -317,6 +317,8 @@ func (s YaraSerializer) serializeStringModifiers(m *StringModifiers) (out string
 // Serializes an Expression in a YARA rule condition.
 func (s YaraSerializer) serializeExpression(e *Expression) (out string, err error) {
   switch val := e.GetExpression().(type) {
+  case *Expression_BoolValue:
+    out = fmt.Sprintf("%v", e.GetBoolValue())
   case *Expression_OrExpression:
     return s.serializeOrExpression(e.GetOrExpression())
   case *Expression_AndExpression:
