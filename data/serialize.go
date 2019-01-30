@@ -284,7 +284,7 @@ func (s YaraSerializer) serializeString(str *String) (out string, err error) {
   }
 
   mods, _ := s.serializeStringModifiers(str.Modifiers)
-  out = fmt.Sprintf(format, str.GetId(), encapsOpen, str.GetText(), encapsClose, mods)
+  out = strings.TrimSpace(fmt.Sprintf(format, str.GetId(), encapsOpen, str.GetText(), encapsClose, mods))
   return
 }
 
