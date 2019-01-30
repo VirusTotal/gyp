@@ -646,7 +646,7 @@ func (s YaraSerializer) serializeIdentifier(i *Identifier) (out string, err erro
       }
 
       b.WriteRune('(')
-      b.WriteString(strings.Join(args, ","))
+      b.WriteString(strings.Join(args, ", "))
       b.WriteRune(')')
     default:
       err = fmt.Errorf(`Unsupported identifier type "%T"`, val)
