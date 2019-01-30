@@ -44,7 +44,8 @@ func main() {
     out = f
   }
 
-  txt, err := ruleset.Serialize()
+  serializer := data.YaraSerializer{ Indent: opts.Indent }
+  txt, err := serializer.Serialize(ruleset)
   if err != nil {
     perror(`Couldn't serialize ruleset: %s`, err)
     os.Exit(6)

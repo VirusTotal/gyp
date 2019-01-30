@@ -24,11 +24,7 @@ func getopt() options {
   flag.Parse()
 
   // Set indent
-  var sb strings.Builder
-  for i := 0; i < indent; i++ {
-    sb.WriteRune(' ')
-  }
-  o.Indent = sb.String()
+  o.Indent = strings.Repeat(" ", indent)
 
   // The yara file is the only positional argument
   if n := flag.NArg(); n != 1 {
