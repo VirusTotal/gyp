@@ -3,7 +3,7 @@ package tests
 import "testing"
 
 func TestPEModule(t *testing.T) {
-  const rs = `import "pe"
+	const rs = `import "pe"
 
 rule is_pe : pe_tag {
 meta:
@@ -13,8 +13,8 @@ strings:
 condition:
     $s1 at 0 and pe.imports("kernel32.dll")
 }`
-  _, err := parseRuleStr(rs)
-  if err != nil {
-    t.Fatalf("Parsing failed: %s", err)
-  }
+	_, err := parseRuleStr(rs)
+	if err != nil {
+		t.Fatalf("Parsing failed: %s", err)
+	}
 }

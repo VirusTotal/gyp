@@ -3,7 +3,7 @@ package tests
 import "testing"
 
 func TestForLoop(t *testing.T) {
-  const rs = `rule FOR {
+	const rs = `rule FOR {
 strings:
     $s1 = "abc"
 condition:
@@ -12,8 +12,8 @@ condition:
         @s1[i] > 20
     )
 }`
-  _, err := parseRuleStr(rs)
-  if err != nil {
-    t.Fatalf(`Parsing failed: %s`, err)
-  }
+	_, err := parseRuleStr(rs)
+	if err != nil {
+		t.Fatalf(`Parsing failed: %s`, err)
+	}
 }
