@@ -1,13 +1,11 @@
 // adapter.go provides an adapter for a flexgo lexer to work
 // with a goyacc parser
 
-package grammar
+package yara
 
 import (
 	"fmt"
 	"io"
-
-	"github.com/VirusTotal/go-yara-parser/data"
 )
 
 var errParser error
@@ -17,11 +15,11 @@ func init() {
 }
 
 // Parse takes an input source and an output and initiates parsing
-func Parse(input io.Reader, output io.Writer) (rs data.RuleSet, err error) {
+func Parse(input io.Reader, output io.Writer) (rs RuleSet, err error) {
 	defer recoverParse(&err)
 
 	// "Reset" the global ParsedRuleset
-	ParsedRuleset = data.RuleSet{}
+	ParsedRuleset = RuleSet{}
 
 	lexer := Lexer{
 		lexer: *NewScanner(),

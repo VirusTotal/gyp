@@ -1,4 +1,4 @@
-package grammar
+package yara
 
 import "fmt"
 

@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/VirusTotal/go-yara-parser/data"
+	"github.com/VirusTotal/go-yara-parser"
 )
 
 // global options
@@ -21,7 +21,7 @@ func main() {
 	}
 	defer handleErr(jsonFile.Close)
 
-	var ruleset data.RuleSet
+	var ruleset yara.RuleSet
 	unmarshaler := jsonpb.Unmarshaler{}
 	err = unmarshaler.Unmarshal(jsonFile, &ruleset)
 
@@ -44,7 +44,7 @@ func main() {
 		out = f
 	}
 
-	serializer := data.YaraSerializer{Indent: opts.Indent}
+	serializer := yara.YaraSerializer{Indent: opts.Indent}
 	txt, err := serializer.Serialize(ruleset)
 	if err != nil {
 		perror(`Couldn't serialize ruleset: %s`, err)

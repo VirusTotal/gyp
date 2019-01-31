@@ -1,6 +1,6 @@
 // Functions and methods for serializing a RuleSet proto to YARA rules as strings.
 
-package data
+package yara
 
 import (
 	"fmt"

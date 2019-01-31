@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Lexical analyzer for YARA */
 
 %top{
-package grammar
+package yara
 
 import (
     "fmt"
@@ -41,8 +41,6 @@ import (
     "strconv"
     "strings"
     proto "github.com/golang/protobuf/proto"
-
-    "github.com/VirusTotal/go-yara-parser/data"
 )
 
 // Necessary types for flexgo
@@ -323,7 +321,7 @@ u?int(8|16|32)(be)? {
 
   txt := strings.TrimSuffix(textBuilder.String(), YYtext)
   
-  var mods data.StringModifiers
+  var mods StringModifiers
 
   for _, c := range YYtext {
       switch c {
@@ -342,7 +340,7 @@ u?int(8|16|32)(be)? {
       }
   }
 
-  yylval.reg = data.Regexp {
+  yylval.reg = Regexp {
       Text: &txt,
       Modifiers: &mods,
   }
