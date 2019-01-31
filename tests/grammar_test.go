@@ -7,13 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/VirusTotal/go-yara-parser/data"
-	"github.com/VirusTotal/go-yara-parser/grammar"
+	"github.com/VirusTotal/go-yara-parser"
 )
 
 const testFile = "ruleset.yar"
 
-var ruleset data.RuleSet
+var ruleset yara.RuleSet
 var inputYaraRuleset string
 
 func init() {
@@ -21,7 +20,7 @@ func init() {
 	if err != nil {
 		log.Fatalf(`Unable to open ruleset file "%s": %s`, testFile, err)
 	}
-	ruleset, err = grammar.Parse(f, os.Stderr)
+	ruleset, err = yara.Parse(f, os.Stderr)
 	if err != nil {
 		log.Fatalf(`Unable to parse ruleset file "%s": %s`, testFile, err)
 	}
@@ -46,7 +45,7 @@ func init() {
 }
 
 func TestRulesetParsing(t *testing.T) {
-	serializer := data.YaraSerializer{Indent: "  "}
+	serializer := yara.YaraSerializer{Indent: "  "}
 	yaraRules, err := serializer.Serialize(ruleset)
 	if err != nil {
 		log.Fatalf(`Unable to serialize ruleset to YARA: %s`, err)
