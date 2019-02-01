@@ -19,7 +19,9 @@ condition:
 	_, err := parseRuleStr(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
-	} else if err.(yara.Error).Code != yara.UnterminatedStringError {
+	}
+	yaraErr, ok := err.(yara.Error)
+	if !ok || yaraErr.Code != yara.UnterminatedStringError {
 		t.Fatalf(`Unexpected error: "%s", expected UnterminatedStringError`, err)
 	}
 }
@@ -37,7 +39,9 @@ condition:
 	_, err := parseRuleStr(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
-	} else if err.(yara.Error).Code != yara.UnterminatedRegexError {
+	}
+	yaraErr, ok := err.(yara.Error)
+	if !ok || yaraErr.Code != yara.UnterminatedRegexError {
 		t.Fatalf(`Unexpected error: "%s", expected UnterminatedRegexError`, err)
 	}
 }

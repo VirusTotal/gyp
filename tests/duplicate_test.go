@@ -19,7 +19,10 @@ condition:
 	_, err := parseRuleStr(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
-	} else if err.(yara.Error).Code != yara.DuplicateRuleError {
+	}
+
+	yaraErr, ok := err.(yara.Error)
+	if !ok || yaraErr.Code != yara.DuplicateRuleError {
 		t.Fatalf(`Unexpected error: "%s", expected DuplicateRuleError`, err)
 	}
 }
@@ -73,7 +76,9 @@ condition:
 	_, err := parseRuleStr(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
-	} else if err.(yara.Error).Code != yara.DuplicateStringError {
+	}
+	yaraErr, ok := err.(yara.Error)
+	if !ok || yaraErr.Code != yara.DuplicateStringError {
 		t.Fatalf(`Unexpected error: "%s", expected DuplicateStringsError`, err)
 	}
 }
@@ -100,7 +105,9 @@ condition:
 	_, err := parseRuleStr(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
-	} else if err.(yara.Error).Code != yara.DuplicateTagError {
+	}
+	yaraErr, ok := err.(yara.Error)
+	if !ok || yaraErr.Code != yara.DuplicateTagError {
 		t.Fatalf(`Unexpected error: "%s", expected DuplicateTagError`, err.Error())
 	}
 }
