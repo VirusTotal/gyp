@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-var errParser error
+var lexicalError Error
 
 func init() {
 	xxErrorVerbose = true
@@ -16,7 +16,15 @@ func init() {
 
 // Parse takes an input source and an output and initiates parsing
 func Parse(input io.Reader, output io.Writer) (rs RuleSet, err error) {
-	defer recoverParse(&err)
+	defer func() {
+		if r := recover(); r != nil {
+			if yaraError, ok := r.(Error); ok {
+				err = yaraError
+			} else {
+				panic(r)
+			}
+		}
+	}()
 
 	// "Reset" the global ParsedRuleset
 	ParsedRuleset = RuleSet{}
@@ -27,9 +35,8 @@ func Parse(input io.Reader, output io.Writer) (rs RuleSet, err error) {
 	lexer.lexer.In = input
 	lexer.lexer.Out = output
 
-	result := xxParse(&lexer)
-	if result != 0 {
-		err = fmt.Errorf(`Parser result: "%d" %s`, result, errParser)
+	if result := xxParse(&lexer); result != 0 {
+		err = lexicalError
 	}
 
 	rs = ParsedRuleset
@@ -54,6 +61,8 @@ func (l *Lexer) Lex(lval *xxSymType) int {
 // Error satisfies the interface expected of the goyacc parser.
 // Here, it simply writes the error to stdout.
 func (l *Lexer) Error(e string) {
-	errParser = fmt.Errorf(`grammar: lexical error @%d: "%s"`,
-		l.lexer.Lineno, e)
+	lexicalError = Error{
+		LexicalError,
+		fmt.Sprintf(`@%d - "%s"`, l.lexer.Lineno, e),
+	}
 }

@@ -1,8 +1,9 @@
 package tests
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/VirusTotal/go-yara-parser"
 )
 
 func TestDuplicateRules(t *testing.T) {
@@ -18,8 +19,8 @@ condition:
 	_, err := parseRuleStr(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
-	} else if !strings.Contains(strings.ToLower(err.Error()), "duplicate") {
-		t.Fatalf(`Error did not mention "duplicate": %s`, err)
+	} else if err.(yara.Error).Code != yara.DuplicateRuleError {
+		t.Fatalf(`Unexpected error: "%s", expected DuplicateRuleError`, err)
 	}
 }
 
@@ -72,8 +73,8 @@ condition:
 	_, err := parseRuleStr(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
-	} else if !strings.Contains(err.Error(), "duplicate") {
-		t.Fatalf(`Error did not mention "duplicate": %s`, err)
+	} else if err.(yara.Error).Code != yara.DuplicateStringError {
+		t.Fatalf(`Unexpected error: "%s", expected DuplicateStringsError`, err)
 	}
 }
 
@@ -87,7 +88,7 @@ condition:
 }`
 	_, err := parseRuleStr(rs)
 	if err != nil {
-		t.Fatalf(`Failed to parse: %s`, err)
+		t.Fatalf(`Failed to parse: %s`, err.Error())
 	}
 }
 
@@ -99,7 +100,7 @@ condition:
 	_, err := parseRuleStr(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
-	} else if !strings.Contains(err.Error(), "duplicate") {
-		t.Fatalf(`Error did not mention "duplicate": %s`, err)
+	} else if err.(yara.Error).Code != yara.DuplicateTagError {
+		t.Fatalf(`Unexpected error: "%s", expected DuplicateTagError`, err.Error())
 	}
 }

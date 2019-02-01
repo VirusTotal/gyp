@@ -199,7 +199,7 @@ rule
           // Forbid duplicate rules
           for _, r := range ParsedRuleset.Rules {
               if $3 == *r.Identifier {
-                  err := fmt.Errorf(`Duplicate rule "%s"`, $3)
+                  err := Error{ DuplicateRuleError, $3 }
                   panic(err)
               }
           }
@@ -213,10 +213,14 @@ rule
           idx := make(map[string]struct{})
           for _, t := range $5 {
               if _, had := idx[t]; had {
-                  msg := fmt.Sprintf(`grammar: Rule "%s" has duplicate tag "%s"`,
+                  err := Error{
+                    DuplicateTagError,
+                    fmt.Sprintf(
+                      `"%s" at rule "%s"`,
                       $<yr>4.Identifier,
-                      t)
-                  panic(msg)
+                      t),
+                  }
+                  panic(err)
               }
               idx[t] = struct{}{}
           }
@@ -228,15 +232,19 @@ rule
           // Forbid duplicate string IDs, except `$` (anonymous)
           idx = make(map[string]struct{})
           for _, s := range $8 {
-              if *s.Id == "$" {
+              if s.GetId() == "$" {
                   continue
               }
               if _, had := idx[*s.Id]; had {
-                  msg := fmt.Sprintf(
-                    `grammar: Rule "%s" has duplicated string "%s"`,
-                    $<yr>4.Identifier,
-                    *s.Id)
-                  panic(msg)
+                  err := Error{
+                    DuplicateStringError,
+                    fmt.Sprintf(
+                      `"%s" at rule "%s"`,
+                      $<yr>4.Identifier,
+                      s.GetId(),
+                    ),
+                  }
+                  panic(err)
               }
               idx[*s.Id] = struct{}{}
           }

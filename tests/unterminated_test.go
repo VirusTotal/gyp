@@ -1,8 +1,9 @@
 package tests
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/VirusTotal/go-yara-parser"
 )
 
 // TestUnterminatedString tests for a rule with an unterminated string
@@ -16,7 +17,11 @@ condition:
   any of them
 }`
 	_, err := parseRuleStr(rs)
-	unterminatedChecker(t, err)
+	if err == nil {
+		t.Fatalf(`Parsing succeeded; should have failed`)
+	} else if err.(yara.Error).Code != yara.UnterminatedStringError {
+		t.Fatalf(`Unexpected error: "%s", expected UnterminatedStringError`, err)
+	}
 }
 
 // TestUnterminatedRegex tests for a rule with an unterminated regex
@@ -30,15 +35,9 @@ condition:
   any of them
 }`
 	_, err := parseRuleStr(rs)
-	unterminatedChecker(t, err)
-}
-
-// util func for checking an expected error for the word "unterminated"
-func unterminatedChecker(t *testing.T, err error) {
 	if err == nil {
-		t.Fatalf("Error should not have been nil")
-	}
-	if !strings.Contains(err.Error(), "unterminated") {
-		t.Fatalf("Error other than unterminated string/regex: %s", err)
+		t.Fatalf(`Parsing succeeded; should have failed`)
+	} else if err.(yara.Error).Code != yara.UnterminatedRegexError {
+		t.Fatalf(`Unexpected error: "%s", expected UnterminatedRegexError`, err)
 	}
 }

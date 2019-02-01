@@ -1781,7 +1781,7 @@ case 64:
 
 //line lexer.l:309
 {
-  panic(fmt.Errorf("unterminated string"))
+  panic(createError(UnterminatedStringError, ""))
 }
 case 65:
 /* rule 65 can match eol */
@@ -1800,7 +1800,7 @@ case 65:
 
 //line lexer.l:314
 {
-  panic(fmt.Errorf("illegal escape sequence"))
+  panic(createError(IllegalEscapeSequenceError, ""))
 }
 case 66:
 
@@ -1837,7 +1837,7 @@ case 66:
 
       default:
           // Should be impossible
-          panic(fmt.Errorf("Invalid regex modifier: %c", c))
+          panic(createError(InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c)))
       }
   }
 
@@ -1916,7 +1916,7 @@ case 70:
 
 //line lexer.l:364
 {
-  panic(fmt.Errorf("unterminated regular expression"))
+  panic(createError(UnterminatedRegexError, ""))
 }
 case 71:
 
@@ -2025,7 +2025,7 @@ case 75:
     return r
   }
 
-  panic(fmt.Errorf("non-ascii byte '%d'", r))
+  panic(createError(NonAsciiByteError, fmt.Sprintf(`"%d"`, r)))
 }
 case 76:
 
