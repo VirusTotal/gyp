@@ -44,16 +44,9 @@ func main() {
 		out = f
 	}
 
-	serializer := yara.YaraSerializer{Indent: opts.Indent}
-	txt, err := serializer.Serialize(ruleset)
-	if err != nil {
+	serializer := yara.CreateYaraSerializer(opts.Indent, out)
+	if err := serializer.Serialize(ruleset); err != nil {
 		perror(`Couldn't serialize ruleset: %s`, err)
-		os.Exit(6)
-	}
-
-	_, err = out.Write([]byte(txt))
-	if err != nil {
-		perror(`Error writing YARA: %s`, err)
 		os.Exit(6)
 	}
 }

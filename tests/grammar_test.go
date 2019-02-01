@@ -45,16 +45,17 @@ func init() {
 }
 
 func TestRulesetParsing(t *testing.T) {
-	serializer := yara.YaraSerializer{Indent: "  "}
-	yaraRules, err := serializer.Serialize(ruleset)
-	if err != nil {
+	var b strings.Builder
+	serializer := yara.CreateYaraSerializer("  ", &b)
+	if err := serializer.Serialize(ruleset); err != nil {
 		log.Fatalf(`Unable to serialize ruleset to YARA: %s`, err)
 	}
 
-	if yaraRules != inputYaraRuleset {
+	outputYaraRuleset := b.String()
+	if outputYaraRuleset != inputYaraRuleset {
 		log.Fatalf(
 			"Generated YARA ruleset does not match input file.\nOutput:\n%s",
-			yaraRules,
+			outputYaraRuleset,
 		)
 	}
 }
