@@ -307,12 +307,12 @@ u?int(8|16|32)(be)? {
 
 
 <str>\n  {
-  panic(createError(UnterminatedStringError, ""))
+  panic(newError(UnterminatedStringError, ""))
 }
 
 
 <str>\\(.|\n) {
-  panic(createError(IllegalEscapeSequenceError, ""))
+  panic(newError(IllegalEscapeSequenceError, ""))
 }
 
 
@@ -336,7 +336,7 @@ u?int(8|16|32)(be)? {
 
       default:
           // Should be impossible
-          panic(createError(InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c)))
+          panic(newError(InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c)))
       }
   }
 
@@ -362,7 +362,7 @@ u?int(8|16|32)(be)? {
 
 
 <regexp>\n  {
-  panic(createError(UnterminatedRegexError, ""))
+  panic(newError(UnterminatedRegexError, ""))
 }
 
 
@@ -403,7 +403,7 @@ u?int(8|16|32)(be)? {
     return r
   }
 
-  panic(createError(NonAsciiByteError, fmt.Sprintf(`"%d"`, r)))
+  panic(newError(NonAsciiByteError, fmt.Sprintf(`"%d"`, r)))
 }
 
 %%

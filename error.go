@@ -23,7 +23,7 @@ type Error struct {
 	Data string
 }
 
-func createError(code Code, data string) error {
+func newError(code Code, data string) error {
 	if code == 0 {
 		return nil
 	}

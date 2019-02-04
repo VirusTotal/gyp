@@ -18,7 +18,7 @@ type YaraSerializer struct {
 	w io.Writer
 }
 
-func CreateYaraSerializer(indent string, w io.Writer) *YaraSerializer {
+func NewSerializer(indent string, w io.Writer) *YaraSerializer {
 	return &YaraSerializer{Indent: indent, w: w}
 }
 

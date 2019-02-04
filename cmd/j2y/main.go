@@ -44,7 +44,7 @@ func main() {
 		out = f
 	}
 
-	serializer := yara.CreateYaraSerializer(opts.Indent, out)
+	serializer := yara.NewSerializer(opts.Indent, out)
 	if err := serializer.Serialize(ruleset); err != nil {
 		perror(`Couldn't serialize ruleset: %s`, err)
 		os.Exit(6)
