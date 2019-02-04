@@ -22,7 +22,7 @@ func main() {
 	}
 	defer handleErr(yaraFile.Close)
 
-	ruleset, err := yara.Parse(yaraFile, os.Stdout)
+	ruleset, err := yara.Parse(yaraFile)
 	if err != nil {
 		perror(`Couldn't parse YARA ruleset: %s`, err)
 		os.Exit(3)

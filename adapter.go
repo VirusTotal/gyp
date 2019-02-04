@@ -6,6 +6,7 @@ package yara
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 )
 
 var lexicalError Error
@@ -14,8 +15,8 @@ func init() {
 	xxErrorVerbose = true
 }
 
-// Parse takes an input source and an output and initiates parsing
-func Parse(input io.Reader, output io.Writer) (rs RuleSet, err error) {
+// Parse parses a YARA rule from the provided input source
+func Parse(input io.Reader) (rs RuleSet, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if yaraError, ok := r.(Error); ok {
@@ -33,7 +34,7 @@ func Parse(input io.Reader, output io.Writer) (rs RuleSet, err error) {
 		lexer: *NewScanner(),
 	}
 	lexer.lexer.In = input
-	lexer.lexer.Out = output
+	lexer.lexer.Out = ioutil.Discard
 
 	if result := xxParse(&lexer); result != 0 {
 		err = lexicalError

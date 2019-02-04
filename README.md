@@ -162,7 +162,7 @@ func main() {
     log.Fatalf("Error: %s\n", err)
   }
 
-  ruleset, err := grammar.Parse(input, os.Stdout)
+  ruleset, err := grammar.Parse(input)
   if err != nil {
     log.Fatalf(`Parsing failed: "%s"`, err)
   }
