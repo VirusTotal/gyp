@@ -54,6 +54,6 @@ var errorMessages = map[Code]string{
 	UnterminatedStringError:    "unterminated string",
 	IllegalEscapeSequenceError: "illegal escape sequence",
 	InvalidRegexModifierError:  "invalid regex modifier",
-	UnterminatedRegexError:     "interminated regular expression",
+	UnterminatedRegexError:     "unterminated regular expression",
 	NonAsciiByteError:          "non-ASCII byte",
 }
