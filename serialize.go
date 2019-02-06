@@ -30,12 +30,15 @@ func (ys *YaraSerializer) Serialize(rs RuleSet) error {
 var keywords = map[Keyword]string{
 	Keyword_ENTRYPOINT: "entrypoint",
 	Keyword_FILESIZE:   "filesize",
-	Keyword_THEM:       "them",
 }
 
 var forKeywords = map[ForKeyword]string{
 	ForKeyword_ALL: "all",
 	ForKeyword_ANY: "any",
+}
+
+var stringSetKeywords = map[StringSetKeyword]string{
+	StringSetKeyword_THEM: "them",
 }
 
 var operators = map[BinaryExpression_Operator]string{
@@ -581,7 +584,7 @@ func (ys *YaraSerializer) serializeStringSet(e *StringSet) error {
 	case *StringSet_Strings:
 		return ys.serializeStringEnumeration(e.GetStrings())
 	case *StringSet_Keyword:
-		return ys.serializeKeyword(e.GetKeyword())
+		return ys.serializeStringSetKeyword(e.GetKeyword())
 	default:
 		return fmt.Errorf(`Unsupported StringSet value type "%s"`, val)
 	}
@@ -620,6 +623,16 @@ func (ys *YaraSerializer) serializeKeyword(e Keyword) error {
 // Serializes a ForKeyword.
 func (ys *YaraSerializer) serializeForKeyword(e ForKeyword) error {
 	kw, ok := forKeywords[e]
+	if !ok {
+		return fmt.Errorf(`Unknown keyword "%v"`, e)
+	}
+
+	return ys.writeString(kw)
+}
+
+// Serializes a StringSetKeyword.
+func (ys *YaraSerializer) serializeStringSetKeyword(e StringSetKeyword) error {
+	kw, ok := stringSetKeywords[e]
 	if !ok {
 		return fmt.Errorf(`Unknown keyword "%v"`, e)
 	}

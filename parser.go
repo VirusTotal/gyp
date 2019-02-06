@@ -1496,7 +1496,7 @@ xxdefault:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
 //line grammar.y:758
 		{
-			xxVAL.strset = &StringSet{Set: &StringSet_Keyword{Keyword_THEM}}
+			xxVAL.strset = &StringSet{Set: &StringSet_Keyword{StringSetKeyword_THEM}}
 		}
 	case 83:
 		xxDollar = xxS[xxpt-1 : xxpt+1]

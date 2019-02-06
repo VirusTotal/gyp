@@ -131,7 +131,7 @@ message ForOfExpression {
 message StringSet {
   oneof set {
     StringEnumeration strings = 1;
-    Keyword keyword = 2;
+    StringSetKeyword keyword = 2;
   }
 }
 
@@ -148,12 +148,15 @@ enum Keyword {
   UNKNOWN = 1;
   ENTRYPOINT = 2;
   FILESIZE = 3;
-  THEM = 4;
 }
 
 enum ForKeyword {
   ALL = 1;
   ANY = 2;
+}
+
+enum StringSetKeyword {
+  THEM = 1;
 }
 
 message Expression {

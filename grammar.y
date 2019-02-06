@@ -756,7 +756,7 @@ string_set
       }
     | _THEM_
       {
-          $$ = &StringSet { Set: &StringSet_Keyword{Keyword_THEM} }
+          $$ = &StringSet { Set: &StringSet_Keyword{StringSetKeyword_THEM} }
       }
     ;
 
