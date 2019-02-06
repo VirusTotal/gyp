@@ -20,7 +20,7 @@ func init() {
 	if err != nil {
 		log.Fatalf(`Unable to open ruleset file "%s": %s`, testFile, err)
 	}
-	ruleset, err = yara.Parse(f, os.Stderr)
+	ruleset, err = yara.Parse(f)
 	if err != nil {
 		log.Fatalf(`Unable to parse ruleset file "%s": %s`, testFile, err)
 	}
@@ -46,7 +46,7 @@ func init() {
 
 func TestRulesetParsing(t *testing.T) {
 	var b strings.Builder
-	serializer := yara.CreateYaraSerializer("  ", &b)
+	serializer := yara.NewSerializer("  ", &b)
 	if err := serializer.Serialize(ruleset); err != nil {
 		log.Fatalf(`Unable to serialize ruleset to YARA: %s`, err)
 	}

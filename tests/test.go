@@ -21,10 +21,10 @@ func openTestFile(t *testing.T, fname string) io.Reader {
 
 func parseTestFile(t *testing.T, fname string) (yara.RuleSet, error) {
 	f := openTestFile(t, fname)
-	return yara.Parse(f, os.Stderr)
+	return yara.Parse(f)
 }
 
 func parseRuleStr(s string) (yara.RuleSet, error) {
 	buf := bytes.NewBufferString(s)
-	return yara.Parse(buf, os.Stderr)
+	return yara.Parse(buf)
 }
