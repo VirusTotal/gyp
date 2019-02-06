@@ -31,8 +31,11 @@ var keywords = map[Keyword]string{
 	Keyword_ENTRYPOINT: "entrypoint",
 	Keyword_FILESIZE:   "filesize",
 	Keyword_THEM:       "them",
-	Keyword_ALL:        "all",
-	Keyword_ANY:        "any",
+}
+
+var forKeywords = map[ForKeyword]string{
+	ForKeyword_ALL: "all",
+	ForKeyword_ANY: "any",
 }
 
 var operators = map[BinaryExpression_Operator]string{
@@ -483,7 +486,7 @@ func (ys *YaraSerializer) serializeForExpression(e *ForExpression) error {
 	case *ForExpression_Expression:
 		return ys.serializeExpression(e.GetExpression())
 	case *ForExpression_Keyword:
-		return ys.serializeKeyword(e.GetKeyword())
+		return ys.serializeForKeyword(e.GetKeyword())
 	default:
 		return fmt.Errorf(`Unsupported ForExpression value type "%s"`, val)
 	}
@@ -607,6 +610,16 @@ func (ys *YaraSerializer) serializeStringEnumeration(e *StringEnumeration) error
 // Serializes a Keyword.
 func (ys *YaraSerializer) serializeKeyword(e Keyword) error {
 	kw, ok := keywords[e]
+	if !ok {
+		return fmt.Errorf(`Unknown keyword "%v"`, e)
+	}
+
+	return ys.writeString(kw)
+}
+
+// Serializes a ForKeyword.
+func (ys *YaraSerializer) serializeForKeyword(e ForKeyword) error {
+	kw, ok := forKeywords[e]
 	if !ok {
 		return fmt.Errorf(`Unknown keyword "%v"`, e)
 	}

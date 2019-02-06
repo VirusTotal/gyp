@@ -1543,7 +1543,7 @@ xxdefault:
 //line grammar.y:804
 		{
 			xxVAL.forexp = &ForExpression{
-				For: &ForExpression_Keyword{Keyword_ALL},
+				For: &ForExpression_Keyword{ForKeyword_ALL},
 			}
 		}
 	case 89:
@@ -1551,7 +1551,7 @@ xxdefault:
 //line grammar.y:810
 		{
 			xxVAL.forexp = &ForExpression{
-				For: &ForExpression_Keyword{Keyword_ANY},
+				For: &ForExpression_Keyword{ForKeyword_ANY},
 			}
 		}
 	case 90:

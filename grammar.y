@@ -803,13 +803,13 @@ for_expression
     | _ALL_
       {
           $$ = &ForExpression{
-              For: &ForExpression_Keyword{Keyword_ALL},
+              For: &ForExpression_Keyword{ForKeyword_ALL},
           }
       }
     | _ANY_
       {
           $$ = &ForExpression{
-              For: &ForExpression_Keyword{Keyword_ANY},
+              For: &ForExpression_Keyword{ForKeyword_ANY},
           }
       }
     ;

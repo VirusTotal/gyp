@@ -118,7 +118,7 @@ message IntegerEnumeration {
 message ForExpression {
   oneof for {
     Expression expression = 1;  
-    Keyword keyword = 2;
+    ForKeyword keyword = 2;
   }
 }
 
@@ -149,8 +149,11 @@ enum Keyword {
   ENTRYPOINT = 2;
   FILESIZE = 3;
   THEM = 4;
-  ALL = 5;
-  ANY = 6;
+}
+
+enum ForKeyword {
+  ALL = 1;
+  ANY = 2;
 }
 
 message Expression {
