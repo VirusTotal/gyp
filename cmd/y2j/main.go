@@ -2,7 +2,6 @@ package main
 
 import (
 	jsonpb "github.com/golang/protobuf/jsonpb"
-	proto "github.com/golang/protobuf/proto"
 	"io"
 	"os"
 
@@ -27,7 +26,6 @@ func main() {
 		perror(`Couldn't parse YARA ruleset: %s`, err)
 		os.Exit(3)
 	}
-	ruleset.File = proto.String(opts.Infile)
 
 	// Set output to stdout if not specified; otherwise file
 	var out io.Writer

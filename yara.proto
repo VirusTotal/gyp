@@ -214,9 +214,8 @@ message Rule {
 }
 
 message RuleSet {
-  optional string file = 1;
-  repeated string imports = 2;
-  repeated string includes = 3;
-  repeated Rule rules = 4;
+  repeated string imports = 1;
+  repeated string includes = 2;
+  repeated Rule rules = 3;
 }
 
