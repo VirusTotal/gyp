@@ -4,8 +4,8 @@
 syntax = "proto2";
 
 message RuleModifiers {
-  optional bool global = 1;  // Required
-  optional bool private = 2;  // Required
+  optional bool global = 1;
+  optional bool private = 2;
 }
 
 message Meta {
@@ -37,7 +37,7 @@ message String {
   }
   optional Type type = 2;  // Required
   optional string text = 3;  // Required
-  optional StringModifiers modifiers = 4;  // Required
+  optional StringModifiers modifiers = 4;
 }
 
 message BinaryExpression {
@@ -89,7 +89,7 @@ message Range {
 
 message Regexp {
   optional string text = 1;  // Required
-  optional StringModifiers modifiers = 2;  // Required
+  optional StringModifiers modifiers = 2;
 }
 
 message IntegerFunction {
