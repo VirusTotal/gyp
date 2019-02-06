@@ -46,7 +46,8 @@ func init() {
 
 func TestRulesetParsing(t *testing.T) {
 	var b strings.Builder
-	serializer := yara.NewSerializer("  ", &b)
+	serializer := yara.NewSerializer(&b)
+	serializer.SetIndent("  ")
 	if err := serializer.Serialize(ruleset); err != nil {
 		log.Fatalf(`Unable to serialize ruleset to YARA: %s`, err)
 	}

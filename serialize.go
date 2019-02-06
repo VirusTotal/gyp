@@ -13,13 +13,22 @@ import (
 // Contains configuration options.
 type YaraSerializer struct {
 	// Indentation string.
-	Indent string
+	indent string
 
+	// Serialization output writer.
 	w io.Writer
 }
 
-func NewSerializer(indent string, w io.Writer) *YaraSerializer {
-	return &YaraSerializer{Indent: indent, w: w}
+// NewSerialize returns a YaraSerializer that writes the serialization
+// output to w.
+func NewSerializer(w io.Writer) *YaraSerializer {
+	return &YaraSerializer{indent: "  ", w: w}
+}
+
+// SetIndent sets the indentation string used for each indentation level.
+// Default value: 2 whitespaces.
+func (ys *YaraSerializer) SetIndent(indent string) {
+	ys.indent = indent
 }
 
 // Serialize converts the provided RuleSet proto to a YARA ruleset.
@@ -192,7 +201,7 @@ func (ys *YaraSerializer) serializeRule(r *Rule) error {
 		return err
 	}
 
-	if err := ys.indent(1); err != nil {
+	if err := ys.writeIndent(1); err != nil {
 		return err
 	}
 
@@ -200,7 +209,7 @@ func (ys *YaraSerializer) serializeRule(r *Rule) error {
 		return err
 	}
 
-	if err := ys.indent(2); err != nil {
+	if err := ys.writeIndent(2); err != nil {
 		return err
 	}
 
@@ -221,7 +230,7 @@ func (ys *YaraSerializer) serializeMetas(ms []*Meta) error {
 		return nil
 	}
 
-	if err := ys.indent(1); err != nil {
+	if err := ys.writeIndent(1); err != nil {
 		return err
 	}
 
@@ -230,7 +239,7 @@ func (ys *YaraSerializer) serializeMetas(ms []*Meta) error {
 	}
 
 	for _, m := range ms {
-		if err := ys.indent(2); err != nil {
+		if err := ys.writeIndent(2); err != nil {
 			return err
 		}
 		if err := ys.serializeMeta(m); err != nil {
@@ -264,7 +273,7 @@ func (ys *YaraSerializer) serializeStrings(strs []*String) error {
 		return nil
 	}
 
-	if err := ys.indent(1); err != nil {
+	if err := ys.writeIndent(1); err != nil {
 		return err
 	}
 
@@ -273,7 +282,7 @@ func (ys *YaraSerializer) serializeStrings(strs []*String) error {
 	}
 
 	for _, str := range strs {
-		if err := ys.indent(2); err != nil {
+		if err := ys.writeIndent(2); err != nil {
 			return err
 		}
 		if err := ys.serializeString(str); err != nil {
@@ -855,8 +864,8 @@ func (e *BinaryExpression) getPrecedence() int8 {
 	return prec
 }
 
-func (ys *YaraSerializer) indent(level int) error {
-	return ys.writeString(strings.Repeat(ys.Indent, level))
+func (ys *YaraSerializer) writeIndent(level int) error {
+	return ys.writeString(strings.Repeat(ys.indent, level))
 }
 
 func (ys *YaraSerializer) writeString(str string) error {
