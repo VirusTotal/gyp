@@ -1,38 +1,43 @@
 // adapter.go provides an adapter for a flexgo lexer to work
 // with a goyacc parser
 
-package grammar
+package yara
 
 import (
 	"fmt"
 	"io"
-
-	"github.com/VirusTotal/go-yara-parser/data"
+	"io/ioutil"
 )
 
-var errParser error
+var lexicalError Error
 
 func init() {
 	xxErrorVerbose = true
 }
 
-// Parse takes an input source and an output and initiates parsing
-func Parse(input io.Reader, output io.Writer) (rs data.RuleSet, err error) {
-	defer recoverParse(&err)
+// Parse parses a YARA rule from the provided input source
+func Parse(input io.Reader) (rs RuleSet, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if yaraError, ok := r.(Error); ok {
+				err = yaraError
+			} else {
+				panic(r)
+			}
+		}
+	}()
 
 	// "Reset" the global ParsedRuleset
-	ParsedRuleset = data.RuleSet{}
+	ParsedRuleset = RuleSet{}
 
 	lexer := Lexer{
 		lexer: *NewScanner(),
 	}
 	lexer.lexer.In = input
-	lexer.lexer.Out = output
+	lexer.lexer.Out = ioutil.Discard
 
-	result := xxParse(&lexer)
-	if result != 0 {
-
-		err = fmt.Errorf(`Parser result: "%d" %s`, result, errParser)
+	if result := xxParse(&lexer); result != 0 {
+		err = lexicalError
 	}
 
 	rs = ParsedRuleset
@@ -57,6 +62,8 @@ func (l *Lexer) Lex(lval *xxSymType) int {
 // Error satisfies the interface expected of the goyacc parser.
 // Here, it simply writes the error to stdout.
 func (l *Lexer) Error(e string) {
-	errParser = fmt.Errorf(`grammar: lexical error @%d: "%s"`,
-		l.lexer.Lineno, e)
+	lexicalError = Error{
+		LexicalError,
+		fmt.Sprintf(`@%d - "%s"`, l.lexer.Lineno, e),
+	}
 }

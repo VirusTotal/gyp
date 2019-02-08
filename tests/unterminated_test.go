@@ -1,44 +1,47 @@
 package tests
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/VirusTotal/go-yara-parser"
 )
 
 // TestUnterminatedString tests for a rule with an unterminated string
 func TestUnterminatedString(t *testing.T) {
 	const rs = `rule unterminated_string {
 meta:
-	description = "String missing a closing quote"
+  description = "String missing a closing quote"
 strings:
-	$s1 = "abcdefg
+  $s1 = "abcdefg
 condition:
-	any of them
+  any of them
 }`
 	_, err := parseRuleStr(rs)
-	unterminatedChecker(t, err)
+	if err == nil {
+		t.Fatalf(`Parsing succeeded; should have failed`)
+	}
+	yaraErr, ok := err.(yara.Error)
+	if !ok || yaraErr.Code != yara.UnterminatedStringError {
+		t.Fatalf(`Unexpected error: "%s", expected UnterminatedStringError`, err)
+	}
 }
 
 // TestUnterminatedRegex tests for a rule with an unterminated regex
 func TestUnterminatedRegex(t *testing.T) {
 	const rs = `rule unterminated_regex {
 meta:
-	description = "regex missing a closing slash"
+  description = "regex missing a closing slash"
 strings:
-	$r1 = /abcdefg
+  $r1 = /abcdefg
 condition:
-	any of them
+  any of them
 }`
 	_, err := parseRuleStr(rs)
-	unterminatedChecker(t, err)
-}
-
-// util func for checking an expected error for the word "unterminated"
-func unterminatedChecker(t *testing.T, err error) {
 	if err == nil {
-		t.Fatalf("Error should not have been nil")
+		t.Fatalf(`Parsing succeeded; should have failed`)
 	}
-	if !strings.Contains(err.Error(), "unterminated") {
-		t.Fatalf("Error other than unterminated string/regex: %s", err)
+	yaraErr, ok := err.(yara.Error)
+	if !ok || yaraErr.Code != yara.UnterminatedRegexError {
+		t.Fatalf(`Unexpected error: "%s", expected UnterminatedRegexError`, err)
 	}
 }

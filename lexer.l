@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Lexical analyzer for YARA */
 
 %top{
-package grammar
+package yara
 
 import (
     "fmt"
@@ -40,8 +40,7 @@ import (
     "math"
     "strconv"
     "strings"
-
-    "github.com/VirusTotal/go-yara-parser/data"
+    proto "github.com/golang/protobuf/proto"
 )
 
 // Necessary types for flexgo
@@ -190,21 +189,25 @@ $({letter}|{digit}|_)*  {
 
 
 #({letter}|{digit}|_)*  {
+  yylval.s = string(yytext)
   return _STRING_COUNT_;
 }
 
 
 @({letter}|{digit}|_)*  {
+  yylval.s = string(yytext)
   return _STRING_OFFSET_;
 }
 
 
 !({letter}|{digit}|_)*  {
+  yylval.s = string(yytext)
   return _STRING_LENGTH_;
 }
 
 
 u?int(8|16|32)(be)? {
+  yylval.s = string(yytext)
   return _INTEGER_FUNCTION_;
 }
 
@@ -304,12 +307,12 @@ u?int(8|16|32)(be)? {
 
 
 <str>\n  {
-  panic(fmt.Errorf("unterminated string"))
+  panic(newError(UnterminatedStringError, ""))
 }
 
 
 <str>\\(.|\n) {
-  panic(fmt.Errorf("illegal escape sequence"))
+  panic(newError(IllegalEscapeSequenceError, ""))
 }
 
 
@@ -318,28 +321,28 @@ u?int(8|16|32)(be)? {
 
   txt := strings.TrimSuffix(textBuilder.String(), YYtext)
   
-  var mods data.StringModifiers
+  var mods StringModifiers
 
   for _, c := range YYtext {
       switch c {
       case 'i':
-          mods.I = true
+          mods.I = proto.Bool(true)
 
       case 's':
-          mods.S = true
+          mods.S = proto.Bool(true)
 
       case '/':
           // Ignore
 
       default:
           // Should be impossible
-          panic(fmt.Errorf("Invalid regex modifier: %c", c))
+          panic(newError(InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c)))
       }
   }
 
-  yylval.reg = regexPair {
-      txt,
-      mods,
+  yylval.reg = Regexp {
+      Text: &txt,
+      Modifiers: &mods,
   }
 
   BEGIN (INITIAL);
@@ -359,7 +362,7 @@ u?int(8|16|32)(be)? {
 
 
 <regexp>\n  {
-  panic(fmt.Errorf("unterminated regular expression"))
+  panic(newError(UnterminatedRegexError, ""))
 }
 
 
@@ -384,7 +387,7 @@ u?int(8|16|32)(be)? {
   // NOTE: The above comment may not apply. We plan to not use hex_lexer.l
 
   // No need to collect like str and regexp start conditions
-  yylval.s = strings.Trim(YYtext, "{}")
+  yylval.s = strings.TrimSpace(strings.Trim(YYtext, "{}"))
 
   return _HEX_STRING_;
 }
@@ -400,7 +403,7 @@ u?int(8|16|32)(be)? {
     return r
   }
 
-  panic(fmt.Errorf("non-ascii byte '%d'", r))
+  panic(newError(NonAsciiByteError, fmt.Sprintf(`"%d"`, r)))
 }
 
 %%

@@ -1,159 +1,62 @@
 package tests
 
 import (
+	"io"
 	"log"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/VirusTotal/go-yara-parser/data"
-	"github.com/VirusTotal/go-yara-parser/grammar"
+	"github.com/VirusTotal/go-yara-parser"
 )
 
-const testfile = "ruleset.yar"
+const testFile = "ruleset.yar"
 
-var ruleset *data.RuleSet
+var ruleset yara.RuleSet
+var inputYaraRuleset string
 
 func init() {
-	f, err := os.Open(testfile)
+	f, err := os.Open(testFile)
 	if err != nil {
-		log.Fatalf(`Unable to open ruleset file "%s": %s`, testfile, err)
+		log.Fatalf(`Unable to open ruleset file "%s": %s`, testFile, err)
 	}
-	rs, err := grammar.Parse(f, os.Stderr)
+	ruleset, err = yara.Parse(f)
 	if err != nil {
-		log.Fatalf(`Unable to parse ruleset file "%s": %s`, testfile, err)
+		log.Fatalf(`Unable to parse ruleset file "%s": %s`, testFile, err)
 	}
 
-	ruleset = &rs
-}
-
-// TestRuleNames verifies rule names are being collected
-func TestRuleNames(t *testing.T) {
-
-	const ruleName = "BASIC_BOOL"
-
-	for _, rule := range ruleset.Rules {
-		if rule.Identifier == ruleName {
-			return
-		}
+	_, err = f.Seek(0, 0)
+	if err != nil {
+		log.Fatalf(`Unable to seek start of ruleset file "%s": %s`, testFile, err)
 	}
 
-	t.Fatalf(`Ruleset "%s" has no rule named "%s"`, testfile, ruleName)
-}
-
-// TestImport verifies imports are being collected
-func TestImport(t *testing.T) {
-
-	const i = 1
-	if l := len(ruleset.Imports); l < i {
-		t.Fatalf("Expected > %d imports in file %s; found %d", i, testfile, l)
-	}
-}
-
-// TestString verifies that strings are being collected
-func TestString(t *testing.T) {
-
-	const (
-		ruleName = "STRING1"
-		stringID = "$s1"
-	)
-	for _, rule := range ruleset.Rules {
-		if rule.Identifier == ruleName {
-			for _, s := range rule.Strings {
-				if s.ID == stringID {
-					return
-				}
-			}
-			t.Fatalf(`Ruleset "%s" rule "%s" has no string "%s"`,
-				testfile, ruleName, stringID)
-		}
+	buffer := make([]byte, 100)
+	read, err := f.Read(buffer)
+	var b strings.Builder
+	for ; err == nil; read, err = f.Read(buffer) {
+		b.Write(buffer[:read])
 	}
 
-	t.Fatalf(`Ruleset "%s" has no rule "%s" with string "%s"`,
-		testfile, ruleName, stringID)
-}
-
-// TestGlobal verifies that the global modifier is being collected
-func TestGlobal(t *testing.T) {
-
-	const ruleName = "GLOBAL"
-	for _, rule := range ruleset.Rules {
-		if rule.Identifier == ruleName {
-			if rule.Modifiers.Global {
-				return
-			}
-			t.Fatalf(`Ruleset "%s" contains rule "%s" which is not global`,
-				testfile, ruleName)
-		}
+	if err != io.EOF {
+		log.Fatalf(`Error reading ruleset file "%s": %s`, testFile, err)
 	}
 
-	t.Fatalf(`Ruleset "%s" has no rule "%s"`, testfile, ruleName)
+	inputYaraRuleset = b.String()
 }
 
-// TestPrivate verifies that the private modifier is being collected
-func TestPrivate(t *testing.T) {
-
-	const ruleName = "PRIVATE"
-	for _, rule := range ruleset.Rules {
-		if rule.Identifier == ruleName {
-			if rule.Modifiers.Private {
-				return
-			}
-			t.Fatalf(`Ruleset "%s" contains rule "%s" which is not private`,
-				testfile, ruleName)
-		}
+func TestRulesetParsing(t *testing.T) {
+	var b strings.Builder
+	serializer := yara.NewSerializer(&b)
+	serializer.SetIndent("  ")
+	if err := serializer.Serialize(ruleset); err != nil {
+		log.Fatalf(`Unable to serialize ruleset to YARA: %s`, err)
 	}
 
-	t.Fatalf(`Ruleset "%s" has no rule "%s"`, testfile, ruleName)
-}
-
-// TestMeta verifies that metadata is being collected
-func TestMeta(t *testing.T) {
-
-	const ruleName = "META"
-	for _, rule := range ruleset.Rules {
-		if rule.Identifier == ruleName {
-			checklist := make(map[string]bool)
-			for _, kvp := range rule.Meta {
-				checklist[kvp.Key] = true
-			}
-
-			expecteds := []string{
-				"meta_str", "meta_int", "meta_neg", "meta_true", "meta_false",
-			}
-
-			for _, expected := range expecteds {
-				if !checklist[expected] {
-					t.Errorf(`Ruleset "%s" rule "%s" missing expected meta "%s"`,
-						testfile, rule.Identifier, expected)
-				}
-			}
-			return
-		}
-	}
-
-	t.Fatalf(`Ruleset "%s" has no rule "%s"`, testfile, ruleName)
-}
-
-// TestXor verifies that the xor string modifier works
-func TestXor(t *testing.T) {
-	const ruleName = "XOR"
-	for _, rule := range ruleset.Rules {
-		if rule.Identifier == ruleName {
-			for _, s := range rule.Strings {
-				const strNamePrefix = "$xor"
-				if strings.HasPrefix(s.ID, strNamePrefix) {
-					if !s.Modifiers.Xor {
-						t.Errorf(`Ruleset "%s" rule "%s" string "%s" xor modifier not found`,
-							testfile, rule.Identifier, s.ID)
-					}
-				} else {
-					if s.Modifiers.Xor {
-						t.Errorf(`Ruleset "%s" rule "%s" string "%s" has unexpected xor modifier`,
-							testfile, rule.Identifier, s.ID)
-					}
-				}
-			}
-		}
+	outputYaraRuleset := b.String()
+	if outputYaraRuleset != inputYaraRuleset {
+		log.Fatalf(
+			"Generated YARA ruleset does not match input file.\nOutput:\n%s",
+			outputYaraRuleset,
+		)
 	}
 }

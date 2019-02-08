@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
+	jsonpb "github.com/golang/protobuf/jsonpb"
 	"io"
 	"os"
 
-	"github.com/VirusTotal/go-yara-parser/data"
+	"github.com/VirusTotal/go-yara-parser"
 )
 
 // global options
@@ -21,8 +21,10 @@ func main() {
 	}
 	defer handleErr(jsonFile.Close)
 
-	var ruleset data.RuleSet
-	err = json.NewDecoder(jsonFile).Decode(&ruleset)
+	var ruleset yara.RuleSet
+	unmarshaler := jsonpb.Unmarshaler{}
+	err = unmarshaler.Unmarshal(jsonFile, &ruleset)
+
 	if err != nil {
 		perror(`Couldn't JSON decode file: %s`, err)
 		os.Exit(3)
@@ -42,15 +44,10 @@ func main() {
 		out = f
 	}
 
-	txt, err := ruleset.Serialize()
-	if err != nil {
+	serializer := yara.NewSerializer(out)
+	serializer.SetIndent(opts.Indent)
+	if err := serializer.Serialize(ruleset); err != nil {
 		perror(`Couldn't serialize ruleset: %s`, err)
-		os.Exit(6)
-	}
-
-	_, err = out.Write([]byte(txt))
-	if err != nil {
-		perror(`Error writing YARA: %s`, err)
 		os.Exit(6)
 	}
 }
