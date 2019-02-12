@@ -6,6 +6,7 @@ import (
 )
 
 type Code int
+
 const (
 	LexicalError Code = iota
 	DuplicateRuleError
@@ -16,6 +17,11 @@ const (
 	InvalidRegexModifierError
 	UnterminatedRegexError
 	NonAsciiByteError
+	InvalidJumpLengthError
+	JumpTooLargeInsideAlternation
+	NegativeJump
+	InvalidJumpRange
+	UnboundedJumpInsideAlternation
 )
 
 type Error struct {
@@ -47,13 +53,18 @@ func (e Error) Error() string {
 }
 
 var errorMessages = map[Code]string{
-	LexicalError:               "lexical error",
-	DuplicateRuleError:         "duplicate rule",
-	DuplicateTagError:          "duplicate tag",
-	DuplicateStringError:       "duplicate string",
-	UnterminatedStringError:    "unterminated string",
-	IllegalEscapeSequenceError: "illegal escape sequence",
-	InvalidRegexModifierError:  "invalid regex modifier",
-	UnterminatedRegexError:     "unterminated regular expression",
-	NonAsciiByteError:          "non-ASCII byte",
+	LexicalError:                   "lexical error",
+	DuplicateRuleError:             "duplicate rule",
+	DuplicateTagError:              "duplicate tag",
+	DuplicateStringError:           "duplicate string",
+	UnterminatedStringError:        "unterminated string",
+	IllegalEscapeSequenceError:     "illegal escape sequence",
+	InvalidRegexModifierError:      "invalid regex modifier",
+	UnterminatedRegexError:         "unterminated regular expression",
+	NonAsciiByteError:              "non-ASCII byte",
+	InvalidJumpLengthError:         "invalid jump length",
+	JumpTooLargeInsideAlternation:  "jump too large inside alternation",
+	NegativeJump:                   "negative jump",
+	InvalidJumpRange:               "invalid jump range",
+	UnboundedJumpInsideAlternation: "unbounded jump inside alternation",
 }
