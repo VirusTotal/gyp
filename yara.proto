@@ -17,6 +17,15 @@ message Meta {
   }
 }
 
+message String {
+  optional string id = 1;  // Required
+  oneof value {
+    TextString text = 2;
+    HexTokens hex = 3;
+    Regexp regexp = 4;
+  }
+}
+
 message StringModifiers {
   optional bool nocase = 1;
   optional bool ascii = 2;
@@ -27,17 +36,40 @@ message StringModifiers {
   optional bool s = 7;
 }
 
-message String {
-  optional string id = 1;  // Required
-  enum Type {
-    UNKNOWN = 0;
-    TEXT = 1; 
-    HEX = 2;
-    REGEX = 3;
+message TextString {
+  optional string text = 1;
+  optional StringModifiers modifiers = 2;
+}
+
+message Regexp {
+  optional string text = 1;  // Required
+  optional StringModifiers modifiers = 2;
+}
+
+message HexTokens {
+  repeated HexToken token = 1;
+}
+
+message HexToken {
+  oneof value {
+    BytesSequence sequence = 1;
+    Jump jump = 2;
+    Alternative alternative = 3;
   }
-  optional Type type = 2;  // Required
-  optional string text = 3;  // Required
-  optional StringModifiers modifiers = 4;
+}
+
+message Alternative {
+  repeated HexTokens tokens = 1;
+}
+
+message BytesSequence {
+  optional bytes value = 1;
+  optional bytes mask = 2;  // 00 = any, 0F = ?v, F0 = v?, FF = vv
+}
+
+message Jump {
+  optional int64 start = 1;  // 0 if not present
+  optional int64 end = 2;  // Inclusive. Inf is not present.
 }
 
 message BinaryExpression {
@@ -85,11 +117,6 @@ message UnaryExpression {
 message Range {
   optional Expression start = 1;  // Required
   optional Expression end = 2;  // Required
-}
-
-message Regexp {
-  optional string text = 1;  // Required
-  optional StringModifiers modifiers = 2;
 }
 
 message IntegerFunction {
