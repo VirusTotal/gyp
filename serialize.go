@@ -319,15 +319,10 @@ func (ys *YaraSerializer) serializeString(str *data.String) error {
 	case *data.String_Hex:
 		return ys.serializeHexTokens(str.GetHex())
 	case *data.String_Regexp:
-		if err := ys.writeString("/"); err != nil {
-			return err
-		}
 		if err := ys.serializeRegexp(str.GetRegexp()); err != nil {
 			return err
 		}
-		if err := ys.writeString("/"); err != nil {
-			return err
-		}
+		return ys.serializeStringModifiers(str.GetRegexp().Modifiers)
 	default:
 		return fmt.Errorf(`Unsupported String value type "%T"`, val)
 	}
@@ -421,17 +416,17 @@ func (ys *YaraSerializer) serializeBytesSequence(b *data.BytesSequence) error {
 				return err
 			}
 		case 0x0F:
-			valStr := fmt.Sprintf("%02x", val)
+			valStr := fmt.Sprintf("%02X", val)
 			if err := ys.writeString("?" + string(valStr[1]) + " "); err != nil {
 				return err
 			}
 		case 0xF0:
-			valStr := fmt.Sprintf("%02x", val)
+			valStr := fmt.Sprintf("%02X", val)
 			if err := ys.writeString(string(valStr[0]) + "? "); err != nil {
 				return err
 			}
 		case 0xFF:
-			if err := ys.writeString(fmt.Sprintf("%02x ", val)); err != nil {
+			if err := ys.writeString(fmt.Sprintf("%02X ", val)); err != nil {
 				return err
 			}
 		default:
