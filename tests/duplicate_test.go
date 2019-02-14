@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/VirusTotal/go-yara-parser"
+	"github.com/VirusTotal/gyp/error"
 )
 
 func TestDuplicateRules(t *testing.T) {
@@ -21,8 +21,8 @@ condition:
 		t.Fatalf(`Parsing succeeded; should have failed`)
 	}
 
-	yaraErr, ok := err.(yara.Error)
-	if !ok || yaraErr.Code != yara.DuplicateRuleError {
+	yaraErr, ok := err.(gyperror.Error)
+	if !ok || yaraErr.Code != gyperror.DuplicateRuleError {
 		t.Fatalf(`Unexpected error: "%s", expected DuplicateRuleError`, err)
 	}
 }
@@ -77,8 +77,8 @@ condition:
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
 	}
-	yaraErr, ok := err.(yara.Error)
-	if !ok || yaraErr.Code != yara.DuplicateStringError {
+	yaraErr, ok := err.(gyperror.Error)
+	if !ok || yaraErr.Code != gyperror.DuplicateStringError {
 		t.Fatalf(`Unexpected error: "%s", expected DuplicateStringsError`, err)
 	}
 }
@@ -106,8 +106,8 @@ condition:
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
 	}
-	yaraErr, ok := err.(yara.Error)
-	if !ok || yaraErr.Code != yara.DuplicateTagError {
+	yaraErr, ok := err.(gyperror.Error)
+	if !ok || yaraErr.Code != gyperror.DuplicateTagError {
 		t.Fatalf(`Unexpected error: "%s", expected DuplicateTagError`, err.Error())
 	}
 }

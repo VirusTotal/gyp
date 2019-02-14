@@ -34,8 +34,8 @@ import (
   "fmt"
   proto "github.com/golang/protobuf/proto"
 
-  "github.com/VirusTotal/go-yara-parser/data"
-  yaraerr "github.com/VirusTotal/go-yara-parser/error"
+  "github.com/VirusTotal/gyp/data"
+  "github.com/VirusTotal/gyp/error"
 )
 
 const StringChainingThreshold int64 = 200
@@ -168,16 +168,16 @@ range
     : _LBRACKET_ _NUMBER_ _RBRACKET_
       {
         if $2 <= 0 {
-          err := yaraerr.Error{
-            yaraerr.InvalidJumpLengthError,
+          err := gyperror.Error{
+            gyperror.InvalidJumpLengthError,
             fmt.Sprintf("%d", $2),
           }
           panic(err)
         }
 
         if insideOr > 0 && $2 > StringChainingThreshold {
-          err := yaraerr.Error{
-            yaraerr.JumpTooLargeInsideAlternation,
+          err := gyperror.Error{
+            gyperror.JumpTooLargeInsideAlternation,
             fmt.Sprintf("%d", $2),
           }
           panic(err)
@@ -189,24 +189,24 @@ range
       {
         if insideOr > 0 &&
           ($2 > StringChainingThreshold || $4 > StringChainingThreshold) {
-          err := yaraerr.Error{
-            yaraerr.JumpTooLargeInsideAlternation,
+          err := gyperror.Error{
+            gyperror.JumpTooLargeInsideAlternation,
             fmt.Sprintf("%d-%d", $2, $4),
           }
           panic(err)
         }
 
         if $2 < 0 || $4 < 0 {
-          err := yaraerr.Error{
-            yaraerr.NegativeJump,
+          err := gyperror.Error{
+            gyperror.NegativeJump,
             fmt.Sprintf("%d-$d", $2, $4),
           }
           panic(err)
         }
 
         if $2 > $4 {
-          err := yaraerr.Error{
-            yaraerr.InvalidJumpRange,
+          err := gyperror.Error{
+            gyperror.InvalidJumpRange,
             fmt.Sprintf("%d-%d", $2, $4),
           }
           panic(err)
@@ -217,16 +217,16 @@ range
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _RBRACKET_
       {
         if insideOr > 0 {
-          err := yaraerr.Error{
-            yaraerr.UnboundedJumpInsideAlternation,
+          err := gyperror.Error{
+            gyperror.UnboundedJumpInsideAlternation,
             fmt.Sprintf("%d-", $2),
           }
           panic(err)
         }
 
         if $2 < 0 {
-          err := yaraerr.Error{
-            yaraerr.NegativeJump,
+          err := gyperror.Error{
+            gyperror.NegativeJump,
             fmt.Sprintf("%d-", $2),
           }
           panic(err)
@@ -237,8 +237,8 @@ range
     | _LBRACKET_ _HYPHEN_ _RBRACKET_ 
       {
         if insideOr > 0 {
-          err := yaraerr.Error{
-            yaraerr.UnboundedJumpInsideAlternation,
+          err := gyperror.Error{
+            gyperror.UnboundedJumpInsideAlternation,
             "-",
           }
           panic(err)

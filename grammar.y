@@ -28,14 +28,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 %{
-package yara
+package gyp
 
 import (
     "fmt"
     proto "github.com/golang/protobuf/proto"
 
-    "github.com/VirusTotal/go-yara-parser/data"
-    yaraerr "github.com/VirusTotal/go-yara-parser/error"
+    "github.com/VirusTotal/gyp/data"
+    "github.com/VirusTotal/gyp/error"
 )
 
 var ParsedRuleset data.RuleSet
@@ -203,7 +203,7 @@ rule
           // Forbid duplicate rules
           for _, r := range ParsedRuleset.Rules {
               if $3 == *r.Identifier {
-                  err := yaraerr.Error{ yaraerr.DuplicateRuleError, $3 }
+                  err := gyperror.Error{ gyperror.DuplicateRuleError, $3 }
                   panic(err)
               }
           }
@@ -217,8 +217,8 @@ rule
           idx := make(map[string]struct{})
           for _, t := range $5 {
               if _, had := idx[t]; had {
-                  err := yaraerr.Error{
-                    yaraerr.DuplicateTagError,
+                  err := gyperror.Error{
+                    gyperror.DuplicateTagError,
                     fmt.Sprintf(
                       `"%s" at rule "%s"`,
                       $<yr>4.Identifier,
@@ -240,8 +240,8 @@ rule
                   continue
               }
               if _, had := idx[*s.Id]; had {
-                  err := yaraerr.Error{
-                    yaraerr.DuplicateStringError,
+                  err := gyperror.Error{
+                    gyperror.DuplicateStringError,
                     fmt.Sprintf(
                       `"%s" at rule "%s"`,
                       $<yr>4.Identifier,

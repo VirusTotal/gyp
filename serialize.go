@@ -1,6 +1,6 @@
 // Functions and methods for serializing a RuleSet proto to YARA rules as strings.
 
-package yara
+package gyp
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/VirusTotal/go-yara-parser/data"
+	"github.com/VirusTotal/gyp/data"
 )
 
 // YaraSerializer converts a RuleSet from proto to YARA ruleset.

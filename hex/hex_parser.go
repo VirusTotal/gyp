@@ -11,8 +11,8 @@ import (
 	"fmt"
 	proto "github.com/golang/protobuf/proto"
 
-	"github.com/VirusTotal/go-yara-parser/data"
-	yaraerr "github.com/VirusTotal/go-yara-parser/error"
+	"github.com/VirusTotal/gyp/data"
+	"github.com/VirusTotal/gyp/error"
 )
 
 const StringChainingThreshold int64 = 200
@@ -613,16 +613,16 @@ xxdefault:
 //line hex/hex_grammar.y:169
 		{
 			if xxDollar[2].integer <= 0 {
-				err := yaraerr.Error{
-					yaraerr.InvalidJumpLengthError,
+				err := gyperror.Error{
+					gyperror.InvalidJumpLengthError,
 					fmt.Sprintf("%d", xxDollar[2].integer),
 				}
 				panic(err)
 			}
 
 			if insideOr > 0 && xxDollar[2].integer > StringChainingThreshold {
-				err := yaraerr.Error{
-					yaraerr.JumpTooLargeInsideAlternation,
+				err := gyperror.Error{
+					gyperror.JumpTooLargeInsideAlternation,
 					fmt.Sprintf("%d", xxDollar[2].integer),
 				}
 				panic(err)
@@ -636,24 +636,24 @@ xxdefault:
 		{
 			if insideOr > 0 &&
 				(xxDollar[2].integer > StringChainingThreshold || xxDollar[4].integer > StringChainingThreshold) {
-				err := yaraerr.Error{
-					yaraerr.JumpTooLargeInsideAlternation,
+				err := gyperror.Error{
+					gyperror.JumpTooLargeInsideAlternation,
 					fmt.Sprintf("%d-%d", xxDollar[2].integer, xxDollar[4].integer),
 				}
 				panic(err)
 			}
 
 			if xxDollar[2].integer < 0 || xxDollar[4].integer < 0 {
-				err := yaraerr.Error{
-					yaraerr.NegativeJump,
+				err := gyperror.Error{
+					gyperror.NegativeJump,
 					fmt.Sprintf("%d-$d", xxDollar[2].integer, xxDollar[4].integer),
 				}
 				panic(err)
 			}
 
 			if xxDollar[2].integer > xxDollar[4].integer {
-				err := yaraerr.Error{
-					yaraerr.InvalidJumpRange,
+				err := gyperror.Error{
+					gyperror.InvalidJumpRange,
 					fmt.Sprintf("%d-%d", xxDollar[2].integer, xxDollar[4].integer),
 				}
 				panic(err)
@@ -666,16 +666,16 @@ xxdefault:
 //line hex/hex_grammar.y:218
 		{
 			if insideOr > 0 {
-				err := yaraerr.Error{
-					yaraerr.UnboundedJumpInsideAlternation,
+				err := gyperror.Error{
+					gyperror.UnboundedJumpInsideAlternation,
 					fmt.Sprintf("%d-", xxDollar[2].integer),
 				}
 				panic(err)
 			}
 
 			if xxDollar[2].integer < 0 {
-				err := yaraerr.Error{
-					yaraerr.NegativeJump,
+				err := gyperror.Error{
+					gyperror.NegativeJump,
 					fmt.Sprintf("%d-", xxDollar[2].integer),
 				}
 				panic(err)
@@ -688,8 +688,8 @@ xxdefault:
 //line hex/hex_grammar.y:238
 		{
 			if insideOr > 0 {
-				err := yaraerr.Error{
-					yaraerr.UnboundedJumpInsideAlternation,
+				err := gyperror.Error{
+					gyperror.UnboundedJumpInsideAlternation,
 					"-",
 				}
 				panic(err)

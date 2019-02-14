@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/VirusTotal/go-yara-parser"
+	"github.com/VirusTotal/gyp"
 )
 
 // global options
@@ -21,7 +21,7 @@ func main() {
 	}
 	defer handleErr(yaraFile.Close)
 
-	ruleset, err := yara.Parse(yaraFile)
+	ruleset, err := gyp.Parse(yaraFile)
 	if err != nil {
 		perror(`Couldn't parse YARA ruleset: %s`, err)
 		os.Exit(3)

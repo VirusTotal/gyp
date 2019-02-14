@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Lexical analyzer for YARA */
 
 %top{
-package yara
+package gyp
 
 import (
     "fmt"
@@ -42,9 +42,9 @@ import (
     "strings"
     proto "github.com/golang/protobuf/proto"
 
-    "github.com/VirusTotal/go-yara-parser/data"
-    "github.com/VirusTotal/go-yara-parser/hex"
-    yaraerr "github.com/VirusTotal/go-yara-parser/error"
+    "github.com/VirusTotal/gyp/data"
+    "github.com/VirusTotal/gyp/hex"
+    "github.com/VirusTotal/gyp/error"
 )
 
 // Necessary types for flexgo
@@ -311,12 +311,12 @@ u?int(8|16|32)(be)? {
 
 
 <str>\n  {
-  panic(yaraerr.Error{ yaraerr.UnterminatedStringError, "" })
+  panic(gyperror.Error{ gyperror.UnterminatedStringError, "" })
 }
 
 
 <str>\\(.|\n) {
-  panic(yaraerr.Error{ yaraerr.IllegalEscapeSequenceError, "" })
+  panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "" })
 }
 
 
@@ -340,7 +340,7 @@ u?int(8|16|32)(be)? {
 
       default:
           // Should be impossible
-          panic(yaraerr.Error{ yaraerr.InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c) })
+          panic(gyperror.Error{ gyperror.InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c) })
       }
   }
 
@@ -366,7 +366,7 @@ u?int(8|16|32)(be)? {
 
 
 <regexp>\n  {
-  panic(yaraerr.Error{ yaraerr.UnterminatedRegexError, "" })
+  panic(gyperror.Error{ gyperror.UnterminatedRegexError, "" })
 }
 
 
@@ -413,7 +413,7 @@ u?int(8|16|32)(be)? {
     return r
   }
 
-  panic(yaraerr.Error{ yaraerr.NonAsciiByteError, fmt.Sprintf(`"%d"`, r) })
+  panic(gyperror.Error{ gyperror.NonAsciiByteError, fmt.Sprintf(`"%d"`, r) })
 }
 
 %%

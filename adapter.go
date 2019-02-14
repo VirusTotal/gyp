@@ -1,18 +1,18 @@
 // adapter.go provides an adapter for a flexgo lexer to work
 // with a goyacc parser
 
-package yara
+package gyp
 
 import (
 	"fmt"
 	"io"
 	"io/ioutil"
 
-	"github.com/VirusTotal/go-yara-parser/data"
-	yaraerr "github.com/VirusTotal/go-yara-parser/error"
+	"github.com/VirusTotal/gyp/data"
+	"github.com/VirusTotal/gyp/error"
 )
 
-var lexicalError yaraerr.Error
+var lexicalError gyperror.Error
 
 func init() {
 	xxErrorVerbose = true
@@ -22,7 +22,7 @@ func init() {
 func Parse(input io.Reader) (rs data.RuleSet, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			if yaraError, ok := r.(yaraerr.Error); ok {
+			if yaraError, ok := r.(gyperror.Error); ok {
 				err = yaraError
 			} else {
 				panic(r)
@@ -65,8 +65,8 @@ func (l *Lexer) Lex(lval *xxSymType) int {
 // Error satisfies the interface expected of the goyacc parser.
 // Here, it simply writes the error to stdout.
 func (l *Lexer) Error(e string) {
-	lexicalError = yaraerr.Error{
-		yaraerr.LexicalError,
+	lexicalError = gyperror.Error{
+		gyperror.LexicalError,
 		fmt.Sprintf(`@%d - "%s"`, l.lexer.Lineno, e),
 	}
 }

@@ -183,7 +183,7 @@ func main() {
     log.Fatalf("Error: %s\n", err)
   }
 
-  ruleset, err := yara.Parse(input)
+  ruleset, err := gyp.Parse(input)
   if err != nil {
     log.Fatalf(`Parsing failed: "%s"`, err)
   }

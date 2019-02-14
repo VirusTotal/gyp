@@ -1,6 +1,6 @@
 //line lexer.go:2
 //line lexer.l:33
-package yara
+package gyp
 
 import (
     "fmt"
@@ -12,9 +12,9 @@ import (
     "strings"
     proto "github.com/golang/protobuf/proto"
 
-    "github.com/VirusTotal/go-yara-parser/data"
-    "github.com/VirusTotal/go-yara-parser/hex"
-    yaraerr "github.com/VirusTotal/go-yara-parser/error"
+    "github.com/VirusTotal/gyp/data"
+    "github.com/VirusTotal/gyp/hex"
+    "github.com/VirusTotal/gyp/error"
 )
 
 // Necessary types for flexgo
@@ -1785,7 +1785,7 @@ case 64:
 
 //line lexer.l:313
 {
-  panic(yaraerr.Error{ yaraerr.UnterminatedStringError, "" })
+  panic(gyperror.Error{ gyperror.UnterminatedStringError, "" })
 }
 case 65:
 /* rule 65 can match eol */
@@ -1804,7 +1804,7 @@ case 65:
 
 //line lexer.l:318
 {
-  panic(yaraerr.Error{ yaraerr.IllegalEscapeSequenceError, "" })
+  panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "" })
 }
 case 66:
 
@@ -1841,7 +1841,7 @@ case 66:
 
       default:
           // Should be impossible
-          panic(yaraerr.Error{ yaraerr.InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c) })
+          panic(gyperror.Error{ gyperror.InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c) })
       }
   }
 
@@ -1920,7 +1920,7 @@ case 70:
 
 //line lexer.l:368
 {
-  panic(yaraerr.Error{ yaraerr.UnterminatedRegexError, "" })
+  panic(gyperror.Error{ gyperror.UnterminatedRegexError, "" })
 }
 case 71:
 
@@ -2035,7 +2035,7 @@ case 75:
     return r
   }
 
-  panic(yaraerr.Error{ yaraerr.NonAsciiByteError, fmt.Sprintf(`"%d"`, r) })
+  panic(gyperror.Error{ gyperror.NonAsciiByteError, fmt.Sprintf(`"%d"`, r) })
 }
 case 76:
 
