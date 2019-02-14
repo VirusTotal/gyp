@@ -1,10 +1,10 @@
-# go-yara-parser
+# gyp (go-yara-parser)
 
-`go-yara-parser` is a Go library for manipulating YARA rulesets.
+`gyp` is a Go library for manipulating YARA rulesets.
 It uses the same grammar and lexer files as the original libyara to ensure that lexing and parsing work exactly like YARA.
 The grammar and lexer files have been modified to fill protocol buffers (PB) messages for ruleset manipulation instead of compiling rulesets for data matching.
 
-Using `go-yara-parser`, one will be able to read YARA rulesets to programatically change metadata, rule names, rule modifiers, tags, strings, conditions and more.
+Using `gyp`, one will be able to read YARA rulesets to programatically change metadata, rule names, rule modifiers, tags, strings, conditions and more.
 
 Encoding rulesets as PB messages enable their manipulation in other languages.
 Additionally, the `y2j` tool is provided for serializing rulesets to JSON.
@@ -52,7 +52,6 @@ to this JSON output:
 
 ```json
 {
-  "file": "sample.yar",
   "imports": [
     "pe",
     "cuckoo"
@@ -73,51 +72,73 @@ to this JSON output:
       "meta": [
         {
           "key": "description",
-          "val": "This is a demo rule"
+          "text": "This is a demo rule"
         },
         {
           "key": "version",
-          "val": 1
+          "number": "1"
         },
         {
           "key": "production",
-          "val": false
+          "boolean": false
         },
         {
           "key": "description",
-          "val": "because we can"
+          "text": "because we can"
         }
       ],
       "strings": [
         {
           "id": "$string",
-          "type": "TEXT",
-          "text": "this is a string",
-          "modifiers": {
-            "nocase": true,
-            "ascii": false,
-            "wide": true,
-            "fullword": false,
-            "xor": false
+          "text": {
+            "text": "this is a string",
+            "modifiers": {
+              "nocase": true,
+              "ascii": false,
+              "wide": true,
+              "fullword": false,
+              "xor": false
+            }
           }
         },
         {
           "id": "$regex",
-          "type": "REGEX",
-          "text": "this is a regex",
-          "modifiers": {
-            "nocase": false,
-            "ascii": true,
-            "wide": false,
-            "fullword": true,
-            "xor": false,
-            "i": true
+          "regexp": {
+            "text": "this is a regex",
+            "modifiers": {
+              "nocase": false,
+              "ascii": true,
+              "wide": false,
+              "fullword": true,
+              "xor": false,
+              "i": true
+            }
           }
         },
         {
           "id": "$hex",
-          "type": "HEX",
-          "text": "01 23 45 67 89 ab cd ef [0-5] ?1 ?2 ?3"
+          "hex": {
+            "token": [
+              {
+                "sequence": {
+                  "value": "ASNFZ4mrze8=",
+                  "mask": "//////////8="
+                }
+              },
+              {
+                "jump": {
+                  "start": "0",
+                  "end": "5"
+                }
+              },
+              {
+                "sequence": {
+                  "value": "AQID",
+                  "mask": "Dw8P"
+                }
+              }
+            ]
+          }
         }
       ],
       "condition": {
@@ -153,7 +174,7 @@ import (
   "os"
   proto "github.com/golang/protobuf/proto"
 
-  "github.com/VirusTotal/go-yara-parser/grammar"
+  "github.com/VirusTotal/gyp"
 )
 
 func main() {
@@ -162,7 +183,7 @@ func main() {
     log.Fatalf("Error: %s\n", err)
   }
 
-  ruleset, err := grammar.Parse(input)
+  ruleset, err := yara.Parse(input)
   if err != nil {
     log.Fatalf(`Parsing failed: "%s"`, err)
   }
@@ -204,7 +225,8 @@ func main() {
 
 The `Makefile` includes targets for quickly building the parser and lexer and the data protocol buffer, as well as the `y2j` and `j2y` command-line tools:
 
-- Build parser and lexer: `make grammar`
+- Build rulesets parser and lexer: `make grammar`
+- Build hex strings parser and lexer: `make hexgrammar`
 - Build data protocol buffer: `make proto`
 - Build `y2j` tool: `make y2j`
 - Build `j2y` tool: `make j2y`
