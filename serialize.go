@@ -7,6 +7,8 @@ import (
 	"io"
 	"math"
 	"strings"
+
+	"github.com/VirusTotal/go-yara-parser/data"
 )
 
 // YaraSerializer converts a RuleSet from proto to YARA ruleset.
@@ -32,45 +34,45 @@ func (ys *YaraSerializer) SetIndent(indent string) {
 }
 
 // Serialize converts the provided RuleSet proto to a YARA ruleset.
-func (ys *YaraSerializer) Serialize(rs RuleSet) error {
+func (ys *YaraSerializer) Serialize(rs data.RuleSet) error {
 	return ys.serializeRuleSet(&rs)
 }
 
-var keywords = map[Keyword]string{
-	Keyword_ENTRYPOINT: "entrypoint",
-	Keyword_FILESIZE:   "filesize",
+var keywords = map[data.Keyword]string{
+	data.Keyword_ENTRYPOINT: "entrypoint",
+	data.Keyword_FILESIZE:   "filesize",
 }
 
-var forKeywords = map[ForKeyword]string{
-	ForKeyword_ALL: "all",
-	ForKeyword_ANY: "any",
+var forKeywords = map[data.ForKeyword]string{
+	data.ForKeyword_ALL: "all",
+	data.ForKeyword_ANY: "any",
 }
 
-var stringSetKeywords = map[StringSetKeyword]string{
-	StringSetKeyword_THEM: "them",
+var stringSetKeywords = map[data.StringSetKeyword]string{
+	data.StringSetKeyword_THEM: "them",
 }
 
-var operators = map[BinaryExpression_Operator]string{
-	BinaryExpression_MATCHES:     "matches",
-	BinaryExpression_CONTAINS:    "contains",
-	BinaryExpression_AT:          "at",
-	BinaryExpression_IN:          "in",
-	BinaryExpression_BITWISE_OR:  "|",
-	BinaryExpression_XOR:         "^",
-	BinaryExpression_BITWISE_AND: "&",
-	BinaryExpression_EQ:          "==",
-	BinaryExpression_NEQ:         "!=",
-	BinaryExpression_LT:          "<",
-	BinaryExpression_LE:          "<=",
-	BinaryExpression_GT:          ">",
-	BinaryExpression_GE:          ">=",
-	BinaryExpression_SHIFT_LEFT:  "<<",
-	BinaryExpression_SHIFT_RIGHT: ">>",
-	BinaryExpression_PLUS:        "+",
-	BinaryExpression_MINUS:       "-",
-	BinaryExpression_TIMES:       "*",
-	BinaryExpression_DIV:         "\\",
-	BinaryExpression_MOD:         "%",
+var operators = map[data.BinaryExpression_Operator]string{
+	data.BinaryExpression_MATCHES:     "matches",
+	data.BinaryExpression_CONTAINS:    "contains",
+	data.BinaryExpression_AT:          "at",
+	data.BinaryExpression_IN:          "in",
+	data.BinaryExpression_BITWISE_OR:  "|",
+	data.BinaryExpression_XOR:         "^",
+	data.BinaryExpression_BITWISE_AND: "&",
+	data.BinaryExpression_EQ:          "==",
+	data.BinaryExpression_NEQ:         "!=",
+	data.BinaryExpression_LT:          "<",
+	data.BinaryExpression_LE:          "<=",
+	data.BinaryExpression_GT:          ">",
+	data.BinaryExpression_GE:          ">=",
+	data.BinaryExpression_SHIFT_LEFT:  "<<",
+	data.BinaryExpression_SHIFT_RIGHT: ">>",
+	data.BinaryExpression_PLUS:        "+",
+	data.BinaryExpression_MINUS:       "-",
+	data.BinaryExpression_TIMES:       "*",
+	data.BinaryExpression_DIV:         "\\",
+	data.BinaryExpression_MOD:         "%",
 }
 
 const precedenceOrExpression int8 = 1
@@ -79,39 +81,39 @@ const precedenceAndExpression int8 = 2
 // Operators AT, IN, MATCHES and CONTAINS do not have a specified precedence.
 // In those cases, the maximum precedence value should be assumed to prevent
 // adding unnecessary parenthesis.
-var binaryOperatorsPrecedence = map[BinaryExpression_Operator]int8{
-	BinaryExpression_BITWISE_OR:  3,
-	BinaryExpression_XOR:         4,
-	BinaryExpression_BITWISE_AND: 5,
-	BinaryExpression_EQ:          6,
-	BinaryExpression_NEQ:         6,
-	BinaryExpression_LT:          7,
-	BinaryExpression_LE:          7,
-	BinaryExpression_GT:          7,
-	BinaryExpression_GE:          7,
-	BinaryExpression_SHIFT_LEFT:  8,
-	BinaryExpression_SHIFT_RIGHT: 8,
-	BinaryExpression_PLUS:        9,
-	BinaryExpression_MINUS:       9,
-	BinaryExpression_TIMES:       10,
-	BinaryExpression_DIV:         10,
-	BinaryExpression_MOD:         10,
+var binaryOperatorsPrecedence = map[data.BinaryExpression_Operator]int8{
+	data.BinaryExpression_BITWISE_OR:  3,
+	data.BinaryExpression_XOR:         4,
+	data.BinaryExpression_BITWISE_AND: 5,
+	data.BinaryExpression_EQ:          6,
+	data.BinaryExpression_NEQ:         6,
+	data.BinaryExpression_LT:          7,
+	data.BinaryExpression_LE:          7,
+	data.BinaryExpression_GT:          7,
+	data.BinaryExpression_GE:          7,
+	data.BinaryExpression_SHIFT_LEFT:  8,
+	data.BinaryExpression_SHIFT_RIGHT: 8,
+	data.BinaryExpression_PLUS:        9,
+	data.BinaryExpression_MINUS:       9,
+	data.BinaryExpression_TIMES:       10,
+	data.BinaryExpression_DIV:         10,
+	data.BinaryExpression_MOD:         10,
 }
 
 const precedenceNotExpression int8 = 15
 const precedenceUnaryExpression int8 = 15
 
-func (e *Expression) getPrecedence() int8 {
+func getExpressionPrecedence(e *data.Expression) int8 {
 	switch e.GetExpression().(type) {
-	case *Expression_OrExpression:
+	case *data.Expression_OrExpression:
 		return precedenceOrExpression
-	case *Expression_AndExpression:
+	case *data.Expression_AndExpression:
 		return precedenceAndExpression
-	case *Expression_BinaryExpression:
-		return e.GetBinaryExpression().getPrecedence()
-	case *Expression_NotExpression:
+	case *data.Expression_BinaryExpression:
+		return getBinaryExpressionPrecedence(e.GetBinaryExpression())
+	case *data.Expression_NotExpression:
 		return precedenceNotExpression
-	case *Expression_UnaryExpression:
+	case *data.Expression_UnaryExpression:
 		return precedenceUnaryExpression
 	default:
 		// Expression with no precedence defined. Return maximum value.
@@ -119,8 +121,17 @@ func (e *Expression) getPrecedence() int8 {
 	}
 }
 
+func getBinaryExpressionPrecedence(e *data.BinaryExpression) int8 {
+	prec, ok := binaryOperatorsPrecedence[e.GetOperator()]
+	if !ok {
+		return math.MaxInt8
+	}
+
+	return prec
+}
+
 // Serializes a complete YARA ruleset.
-func (ys *YaraSerializer) serializeRuleSet(rs *RuleSet) error {
+func (ys *YaraSerializer) serializeRuleSet(rs *data.RuleSet) error {
 	if len(rs.Includes) > 0 {
 		for _, include := range rs.Includes {
 			if err := ys.writeString(fmt.Sprintf("include \"%s\"\n", include)); err != nil {
@@ -155,7 +166,7 @@ func (ys *YaraSerializer) serializeRuleSet(rs *RuleSet) error {
 }
 
 // Serializes a YARA rule.
-func (ys *YaraSerializer) serializeRule(r *Rule) error {
+func (ys *YaraSerializer) serializeRule(r *data.Rule) error {
 	// Rule modifiers
 	if r.Modifiers.GetGlobal() {
 		if err := ys.writeString("global "); err != nil {
@@ -225,7 +236,7 @@ func (ys *YaraSerializer) serializeRule(r *Rule) error {
 }
 
 // Serializes the "meta:" section in a YARA rule.
-func (ys *YaraSerializer) serializeMetas(ms []*Meta) error {
+func (ys *YaraSerializer) serializeMetas(ms []*data.Meta) error {
 	if ms == nil || len(ms) == 0 {
 		return nil
 	}
@@ -254,21 +265,21 @@ func (ys *YaraSerializer) serializeMetas(ms []*Meta) error {
 }
 
 // Serializes a Meta declaration (key/value pair) in a YARA rule.
-func (ys *YaraSerializer) serializeMeta(m *Meta) error {
+func (ys *YaraSerializer) serializeMeta(m *data.Meta) error {
 	switch val := m.GetValue().(type) {
-	case *Meta_Text:
+	case *data.Meta_Text:
 		return ys.writeString(fmt.Sprintf(`%s = "%s"`, m.GetKey(), m.GetText()))
-	case *Meta_Number:
+	case *data.Meta_Number:
 		return ys.writeString(fmt.Sprintf(`%s = %v`, m.GetKey(), m.GetNumber()))
-	case *Meta_Boolean:
+	case *data.Meta_Boolean:
 		return ys.writeString(fmt.Sprintf(`%s = %v`, m.GetKey(), m.GetBoolean()))
 	default:
-		return fmt.Errorf(`Unsupported Meta value type "%s"`, val)
+		return fmt.Errorf(`Unsupported Meta value type "%T"`, val)
 	}
 }
 
 // Serializes the "strings:" section in a YARA rule.
-func (ys *YaraSerializer) serializeStrings(strs []*String) error {
+func (ys *YaraSerializer) serializeStrings(strs []*data.String) error {
 	if strs == nil || len(strs) == 0 {
 		return nil
 	}
@@ -297,45 +308,44 @@ func (ys *YaraSerializer) serializeStrings(strs []*String) error {
 }
 
 // Serialize for String returns a String as a string
-func (ys *YaraSerializer) serializeString(str *String) error {
-	// Format string for:
-	// `<identifier> = <encapsOpen> <text> <encapsClose>`
-	format := "%s = %s%s%s"
-
-	var (
-		encapsOpen  string
-		encapsClose string
-	)
-	switch val := str.GetType(); val {
-	case String_TEXT:
-		encapsOpen, encapsClose = `"`, `"`
-	case String_HEX:
-		encapsOpen, encapsClose = "{", "}"
-	case String_REGEX:
-		encapsOpen = "/"
-		var closeBuilder strings.Builder
-		closeBuilder.WriteRune('/')
-		if str.Modifiers.GetI() {
-			closeBuilder.WriteRune('i')
-		}
-		if str.Modifiers.GetS() {
-			closeBuilder.WriteRune('s')
-		}
-		encapsClose = closeBuilder.String()
-	default:
-		return fmt.Errorf("Unsupported String type %s (%d)", val, val)
-	}
-
-	if err := ys.writeString(fmt.Sprintf(format, str.GetId(), encapsOpen, str.GetText(), encapsClose)); err != nil {
+func (ys *YaraSerializer) serializeString(str *data.String) error {
+	if err := ys.writeString(fmt.Sprintf("%s = ", str.GetId())); err != nil {
 		return err
 	}
 
-	return ys.serializeStringModifiers(str.Modifiers)
+	switch val := str.GetValue().(type) {
+	case *data.String_Text:
+		return ys.serializeTextString(str.GetText())
+	case *data.String_Hex:
+		return ys.serializeHexTokens(str.GetHex())
+	case *data.String_Regexp:
+		if err := ys.writeString("/"); err != nil {
+			return err
+		}
+		if err := ys.serializeRegexp(str.GetRegexp()); err != nil {
+			return err
+		}
+		if err := ys.writeString("/"); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf(`Unsupported String value type "%T"`, val)
+	}
+
+	return nil
+}
+
+func (ys *YaraSerializer) serializeTextString(t *data.TextString) error {
+	if err := ys.writeString(fmt.Sprintf(`"%s"`, t.GetText())); err != nil {
+		return err
+	}
+
+	return ys.serializeStringModifiers(t.Modifiers)
 }
 
 // Serialize for StringModifiers creates a space-sparated list of
 // string modifiers, excluding the i and s which are appended to /regex/
-func (ys *YaraSerializer) serializeStringModifiers(m *StringModifiers) error {
+func (ys *YaraSerializer) serializeStringModifiers(m *data.StringModifiers) error {
 	const modsAvailable = 4
 	modifiers := make([]string, 0, modsAvailable)
 	if m.GetAscii() {
@@ -365,24 +375,138 @@ func (ys *YaraSerializer) serializeStringModifiers(m *StringModifiers) error {
 	return ys.writeString(strings.Join(modifiers, " "))
 }
 
+func (ys *YaraSerializer) serializeHexTokens(ts *data.HexTokens) error {
+	if err := ys.writeString("{ "); err != nil {
+		return err
+	}
+
+	for _, t := range ts.Token {
+		if err := ys.serializeHexToken(t); err != nil {
+			return err
+		}
+	}
+
+	if err := ys.writeString("}"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ys *YaraSerializer) serializeHexToken(t *data.HexToken) error {
+	switch val := t.GetValue().(type) {
+	case *data.HexToken_Sequence:
+		return ys.serializeBytesSequence(t.GetSequence())
+	case *data.HexToken_Jump:
+		return ys.serializeJump(t.GetJump())
+	case *data.HexToken_Alternative:
+		return ys.serializeAlternative(t.GetAlternative())
+	default:
+		return fmt.Errorf(`Unsupported HexToken type: "%T"`, val)
+	}
+}
+
+func (ys *YaraSerializer) serializeBytesSequence(b *data.BytesSequence) error {
+	if len(b.Value) != len(b.Mask) {
+		return fmt.Errorf(
+			`Length of value and mask bytes must match in a BytesSequence. Found: %d, %d`,
+			len(b.Value),
+			len(b.Mask))
+	}
+
+	for i, val := range b.Value {
+		switch mask := b.Mask[i]; mask {
+		case 0:
+			if err := ys.writeString("?? "); err != nil {
+				return err
+			}
+		case 0x0F:
+			valStr := fmt.Sprintf("%02x", val)
+			if err := ys.writeString("?" + string(valStr[1]) + " "); err != nil {
+				return err
+			}
+		case 0xF0:
+			valStr := fmt.Sprintf("%02x", val)
+			if err := ys.writeString(string(valStr[0]) + "? "); err != nil {
+				return err
+			}
+		case 0xFF:
+			if err := ys.writeString(fmt.Sprintf("%02x ", val)); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf(`Unsupported byte mask: "%s"`, mask)
+		}
+	}
+
+	return nil
+}
+
+func (ys *YaraSerializer) serializeJump(jump *data.Jump) error {
+	if err := ys.writeString("["); err != nil {
+		return err
+	}
+
+	if jump.Start != nil {
+		if err := ys.writeString(fmt.Sprintf("%d", jump.GetStart())); err != nil {
+			return err
+		}
+	}
+
+	if err := ys.writeString("-"); err != nil {
+		return err
+	}
+
+	if jump.End != nil {
+		if err := ys.writeString(fmt.Sprintf("%d", jump.GetEnd())); err != nil {
+			return err
+		}
+	}
+
+	if err := ys.writeString("] "); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ys *YaraSerializer) serializeAlternative(alt *data.Alternative) error {
+	if err := ys.writeString("("); err != nil {
+		return err
+	}
+
+	for _, tokens := range alt.Tokens {
+		ys.serializeHexTokens(tokens)
+		if err := ys.writeString("| "); err != nil {
+			return err
+		}
+	}
+
+	if err := ys.writeString(")"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Serializes an Expression in a YARA rule condition.
-func (ys *YaraSerializer) serializeExpression(e *Expression) error {
+func (ys *YaraSerializer) serializeExpression(e *data.Expression) error {
 	switch val := e.GetExpression().(type) {
-	case *Expression_BoolValue:
+	case *data.Expression_BoolValue:
 		return ys.writeString(fmt.Sprintf("%v", e.GetBoolValue()))
-	case *Expression_OrExpression:
+	case *data.Expression_OrExpression:
 		return ys.serializeOrExpression(e.GetOrExpression())
-	case *Expression_AndExpression:
+	case *data.Expression_AndExpression:
 		return ys.serializeAndExpression(e.GetAndExpression())
-	case *Expression_StringIdentifier:
+	case *data.Expression_StringIdentifier:
 		return ys.writeString(e.GetStringIdentifier())
-	case *Expression_ForInExpression:
+	case *data.Expression_ForInExpression:
 		return ys.serializeForInExpression(e.GetForInExpression())
-	case *Expression_ForOfExpression:
+	case *data.Expression_ForOfExpression:
 		return ys.serializeForOfExpression(e.GetForOfExpression())
-	case *Expression_BinaryExpression:
+	case *data.Expression_BinaryExpression:
 		return ys.serializeBinaryExpression(e.GetBinaryExpression())
-	case *Expression_Text:
+	case *data.Expression_Text:
 		if err := ys.writeString(`"`); err != nil {
 			return err
 		}
@@ -393,27 +517,27 @@ func (ys *YaraSerializer) serializeExpression(e *Expression) error {
 			return err
 		}
 		return nil
-	case *Expression_NumberValue:
+	case *data.Expression_NumberValue:
 		return ys.writeString(fmt.Sprintf("%d", e.GetNumberValue()))
-	case *Expression_DoubleValue:
+	case *data.Expression_DoubleValue:
 		return ys.writeString(fmt.Sprintf("%f", e.GetDoubleValue()))
-	case *Expression_Range:
+	case *data.Expression_Range:
 		return ys.serializeRange(e.GetRange())
-	case *Expression_Keyword:
+	case *data.Expression_Keyword:
 		return ys.serializeKeyword(e.GetKeyword())
-	case *Expression_Identifier:
+	case *data.Expression_Identifier:
 		return ys.serializeIdentifier(e.GetIdentifier())
-	case *Expression_Regexp:
+	case *data.Expression_Regexp:
 		return ys.serializeRegexp(e.GetRegexp())
-	case *Expression_NotExpression:
+	case *data.Expression_NotExpression:
 		return ys.serializeNotExpression(e.GetNotExpression())
-	case *Expression_IntegerFunction:
+	case *data.Expression_IntegerFunction:
 		return ys.serializeIntegerFunction(e.GetIntegerFunction())
-	case *Expression_StringOffset:
+	case *data.Expression_StringOffset:
 		return ys.serializeStringOffset(e.GetStringOffset())
-	case *Expression_StringLength:
+	case *data.Expression_StringLength:
 		return ys.serializeStringLength(e.GetStringLength())
-	case *Expression_StringCount:
+	case *data.Expression_StringCount:
 		return ys.writeString(e.GetStringCount())
 	default:
 		return fmt.Errorf(`Unsupported Expression type "%T"`, val)
@@ -421,18 +545,18 @@ func (ys *YaraSerializer) serializeExpression(e *Expression) error {
 }
 
 // Serializes an OR expression.
-func (ys *YaraSerializer) serializeOrExpression(es *Expressions) error {
+func (ys *YaraSerializer) serializeOrExpression(es *data.Expressions) error {
 	return ys.serializeTerms(es.Terms, " or ", precedenceOrExpression)
 }
 
 // Serializes an AND expression.
-func (ys *YaraSerializer) serializeAndExpression(es *Expressions) error {
+func (ys *YaraSerializer) serializeAndExpression(es *data.Expressions) error {
 	return ys.serializeTerms(es.Terms, " and ", precedenceAndExpression)
 }
 
-func (ys *YaraSerializer) serializeTerms(terms []*Expression, joinStr string, precedence int8) error {
+func (ys *YaraSerializer) serializeTerms(terms []*data.Expression, joinStr string, precedence int8) error {
 	for i, term := range terms {
-		addParens := term.getPrecedence() < precedenceAndExpression
+		addParens := getExpressionPrecedence(term) < precedenceAndExpression
 		if addParens {
 			if err := ys.writeString("("); err != nil {
 				return err
@@ -460,7 +584,7 @@ func (ys *YaraSerializer) serializeTerms(terms []*Expression, joinStr string, pr
 }
 
 // Serializes a FOR..IN expression
-func (ys *YaraSerializer) serializeForInExpression(e *ForInExpression) error {
+func (ys *YaraSerializer) serializeForInExpression(e *data.ForInExpression) error {
 	if err := ys.writeString("for "); err != nil {
 		return err
 	}
@@ -493,11 +617,11 @@ func (ys *YaraSerializer) serializeForInExpression(e *ForInExpression) error {
 }
 
 // Serializes a ForExpression.
-func (ys *YaraSerializer) serializeForExpression(e *ForExpression) error {
+func (ys *YaraSerializer) serializeForExpression(e *data.ForExpression) error {
 	switch val := e.GetFor().(type) {
-	case *ForExpression_Expression:
+	case *data.ForExpression_Expression:
 		return ys.serializeExpression(e.GetExpression())
-	case *ForExpression_Keyword:
+	case *data.ForExpression_Keyword:
 		return ys.serializeForKeyword(e.GetKeyword())
 	default:
 		return fmt.Errorf(`Unsupported ForExpression value type "%s"`, val)
@@ -505,11 +629,11 @@ func (ys *YaraSerializer) serializeForExpression(e *ForExpression) error {
 }
 
 // Serializes an IntegerSet.
-func (ys *YaraSerializer) serializeIntegerSet(e *IntegerSet) error {
+func (ys *YaraSerializer) serializeIntegerSet(e *data.IntegerSet) error {
 	switch val := e.GetSet().(type) {
-	case *IntegerSet_IntegerEnumeration:
+	case *data.IntegerSet_IntegerEnumeration:
 		return ys.serializeIntegerEnumeration(e.GetIntegerEnumeration())
-	case *IntegerSet_Range:
+	case *data.IntegerSet_Range:
 		return ys.serializeRange(e.GetRange())
 	default:
 		return fmt.Errorf(`Unsupported IntegerSet value type "%s"`, val)
@@ -517,7 +641,7 @@ func (ys *YaraSerializer) serializeIntegerSet(e *IntegerSet) error {
 }
 
 // Serializes an IntegerEnumeration.
-func (ys *YaraSerializer) serializeIntegerEnumeration(e *IntegerEnumeration) error {
+func (ys *YaraSerializer) serializeIntegerEnumeration(e *data.IntegerEnumeration) error {
 	if err := ys.writeString("("); err != nil {
 		return err
 	}
@@ -530,7 +654,7 @@ func (ys *YaraSerializer) serializeIntegerEnumeration(e *IntegerEnumeration) err
 }
 
 // Serializes a Range expression.
-func (ys *YaraSerializer) serializeRange(e *Range) error {
+func (ys *YaraSerializer) serializeRange(e *data.Range) error {
 	if err := ys.writeString("("); err != nil {
 		return err
 	}
@@ -551,7 +675,7 @@ func (ys *YaraSerializer) serializeRange(e *Range) error {
 }
 
 // Serializes a for..of expression
-func (ys *YaraSerializer) serializeForOfExpression(e *ForOfExpression) error {
+func (ys *YaraSerializer) serializeForOfExpression(e *data.ForOfExpression) error {
 	if e.GetExpression() != nil {
 		if err := ys.writeString("for "); err != nil {
 			return err
@@ -588,11 +712,11 @@ func (ys *YaraSerializer) serializeForOfExpression(e *ForOfExpression) error {
 }
 
 // Serializes a StringSet.
-func (ys *YaraSerializer) serializeStringSet(e *StringSet) error {
+func (ys *YaraSerializer) serializeStringSet(e *data.StringSet) error {
 	switch val := e.GetSet().(type) {
-	case *StringSet_Strings:
+	case *data.StringSet_Strings:
 		return ys.serializeStringEnumeration(e.GetStrings())
-	case *StringSet_Keyword:
+	case *data.StringSet_Keyword:
 		return ys.serializeStringSetKeyword(e.GetKeyword())
 	default:
 		return fmt.Errorf(`Unsupported StringSet value type "%s"`, val)
@@ -600,7 +724,7 @@ func (ys *YaraSerializer) serializeStringSet(e *StringSet) error {
 }
 
 // Serializes a StringEnumeration.
-func (ys *YaraSerializer) serializeStringEnumeration(e *StringEnumeration) error {
+func (ys *YaraSerializer) serializeStringEnumeration(e *data.StringEnumeration) error {
 	if err := ys.writeString("("); err != nil {
 		return err
 	}
@@ -620,7 +744,7 @@ func (ys *YaraSerializer) serializeStringEnumeration(e *StringEnumeration) error
 }
 
 // Serializes a Keyword.
-func (ys *YaraSerializer) serializeKeyword(e Keyword) error {
+func (ys *YaraSerializer) serializeKeyword(e data.Keyword) error {
 	kw, ok := keywords[e]
 	if !ok {
 		return fmt.Errorf(`Unknown keyword "%v"`, e)
@@ -630,7 +754,7 @@ func (ys *YaraSerializer) serializeKeyword(e Keyword) error {
 }
 
 // Serializes a ForKeyword.
-func (ys *YaraSerializer) serializeForKeyword(e ForKeyword) error {
+func (ys *YaraSerializer) serializeForKeyword(e data.ForKeyword) error {
 	kw, ok := forKeywords[e]
 	if !ok {
 		return fmt.Errorf(`Unknown keyword "%v"`, e)
@@ -640,7 +764,7 @@ func (ys *YaraSerializer) serializeForKeyword(e ForKeyword) error {
 }
 
 // Serializes a StringSetKeyword.
-func (ys *YaraSerializer) serializeStringSetKeyword(e StringSetKeyword) error {
+func (ys *YaraSerializer) serializeStringSetKeyword(e data.StringSetKeyword) error {
 	kw, ok := stringSetKeywords[e]
 	if !ok {
 		return fmt.Errorf(`Unknown keyword "%v"`, e)
@@ -650,8 +774,8 @@ func (ys *YaraSerializer) serializeStringSetKeyword(e StringSetKeyword) error {
 }
 
 // Serializes a BinaryExpression.
-func (ys *YaraSerializer) serializeBinaryExpression(e *BinaryExpression) error {
-	if e.Left.getPrecedence() < e.getPrecedence() {
+func (ys *YaraSerializer) serializeBinaryExpression(e *data.BinaryExpression) error {
+	if getExpressionPrecedence(e.Left) < getBinaryExpressionPrecedence(e) {
 		if err := ys.writeString("("); err != nil {
 			return err
 		}
@@ -659,7 +783,7 @@ func (ys *YaraSerializer) serializeBinaryExpression(e *BinaryExpression) error {
 	if err := ys.serializeExpression(e.Left); err != nil {
 		return err
 	}
-	if e.Left.getPrecedence() < e.getPrecedence() {
+	if getExpressionPrecedence(e.Left) < getBinaryExpressionPrecedence(e) {
 		if err := ys.writeString(")"); err != nil {
 			return err
 		}
@@ -674,7 +798,7 @@ func (ys *YaraSerializer) serializeBinaryExpression(e *BinaryExpression) error {
 		return err
 	}
 
-	if e.Right.getPrecedence() < e.getPrecedence() {
+	if getExpressionPrecedence(e.Right) < getBinaryExpressionPrecedence(e) {
 		if err := ys.writeString("("); err != nil {
 			return err
 		}
@@ -682,7 +806,7 @@ func (ys *YaraSerializer) serializeBinaryExpression(e *BinaryExpression) error {
 	if err := ys.serializeExpression(e.Right); err != nil {
 		return err
 	}
-	if e.Right.getPrecedence() < e.getPrecedence() {
+	if getExpressionPrecedence(e.Right) < getBinaryExpressionPrecedence(e) {
 		if err := ys.writeString(")"); err != nil {
 			return err
 		}
@@ -692,10 +816,10 @@ func (ys *YaraSerializer) serializeBinaryExpression(e *BinaryExpression) error {
 }
 
 // Serializes an Identifier.
-func (ys *YaraSerializer) serializeIdentifier(i *Identifier) error {
+func (ys *YaraSerializer) serializeIdentifier(i *data.Identifier) error {
 	for i, item := range i.GetItems() {
 		switch val := item.GetItem().(type) {
-		case *Identifier_IdentifierItem_Identifier:
+		case *data.Identifier_IdentifierItem_Identifier:
 			if i > 0 {
 				if err := ys.writeString("."); err != nil {
 					return err
@@ -704,7 +828,7 @@ func (ys *YaraSerializer) serializeIdentifier(i *Identifier) error {
 			if err := ys.writeString(item.GetIdentifier()); err != nil {
 				return err
 			}
-		case *Identifier_IdentifierItem_Expression:
+		case *data.Identifier_IdentifierItem_Expression:
 			if err := ys.writeString("["); err != nil {
 				return err
 			}
@@ -715,7 +839,7 @@ func (ys *YaraSerializer) serializeIdentifier(i *Identifier) error {
 			if err := ys.writeString("]"); err != nil {
 				return err
 			}
-		case *Identifier_IdentifierItem_Arguments:
+		case *data.Identifier_IdentifierItem_Arguments:
 			if err := ys.writeString("("); err != nil {
 				return err
 			}
@@ -743,7 +867,7 @@ func (ys *YaraSerializer) serializeIdentifier(i *Identifier) error {
 }
 
 // Serializes a Regexp, appending the i and s modifiers if included.
-func (ys *YaraSerializer) serializeRegexp(r *Regexp) error {
+func (ys *YaraSerializer) serializeRegexp(r *data.Regexp) error {
 	if err := ys.writeString("/"); err != nil {
 		return err
 	}
@@ -771,12 +895,12 @@ func (ys *YaraSerializer) serializeRegexp(r *Regexp) error {
 }
 
 // Serializes a NOT expression.
-func (ys *YaraSerializer) serializeNotExpression(e *Expression) error {
+func (ys *YaraSerializer) serializeNotExpression(e *data.Expression) error {
 	if err := ys.writeString("not "); err != nil {
 		return err
 	}
 
-	if e.getPrecedence() < precedenceNotExpression {
+	if getExpressionPrecedence(e) < precedenceNotExpression {
 		if err := ys.writeString("("); err != nil {
 			return err
 		}
@@ -786,7 +910,7 @@ func (ys *YaraSerializer) serializeNotExpression(e *Expression) error {
 		return err
 	}
 
-	if e.getPrecedence() < precedenceNotExpression {
+	if getExpressionPrecedence(e) < precedenceNotExpression {
 		if err := ys.writeString(")"); err != nil {
 			return err
 		}
@@ -796,7 +920,7 @@ func (ys *YaraSerializer) serializeNotExpression(e *Expression) error {
 }
 
 // Serializes an IntegerFunction.
-func (ys *YaraSerializer) serializeIntegerFunction(e *IntegerFunction) error {
+func (ys *YaraSerializer) serializeIntegerFunction(e *data.IntegerFunction) error {
 	if err := ys.writeString(e.GetFunction()); err != nil {
 		return err
 	}
@@ -813,7 +937,7 @@ func (ys *YaraSerializer) serializeIntegerFunction(e *IntegerFunction) error {
 }
 
 // Serializes a StringOffset.
-func (ys *YaraSerializer) serializeStringOffset(e *StringOffset) error {
+func (ys *YaraSerializer) serializeStringOffset(e *data.StringOffset) error {
 	if err := ys.writeString(e.GetStringIdentifier()); err != nil {
 		return err
 	}
@@ -834,7 +958,7 @@ func (ys *YaraSerializer) serializeStringOffset(e *StringOffset) error {
 }
 
 // Serializes a StringLength.
-func (ys *YaraSerializer) serializeStringLength(e *StringLength) error {
+func (ys *YaraSerializer) serializeStringLength(e *data.StringLength) error {
 	if err := ys.writeString(e.GetStringIdentifier()); err != nil {
 		return err
 	}
@@ -852,16 +976,6 @@ func (ys *YaraSerializer) serializeStringLength(e *StringLength) error {
 	}
 
 	return nil
-}
-
-// Returns the precedence of a BinaryExpression.
-func (e *BinaryExpression) getPrecedence() int8 {
-	prec, ok := binaryOperatorsPrecedence[e.GetOperator()]
-	if !ok {
-		return math.MaxInt8
-	}
-
-	return prec
 }
 
 func (ys *YaraSerializer) writeIndent(level int) error {

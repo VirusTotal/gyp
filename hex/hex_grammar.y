@@ -34,12 +34,13 @@ import (
   "fmt"
   proto "github.com/golang/protobuf/proto"
 
-  "github.com/VirusTotal/go-yara-parser"
+  "github.com/VirusTotal/go-yara-parser/data"
+  yaraerr "github.com/VirusTotal/go-yara-parser/error"
 )
 
 const StringChainingThreshold int64 = 200
 
-var ParsedHexString yara.HexTokens
+var ParsedHexString data.HexTokens
 
 var insideOr int
 
@@ -74,11 +75,11 @@ $token _PIPE_
 
 %union {
   integer int64
-  token   *yara.HexToken
-  tokens  *yara.HexTokens
+  token   *data.HexToken
+  tokens  *data.HexTokens
   bm      ByteWithMask
-  alt     *yara.Alternative
-  rng     *yara.Jump
+  alt     *data.Alternative
+  rng     *data.Jump
 }
 
 %%
@@ -94,18 +95,18 @@ hex_string
 tokens
     : token
       {
-        $$ = &yara.HexTokens{ Token: []*yara.HexToken{$1} } 
+        $$ = &data.HexTokens{ Token: []*data.HexToken{$1} }
       }
     | token token
       {
-        $$ = &yara.HexTokens{ Token: mergeTokens($1, $2) }
+        $$ = &data.HexTokens{ Token: mergeTokens($1, $2) }
       }
     | token token_sequence token
       {
-        tokens := append([]*yara.HexToken{$1}, $2.Token...)
+        tokens := append([]*data.HexToken{$1}, $2.Token...)
         tokens = append(tokens, $3)
         tokens = mergeTokens(tokens...)
-        $$ = &yara.HexTokens{ Token: tokens }
+        $$ = &data.HexTokens{ Token: tokens }
       }
     ;
 
@@ -113,7 +114,7 @@ tokens
 token_sequence
     : token_or_range
       {
-        $$ = &yara.HexTokens{ Token: []*yara.HexToken{$1} }
+        $$ = &data.HexTokens{ Token: []*data.HexToken{$1} }
       }
     | token_sequence token_or_range
       {
@@ -130,7 +131,7 @@ token_or_range
       }
     |  range
       {
-        $$ = &yara.HexToken{ Value: &yara.HexToken_Jump{$1} }
+        $$ = &data.HexToken{ Value: &data.HexToken_Jump{$1} }
       }
     ;
 
@@ -138,9 +139,9 @@ token_or_range
 token
     : byte
       {
-        $$ = &yara.HexToken{
-          Value: &yara.HexToken_Sequence{
-            &yara.BytesSequence{
+        $$ = &data.HexToken{
+          Value: &data.HexToken_Sequence{
+            &data.BytesSequence{
               Mask: []byte{$1.Mask},
               Value: []byte{$1.Value},
             },
@@ -153,7 +154,7 @@ token
       }
        alternatives
       {
-        $$ = &yara.HexToken{ Value: &yara.HexToken_Alternative{ $3 } }
+        $$ = &data.HexToken{ Value: &data.HexToken_Alternative{ $3 } }
       }
       _RPARENS_
       {
@@ -167,83 +168,83 @@ range
     : _LBRACKET_ _NUMBER_ _RBRACKET_
       {
         if $2 <= 0 {
-          err := yara.Error{
-            yara.InvalidJumpLengthError,
+          err := yaraerr.Error{
+            yaraerr.InvalidJumpLengthError,
             fmt.Sprintf("%d", $2),
           }
           panic(err)
         }
 
         if insideOr > 0 && $2 > StringChainingThreshold {
-          err := yara.Error{
-            yara.JumpTooLargeInsideAlternation,
+          err := yaraerr.Error{
+            yaraerr.JumpTooLargeInsideAlternation,
             fmt.Sprintf("%d", $2),
           }
           panic(err)
         }
 
-        $$ = &yara.Jump{ Start: proto.Int64($2), End: proto.Int64($2) }
+        $$ = &data.Jump{ Start: proto.Int64($2), End: proto.Int64($2) }
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _NUMBER_ _RBRACKET_
       {
         if insideOr > 0 &&
           ($2 > StringChainingThreshold || $4 > StringChainingThreshold) {
-          err := yara.Error{
-            yara.JumpTooLargeInsideAlternation,
+          err := yaraerr.Error{
+            yaraerr.JumpTooLargeInsideAlternation,
             fmt.Sprintf("%d-%d", $2, $4),
           }
           panic(err)
         }
 
         if $2 < 0 || $4 < 0 {
-          err := yara.Error{
-            yara.NegativeJump,
+          err := yaraerr.Error{
+            yaraerr.NegativeJump,
             fmt.Sprintf("%d-$d", $2, $4),
           }
           panic(err)
         }
 
         if $2 > $4 {
-          err := yara.Error{
-            yara.InvalidJumpRange,
+          err := yaraerr.Error{
+            yaraerr.InvalidJumpRange,
             fmt.Sprintf("%d-%d", $2, $4),
           }
           panic(err)
         }
 
-        $$ = &yara.Jump{ Start: proto.Int64($2), End: proto.Int64($4) }
+        $$ = &data.Jump{ Start: proto.Int64($2), End: proto.Int64($4) }
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _RBRACKET_
       {
         if insideOr > 0 {
-          err := yara.Error{
-            yara.UnboundedJumpInsideAlternation,
+          err := yaraerr.Error{
+            yaraerr.UnboundedJumpInsideAlternation,
             fmt.Sprintf("%d-", $2),
           }
           panic(err)
         }
 
         if $2 < 0 {
-          err := yara.Error{
-            yara.NegativeJump,
+          err := yaraerr.Error{
+            yaraerr.NegativeJump,
             fmt.Sprintf("%d-", $2),
           }
           panic(err)
         }
 
-        $$ = &yara.Jump{ Start: proto.Int64($2) }
+        $$ = &data.Jump{ Start: proto.Int64($2) }
       }
     | _LBRACKET_ _HYPHEN_ _RBRACKET_ 
       {
         if insideOr > 0 {
-          err := yara.Error{
-            yara.UnboundedJumpInsideAlternation,
+          err := yaraerr.Error{
+            yaraerr.UnboundedJumpInsideAlternation,
             "-",
           }
           panic(err)
         }
 
-        $$ = &yara.Jump{}
+        $$ = &data.Jump{}
       }
     ;
 
@@ -251,7 +252,7 @@ range
 alternatives
     : tokens
       {
-          $$ = &yara.Alternative{ Tokens: []*yara.HexTokens{$1} }
+          $$ = &data.Alternative{ Tokens: []*data.HexTokens{$1} }
       }
     | alternatives _PIPE_ tokens
       {
@@ -273,9 +274,9 @@ byte
 
 %%
 
-func appendToken(tokens *yara.HexTokens, t *yara.HexToken) {
+func appendToken(tokens *data.HexTokens, t *data.HexToken) {
   if len(tokens.Token) == 0 {
-    tokens.Token = []*yara.HexToken{t}
+    tokens.Token = []*data.HexToken{t}
     return
   }
 
@@ -284,7 +285,7 @@ func appendToken(tokens *yara.HexTokens, t *yara.HexToken) {
   tokens.Token = append(tokens.Token[:numTokens - 1], mergeTokens(lastToken, t)...)
 }
 
-func mergeTokens(tokens... *yara.HexToken) (out []*yara.HexToken) {
+func mergeTokens(tokens... *data.HexToken) (out []*data.HexToken) {
   if len(tokens) == 0 {
     return
   }

@@ -41,6 +41,9 @@ import (
     "strconv"
     "strings"
     proto "github.com/golang/protobuf/proto"
+
+    "github.com/VirusTotal/go-yara-parser/data"
+    yaraerr "github.com/VirusTotal/go-yara-parser/error"
 )
 
 // Necessary types for flexgo
@@ -307,12 +310,12 @@ u?int(8|16|32)(be)? {
 
 
 <str>\n  {
-  panic(newError(UnterminatedStringError, ""))
+  panic(yaraerr.Error{ yaraerr.UnterminatedStringError, "" })
 }
 
 
 <str>\\(.|\n) {
-  panic(newError(IllegalEscapeSequenceError, ""))
+  panic(yaraerr.Error{ yaraerr.IllegalEscapeSequenceError, "" })
 }
 
 
@@ -321,7 +324,7 @@ u?int(8|16|32)(be)? {
 
   txt := strings.TrimSuffix(textBuilder.String(), YYtext)
   
-  var mods StringModifiers
+  var mods data.StringModifiers
 
   for _, c := range YYtext {
       switch c {
@@ -336,11 +339,11 @@ u?int(8|16|32)(be)? {
 
       default:
           // Should be impossible
-          panic(newError(InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c)))
+          panic(yaraerr.Error{ yaraerr.InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c) })
       }
   }
 
-  yylval.reg = Regexp {
+  yylval.reg = data.Regexp {
       Text: &txt,
       Modifiers: &mods,
   }
@@ -362,7 +365,7 @@ u?int(8|16|32)(be)? {
 
 
 <regexp>\n  {
-  panic(newError(UnterminatedRegexError, ""))
+  panic(yaraerr.Error{ yaraerr.UnterminatedRegexError, "" })
 }
 
 
@@ -403,7 +406,7 @@ u?int(8|16|32)(be)? {
     return r
   }
 
-  panic(newError(NonAsciiByteError, fmt.Sprintf(`"%d"`, r)))
+  panic(yaraerr.Error{ yaraerr.NonAsciiByteError, fmt.Sprintf(`"%d"`, r) })
 }
 
 %%

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/VirusTotal/go-yara-parser"
+	"github.com/VirusTotal/go-yara-parser/data"
 )
 
 // global options
@@ -21,7 +22,7 @@ func main() {
 	}
 	defer handleErr(jsonFile.Close)
 
-	var ruleset yara.RuleSet
+	var ruleset data.RuleSet
 	unmarshaler := jsonpb.Unmarshaler{}
 	err = unmarshaler.Unmarshal(jsonFile, &ruleset)
 

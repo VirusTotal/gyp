@@ -33,9 +33,12 @@ package yara
 import (
     "fmt"
     proto "github.com/golang/protobuf/proto"
+
+    "github.com/VirusTotal/go-yara-parser/data"
+    yaraerr "github.com/VirusTotal/go-yara-parser/error"
 )
 
-var ParsedRuleset RuleSet
+var ParsedRuleset data.RuleSet
 
 %}
 
@@ -141,25 +144,25 @@ var ParsedRuleset RuleSet
     s             string
     ss            []string
 
-    rm            *RuleModifiers
-    m             []*Meta
-    mp            *Meta
-    mod           *StringModifiers
-    reg           Regexp
-    regp          *Regexp
-    ys            *String
-    yss           []*String
-    yr            *Rule
-    id            *Identifier
-    forexp        *ForExpression
-    intset        *IntegerSet
-    intenum       *IntegerEnumeration
-    rng           *Range
-    strset        *StringSet
-    strenumi      *StringEnumeration_StringEnumerationItem
-    strenum       *StringEnumeration
-    expr          *Expression
-    exprs         *Expressions
+    rm            *data.RuleModifiers
+    m             []*data.Meta
+    mp            *data.Meta
+    mod           *data.StringModifiers
+    reg           data.Regexp
+    regp          *data.Regexp
+    ys            *data.String
+    yss           []*data.String
+    yr            *data.Rule
+    id            *data.Identifier
+    forexp        *data.ForExpression
+    intset        *data.IntegerSet
+    intenum       *data.IntegerEnumeration
+    rng           *data.Range
+    strset        *data.StringSet
+    strenumi      *data.StringEnumeration_StringEnumerationItem
+    strenum       *data.StringEnumeration
+    expr          *data.Expression
+    exprs         *data.Expressions
 }
 
 
@@ -191,7 +194,7 @@ import
 rule
     : rule_modifiers _RULE_ _IDENTIFIER_
       {
-          $$ = &Rule{
+          $$ = &data.Rule{
               Modifiers: $1,
               Identifier: proto.String($3),
           }
@@ -199,7 +202,7 @@ rule
           // Forbid duplicate rules
           for _, r := range ParsedRuleset.Rules {
               if $3 == *r.Identifier {
-                  err := Error{ DuplicateRuleError, $3 }
+                  err := yaraerr.Error{ yaraerr.DuplicateRuleError, $3 }
                   panic(err)
               }
           }
@@ -213,8 +216,8 @@ rule
           idx := make(map[string]struct{})
           for _, t := range $5 {
               if _, had := idx[t]; had {
-                  err := Error{
-                    DuplicateTagError,
+                  err := yaraerr.Error{
+                    yaraerr.DuplicateTagError,
                     fmt.Sprintf(
                       `"%s" at rule "%s"`,
                       $<yr>4.Identifier,
@@ -236,8 +239,8 @@ rule
                   continue
               }
               if _, had := idx[*s.Id]; had {
-                  err := Error{
-                    DuplicateStringError,
+                  err := yaraerr.Error{
+                    yaraerr.DuplicateStringError,
                     fmt.Sprintf(
                       `"%s" at rule "%s"`,
                       $<yr>4.Identifier,
@@ -259,10 +262,10 @@ rule
 
 
 meta
-    : /* empty */ { $$ = []*Meta{} }
+    : /* empty */ { $$ = []*data.Meta{} }
     | _META_ ':' meta_declarations
       {
-          $$ = make([]*Meta, 0, len($3))
+          $$ = make([]*data.Meta, 0, len($3))
           for _, mpair := range $3 {
               // YARA is ok with duplicate keys; we follow suit
               $$ = append($$, mpair)
@@ -272,7 +275,7 @@ meta
 
 
 strings
-    : /* empty */ { $$ = []*String{} }
+    : /* empty */ { $$ = []*data.String{} }
     | _STRINGS_ ':' string_declarations { $$ = $3 }
     ;
 
@@ -283,9 +286,9 @@ condition
 
 
 rule_modifiers
-    : /* empty */ { $$ = &RuleModifiers{} }
+    : /* empty */ { $$ = &data.RuleModifiers{} }
     | rule_modifiers rule_modifier     {
-        $$ = &RuleModifiers{
+        $$ = &data.RuleModifiers{
             Private: proto.Bool($1.GetPrivate() || $2.GetPrivate()),
             Global: proto.Bool($1.GetGlobal() || $2.GetGlobal()),
         }
@@ -294,8 +297,8 @@ rule_modifiers
 
 
 rule_modifier
-    : _PRIVATE_ { $$ = &RuleModifiers{ Private: proto.Bool(true) } }
-    | _GLOBAL_ { $$ = &RuleModifiers{ Global: proto.Bool(true) } }
+    : _PRIVATE_ { $$ = &data.RuleModifiers{ Private: proto.Bool(true) } }
+    | _GLOBAL_ { $$ = &data.RuleModifiers{ Global: proto.Bool(true) } }
     ;
 
 
@@ -312,7 +315,7 @@ tag_list
 
 
 meta_declarations
-    : meta_declaration { $$ = []*Meta{$1} }
+    : meta_declaration { $$ = []*data.Meta{$1} }
     | meta_declarations meta_declaration { $$ = append($$, $2) }
     ;
 
@@ -320,44 +323,44 @@ meta_declarations
 meta_declaration
     : _IDENTIFIER_ '=' _TEXT_STRING_
       {
-          $$ = &Meta{
+          $$ = &data.Meta{
               Key: proto.String($1),
-              Value: &Meta_Text{$3},
+              Value: &data.Meta_Text{$3},
           }
       }
     | _IDENTIFIER_ '=' _NUMBER_
       {
-          $$ = &Meta{
+          $$ = &data.Meta{
               Key: proto.String($1),
-              Value: &Meta_Number{$3},
+              Value: &data.Meta_Number{$3},
           }
       }
     | _IDENTIFIER_ '=' '-' _NUMBER_
       {
-          $$ = &Meta{
+          $$ = &data.Meta{
               Key: proto.String($1),
-              Value: &Meta_Number{-$4},
+              Value: &data.Meta_Number{-$4},
           }
       }
     | _IDENTIFIER_ '=' _TRUE_
       {
-          $$ = &Meta{
+          $$ = &data.Meta{
               Key: proto.String($1),
-              Value: &Meta_Boolean{true},
+              Value: &data.Meta_Boolean{true},
           }
       }
     | _IDENTIFIER_ '=' _FALSE_
       {
-          $$ = &Meta{
+          $$ = &data.Meta{
               Key: proto.String($1),
-              Value: &Meta_Boolean{false},
+              Value: &data.Meta_Boolean{false},
           }
       }
     ;
 
 
 string_declarations
-    : string_declaration { $$ = []*String{$1} }
+    : string_declaration { $$ = []*data.String{$1} }
     | string_declarations string_declaration { $$ = append($1, $2) }
     ;
 
@@ -365,50 +368,52 @@ string_declarations
 string_declaration
     : _STRING_IDENTIFIER_ '='
       {
-          $$ = &String{
-              Type: String_TEXT.Enum(),
+          $$ = &data.String{
               Id: proto.String($1),
           }
       }
       _TEXT_STRING_ string_modifiers
       {
-          $<ys>3.Text = proto.String($4)
-          $<ys>3.Modifiers = $5 
+          $<ys>3.Value = &data.String_Text{&data.TextString{
+            Text: proto.String($4),
+            Modifiers: $5 ,
+          }}
           $$ = $<ys>3
       }
     | _STRING_IDENTIFIER_ '='
       {
-          $$ = &String{
-              Type: String_REGEX.Enum(),
+          $$ = &data.String{
               Id: proto.String($1),
           }
       }
       _REGEXP_ string_modifiers
       {
-          $<ys>3.Text = $4.Text
+          $<ys>3.Value = &data.String_Regexp{&data.Regexp{
+              Text: $4.Text,
+          }}
+
           $5.I = $4.Modifiers.I
           $5.S = $4.Modifiers.S
 
-          $<ys>3.Modifiers = $5
+          $<ys>3.GetRegexp().Modifiers = $5
 
           $$ = $<ys>3
       }
     | _STRING_IDENTIFIER_ '=' _HEX_STRING_
       {
-          $$ = &String{
-              Type: String_HEX.Enum(),
+          $$ = &data.String{
               Id: proto.String($1),
-              Text: proto.String($3),
+              Value: &data.String_Hex{$3},
           }
       }
     ;
 
 
 string_modifiers
-    : /* empty */                         { $$ = &StringModifiers{} }
+    : /* empty */                         { $$ = &data.StringModifiers{} }
     | string_modifiers string_modifier
       {
-          $$ = &StringModifiers {
+          $$ = &data.StringModifiers {
               Wide: proto.Bool($1.GetWide() || $2.GetWide()),
               Ascii: proto.Bool($1.GetAscii() || $2.GetAscii()),
               Nocase: proto.Bool($1.GetNocase() || $2.GetNocase()),
@@ -420,11 +425,11 @@ string_modifiers
 
 
 string_modifier
-    : _WIDE_        { $$ = &StringModifiers{ Wide: proto.Bool(true) } }
-    | _ASCII_       { $$ = &StringModifiers{ Ascii: proto.Bool(true) } }
-    | _NOCASE_      { $$ = &StringModifiers{ Nocase: proto.Bool(true)} }
-    | _FULLWORD_    { $$ = &StringModifiers{ Fullword: proto.Bool(true) } }
-    | _XOR_         { $$ = &StringModifiers{ Xor: proto.Bool(true) } }
+    : _WIDE_        { $$ = &data.StringModifiers{ Wide: proto.Bool(true) } }
+    | _ASCII_       { $$ = &data.StringModifiers{ Ascii: proto.Bool(true) } }
+    | _NOCASE_      { $$ = &data.StringModifiers{ Nocase: proto.Bool(true)} }
+    | _FULLWORD_    { $$ = &data.StringModifiers{ Fullword: proto.Bool(true) } }
+    | _XOR_         { $$ = &data.StringModifiers{ Xor: proto.Bool(true) } }
     ;
 
 
@@ -432,9 +437,9 @@ string_modifier
 identifier
     : _IDENTIFIER_
       {
-          $$ = &Identifier{
-              Items: []*Identifier_IdentifierItem{
-                  { Item: &Identifier_IdentifierItem_Identifier{$1} },
+          $$ = &data.Identifier{
+              Items: []*data.Identifier_IdentifierItem{
+                  { Item: &data.Identifier_IdentifierItem_Identifier{$1} },
               },
           }
       }
@@ -442,8 +447,8 @@ identifier
       {
           $$.Items =  append(
               $1.Items,
-              &Identifier_IdentifierItem{
-                  Item: &Identifier_IdentifierItem_Identifier{$3},
+              &data.Identifier_IdentifierItem{
+                  Item: &data.Identifier_IdentifierItem_Identifier{$3},
               },
           )
       }
@@ -451,8 +456,8 @@ identifier
       {
           $$.Items = append(
               $1.Items,
-              &Identifier_IdentifierItem{
-                 Item: &Identifier_IdentifierItem_Expression{$3},
+              &data.Identifier_IdentifierItem{
+                 Item: &data.Identifier_IdentifierItem_Expression{$3},
               },
           ) 
       }
@@ -460,8 +465,8 @@ identifier
       {
           $$.Items = append(
               $1.Items,
-              &Identifier_IdentifierItem{
-                  Item: &Identifier_IdentifierItem_Arguments{$3},
+              &data.Identifier_IdentifierItem{
+                  Item: &data.Identifier_IdentifierItem_Arguments{$3},
               },
           )
       }
@@ -469,15 +474,15 @@ identifier
 
 
 arguments
-    : /* empty */     { $$ = &Expressions{} }
+    : /* empty */     { $$ = &data.Expressions{} }
     | arguments_list  { $$ = $1 }
 
 
 arguments_list
     : expression
       {
-          $$ = &Expressions{
-              Terms: []*Expression{$1},
+          $$ = &data.Expressions{
+              Terms: []*data.Expression{$1},
           }
       }
     | arguments_list ',' expression
@@ -503,25 +508,25 @@ boolean_expression
 expression
     : _TRUE_
       {
-          $$ = &Expression{
-             Expression: &Expression_BoolValue{true},
+          $$ = &data.Expression{
+             Expression: &data.Expression_BoolValue{true},
           } 
       }
     | _FALSE_
       {
-          $$ = &Expression{
-             Expression: &Expression_BoolValue{false},
+          $$ = &data.Expression{
+             Expression: &data.Expression_BoolValue{false},
           } 
       }
     | primary_expression _MATCHES_ regexp
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_MATCHES.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_MATCHES.Enum(),
                       Left: $1,
-                      Right: &Expression{
-                          Expression: &Expression_Regexp{$3},
+                      Right: &data.Expression{
+                          Expression: &data.Expression_Regexp{$3},
                       },
                   },
               },
@@ -529,10 +534,10 @@ expression
       }
     | primary_expression _CONTAINS_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_CONTAINS.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_CONTAINS.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -541,18 +546,18 @@ expression
       }
     | _STRING_IDENTIFIER_
       {
-          $$ = &Expression{
-              Expression: &Expression_StringIdentifier{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_StringIdentifier{$1},
           }
       }
     | _STRING_IDENTIFIER_ _AT_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_AT.Enum(),
-                      Left: &Expression{
-                          Expression: &Expression_StringIdentifier{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_AT.Enum(),
+                      Left: &data.Expression{
+                          Expression: &data.Expression_StringIdentifier{$1},
                       },
                       Right: $3,
                   },
@@ -561,15 +566,15 @@ expression
       }
     | _STRING_IDENTIFIER_ _IN_ range
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_IN.Enum(),
-                      Left: &Expression{
-                          Expression: &Expression_StringIdentifier{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_IN.Enum(),
+                      Left: &data.Expression{
+                          Expression: &data.Expression_StringIdentifier{$1},
                       },
-                      Right: &Expression{
-                          Expression: &Expression_Range{$3},
+                      Right: &data.Expression{
+                          Expression: &data.Expression_Range{$3},
                       },
                   },
               },
@@ -578,9 +583,9 @@ expression
     | _FOR_ for_expression error { }
     | _FOR_ for_expression _IDENTIFIER_ _IN_ integer_set ':' '(' boolean_expression ')'
       {
-          $$ = &Expression{
-              Expression: &Expression_ForInExpression{
-                  ForInExpression: &ForInExpression{
+          $$ = &data.Expression{
+              Expression: &data.Expression_ForInExpression{
+                  ForInExpression: &data.ForInExpression{
                       ForExpression: $2,
                       Identifier: proto.String($3),
                       IntegerSet: $5,
@@ -591,9 +596,9 @@ expression
       }
     | _FOR_ for_expression _OF_ string_set ':' '(' boolean_expression ')'
       {
-          $$ = &Expression{
-              Expression: &Expression_ForOfExpression{
-                  ForOfExpression: &ForOfExpression{
+          $$ = &data.Expression{
+              Expression: &data.Expression_ForOfExpression{
+                  ForOfExpression: &data.ForOfExpression{
                       ForExpression: $2,
                       StringSet: $4,
                       Expression: $7,
@@ -603,9 +608,9 @@ expression
       }
     | for_expression _OF_ string_set
       {
-          $$ = &Expression{
-              Expression: &Expression_ForOfExpression{
-                  ForOfExpression: &ForOfExpression{
+          $$ = &data.Expression{
+              Expression: &data.Expression_ForOfExpression{
+                  ForOfExpression: &data.ForOfExpression{
                       ForExpression: $1,
                       StringSet: $3,
                   },
@@ -614,8 +619,8 @@ expression
       }
     | _NOT_ boolean_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_NotExpression{$2},
+          $$ = &data.Expression{
+              Expression: &data.Expression_NotExpression{$2},
           }
       }
     | boolean_expression _AND_ boolean_expression
@@ -628,10 +633,10 @@ expression
       }
     | primary_expression _LT_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_LT.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_LT.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -640,10 +645,10 @@ expression
       }
     | primary_expression _GT_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_GT.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_GT.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -652,10 +657,10 @@ expression
       }
     | primary_expression _LE_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_LE.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_LE.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -664,10 +669,10 @@ expression
       }
     | primary_expression _GE_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_GE.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_GE.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -676,10 +681,10 @@ expression
       }
     | primary_expression _EQ_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_EQ.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_EQ.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -688,10 +693,10 @@ expression
       }
     | primary_expression _NEQ_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_NEQ.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_NEQ.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -712,14 +717,14 @@ expression
 integer_set
     : '(' integer_enumeration ')'
       {
-          $$ = &IntegerSet{
-              Set: &IntegerSet_IntegerEnumeration{$2},
+          $$ = &data.IntegerSet{
+              Set: &data.IntegerSet_IntegerEnumeration{$2},
           }
       }
     | range
       {
-          $$ = &IntegerSet{
-              Set: &IntegerSet_Range{$1},
+          $$ = &data.IntegerSet{
+              Set: &data.IntegerSet_Range{$1},
           }
       }
     ;
@@ -728,7 +733,7 @@ integer_set
 range
     : '(' primary_expression _DOT_DOT_  primary_expression ')'
       {
-          $$ = &Range{
+          $$ = &data.Range{
               Start: $2,
               End: $4,
           }
@@ -739,8 +744,8 @@ range
 integer_enumeration
     : primary_expression
       {
-          $$ = &IntegerEnumeration{
-              Values: []*Expression{$1},
+          $$ = &data.IntegerEnumeration{
+              Values: []*data.Expression{$1},
           }
       }
     | integer_enumeration ',' primary_expression {
@@ -752,11 +757,11 @@ integer_enumeration
 string_set
     : '(' string_enumeration ')'
       {
-          $$ = &StringSet{ Set: &StringSet_Strings{$2} }
+          $$ = &data.StringSet{ Set: &data.StringSet_Strings{$2} }
       }
     | _THEM_
       {
-          $$ = &StringSet { Set: &StringSet_Keyword{StringSetKeyword_THEM} }
+          $$ = &data.StringSet { Set: &data.StringSet_Keyword{data.StringSetKeyword_THEM} }
       }
     ;
 
@@ -764,8 +769,8 @@ string_set
 string_enumeration
     : string_enumeration_item
       {
-          $$ = &StringEnumeration{
-              Items: []*StringEnumeration_StringEnumerationItem{$1},
+          $$ = &data.StringEnumeration{
+              Items: []*data.StringEnumeration_StringEnumerationItem{$1},
           }
       }
     | string_enumeration ',' string_enumeration_item
@@ -778,14 +783,14 @@ string_enumeration
 string_enumeration_item
     : _STRING_IDENTIFIER_
       {
-        $$ = &StringEnumeration_StringEnumerationItem{
+        $$ = &data.StringEnumeration_StringEnumerationItem{
             StringIdentifier: proto.String($1),
             HasWildcard: proto.Bool(false),
         }
       }
     | _STRING_IDENTIFIER_WITH_WILDCARD_
       {
-        $$ = &StringEnumeration_StringEnumerationItem{
+        $$ = &data.StringEnumeration_StringEnumerationItem{
             StringIdentifier: proto.String($1),
             HasWildcard: proto.Bool(true),
         }
@@ -796,20 +801,20 @@ string_enumeration_item
 for_expression
     : primary_expression
       {
-          $$ = &ForExpression{
-              For: &ForExpression_Expression{$1},
+          $$ = &data.ForExpression{
+              For: &data.ForExpression_Expression{$1},
           }
       }
     | _ALL_
       {
-          $$ = &ForExpression{
-              For: &ForExpression_Keyword{ForKeyword_ALL},
+          $$ = &data.ForExpression{
+              For: &data.ForExpression_Keyword{data.ForKeyword_ALL},
           }
       }
     | _ANY_
       {
-          $$ = &ForExpression{
-              For: &ForExpression_Keyword{ForKeyword_ANY},
+          $$ = &data.ForExpression{
+              For: &data.ForExpression_Keyword{data.ForKeyword_ANY},
           }
       }
     ;
@@ -822,21 +827,21 @@ primary_expression
       }
     | _FILESIZE_
       {
-          $$ = &Expression{
-              Expression: &Expression_Keyword{Keyword_FILESIZE},
+          $$ = &data.Expression{
+              Expression: &data.Expression_Keyword{data.Keyword_FILESIZE},
           }
       }
     | _ENTRYPOINT_
       {
-          $$ = &Expression{
-              Expression: &Expression_Keyword{Keyword_ENTRYPOINT},
+          $$ = &data.Expression{
+              Expression: &data.Expression_Keyword{data.Keyword_ENTRYPOINT},
           }
       }
     | _INTEGER_FUNCTION_ '(' primary_expression ')'
       {
-          $$ = &Expression{
-              Expression: &Expression_IntegerFunction{
-                  &IntegerFunction{
+          $$ = &data.Expression{
+              Expression: &data.Expression_IntegerFunction{
+                  &data.IntegerFunction{
                       Function: proto.String($1),
                       Expression: $3,
                   },
@@ -845,33 +850,33 @@ primary_expression
       }
     | _NUMBER_
       {
-          $$ = &Expression{
-              Expression: &Expression_NumberValue{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_NumberValue{$1},
           }
       }
     | _DOUBLE_
       {
-          $$ = &Expression{
-              Expression: &Expression_DoubleValue{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_DoubleValue{$1},
           }
       }
     | _TEXT_STRING_
       {
-          $$ = &Expression{
-              Expression: &Expression_Text{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_Text{$1},
           }
       }
     | _STRING_COUNT_
       {
-          $$ = &Expression{
-              Expression: &Expression_StringCount{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_StringCount{$1},
           }
       }
     | _STRING_OFFSET_ '[' primary_expression ']'
       {
-          $$ = &Expression{
-              Expression: &Expression_StringOffset{
-                  &StringOffset{
+          $$ = &data.Expression{
+              Expression: &data.Expression_StringOffset{
+                  &data.StringOffset{
                       StringIdentifier: proto.String($1),
                       Index: $3,
                   },
@@ -880,9 +885,9 @@ primary_expression
       }
     | _STRING_OFFSET_
       {
-          $$ = &Expression{
-              Expression: &Expression_StringOffset{
-                  &StringOffset{
+          $$ = &data.Expression{
+              Expression: &data.Expression_StringOffset{
+                  &data.StringOffset{
                       StringIdentifier: proto.String($1),
                   },
               },
@@ -890,9 +895,9 @@ primary_expression
       }
     | _STRING_LENGTH_ '[' primary_expression ']'
       {
-          $$ = &Expression{
-              Expression: &Expression_StringLength{
-                  &StringLength{
+          $$ = &data.Expression{
+              Expression: &data.Expression_StringLength{
+                  &data.StringLength{
                       StringIdentifier: proto.String($1),
                       Index: $3,
                   },
@@ -901,9 +906,9 @@ primary_expression
       }
     | _STRING_LENGTH_
       {
-          $$ = &Expression{
-              Expression: &Expression_StringLength{
-                  &StringLength{
+          $$ = &data.Expression{
+              Expression: &data.Expression_StringLength{
+                  &data.StringLength{
                       StringIdentifier: proto.String($1),
                   },
               },
@@ -911,16 +916,16 @@ primary_expression
       }
     | identifier
       {
-          $$ = &Expression{
-              Expression: &Expression_Identifier{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_Identifier{$1},
           }
       }
     | '-' primary_expression %prec UNARY_MINUS
       {
-          $$ = &Expression{
-              Expression: &Expression_UnaryExpression{
-                  &UnaryExpression{
-                      Operator: UnaryExpression_UNARY_MINUS.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_UnaryExpression{
+                  &data.UnaryExpression{
+                      Operator: data.UnaryExpression_UNARY_MINUS.Enum(),
                       Expression: $2,
                   },
               },
@@ -928,10 +933,10 @@ primary_expression
       }
     | primary_expression '+' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_PLUS.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_PLUS.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -940,10 +945,10 @@ primary_expression
       }
     | primary_expression '-' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_MINUS.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_MINUS.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -952,10 +957,10 @@ primary_expression
       }
     | primary_expression '*' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_TIMES.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_TIMES.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -964,10 +969,10 @@ primary_expression
       }
     | primary_expression '\\' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_DIV.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_DIV.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -976,10 +981,10 @@ primary_expression
       }
     | primary_expression '%' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_MOD.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_MOD.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -988,10 +993,10 @@ primary_expression
       }
     | primary_expression '^' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_XOR.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_XOR.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -1000,10 +1005,10 @@ primary_expression
       }
     | primary_expression '&' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_BITWISE_AND.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_BITWISE_AND.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -1012,10 +1017,10 @@ primary_expression
       }
     | primary_expression '|' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_BITWISE_OR.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_BITWISE_OR.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -1024,10 +1029,10 @@ primary_expression
       }
     | '~' primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_UnaryExpression{
-                  UnaryExpression: &UnaryExpression{
-                      Operator: UnaryExpression_BITWISE_NOT.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_UnaryExpression{
+                  UnaryExpression: &data.UnaryExpression{
+                      Operator: data.UnaryExpression_BITWISE_NOT.Enum(),
                       Expression: $2,
                   },
               },
@@ -1035,10 +1040,10 @@ primary_expression
       }
     | primary_expression _SHIFT_LEFT_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_SHIFT_LEFT.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_SHIFT_LEFT.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -1047,10 +1052,10 @@ primary_expression
       }
     | primary_expression _SHIFT_RIGHT_ primary_expression
       {
-          $$ = &Expression{
-              Expression: &Expression_BinaryExpression{
-                  BinaryExpression: &BinaryExpression{
-                      Operator: BinaryExpression_SHIFT_RIGHT.Enum(),
+          $$ = &data.Expression{
+              Expression: &data.Expression_BinaryExpression{
+                  BinaryExpression: &data.BinaryExpression{
+                      Operator: data.BinaryExpression_SHIFT_RIGHT.Enum(),
                       Left: $1,
                       Right: $3,
                   },
@@ -1059,16 +1064,16 @@ primary_expression
       }
     | regexp
       {
-          $$ = &Expression{
-              Expression: &Expression_Regexp{$1},
+          $$ = &data.Expression{
+              Expression: &data.Expression_Regexp{$1},
           }
       }
     ;
 
 %%
 
-func createOrExpression(terms... *Expression) (or *Expression) {
-    expressions := []*Expression{}
+func createOrExpression(terms... *data.Expression) (or *data.Expression) {
+    expressions := []*data.Expression{}
     for _, term := range terms {
         if term.GetOrExpression() == nil {
            expressions = append(expressions, term)
@@ -1077,15 +1082,15 @@ func createOrExpression(terms... *Expression) (or *Expression) {
         }
     }
 
-    or = &Expression{
-        Expression: &Expression_OrExpression{&Expressions{ Terms: expressions }},
+    or = &data.Expression{
+        Expression: &data.Expression_OrExpression{&data.Expressions{ Terms: expressions }},
     }
 
     return
 }
 
-func createAndExpression(terms... *Expression) (and *Expression) {
-    expressions := []*Expression{}
+func createAndExpression(terms... *data.Expression) (and *data.Expression) {
+    expressions := []*data.Expression{}
     for _, term := range terms {
         if term.GetAndExpression() == nil {
            expressions = append(expressions, term)
@@ -1094,8 +1099,8 @@ func createAndExpression(terms... *Expression) (and *Expression) {
         }
     }
 
-    and = &Expression{
-        Expression: &Expression_AndExpression{&Expressions{ Terms: expressions }},
+    and = &data.Expression{
+        Expression: &data.Expression_AndExpression{&data.Expressions{ Terms: expressions }},
     }
 
     return

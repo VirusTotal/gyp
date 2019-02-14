@@ -8,29 +8,30 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/VirusTotal/go-yara-parser"
+	"github.com/VirusTotal/go-yara-parser/data"
+	yaraerr "github.com/VirusTotal/go-yara-parser/error"
 )
 
-var lexicalError yara.Error
+var lexicalError yaraerr.Error
 
 func init() {
 	xxErrorVerbose = true
 }
 
 // Parse parses an hex string in a YARA rule from the provided input source
-func Parse(input io.Reader) (hexstr yara.HexTokens, err error) {
-	// defer func() {
-	// 	if r := recover(); r != nil {
-	// 		if yaraError, ok := r.(yara.Error); ok {
-	// 			err = yaraError
-	// 		} else {
-	// 			panic(r)
-	// 		}
-	// 	}
-	// }()
+func Parse(input io.Reader) (hexstr data.HexTokens, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if yaraError, ok := r.(yaraerr.Error); ok {
+				err = yaraError
+			} else {
+				panic(r)
+			}
+		}
+	}()
 
 	// "Reset" the global ParsedHexString
-	ParsedHexString = yara.HexTokens{}
+	ParsedHexString = data.HexTokens{}
 
 	lexer := Lexer{
 		lexer: *NewScanner(),
@@ -64,8 +65,8 @@ func (l *Lexer) Lex(lval *xxSymType) int {
 // Error satisfies the interface expected of the goyacc parser.
 // Here, it simply writes the error to stdout.
 func (l *Lexer) Error(e string) {
-	lexicalError = yara.Error{
-		yara.LexicalError,
+	lexicalError = yaraerr.Error{
+		yaraerr.LexicalError,
 		fmt.Sprintf(`@%d - "%s"`, l.lexer.Lineno, e),
 	}
 }

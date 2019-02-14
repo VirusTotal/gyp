@@ -1,4 +1,4 @@
-package yara
+package error
 
 import (
 	"fmt"
@@ -27,14 +27,6 @@ const (
 type Error struct {
 	Code
 	Data string
-}
-
-func newError(code Code, data string) error {
-	if code == 0 {
-		return nil
-	}
-
-	return Error{code, data}
 }
 
 func (e Error) Error() string {

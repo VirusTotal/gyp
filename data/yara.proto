@@ -3,6 +3,8 @@
 
 syntax = "proto2";
 
+option go_package = "data";
+
 message RuleModifiers {
   optional bool global = 1;
   optional bool private = 2;
