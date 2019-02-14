@@ -70,7 +70,7 @@ var ParsedRuleset data.RuleSet
 %token <f64> _DOUBLE_
 %token <s> _INTEGER_FUNCTION_
 %token <s> _TEXT_STRING_
-%token <s> _HEX_STRING_
+%token <hextokens> _HEX_STRING_
 %token <reg> _REGEXP_
 %token <mod> _ASCII_
 %token <mod> _WIDE_
@@ -163,6 +163,7 @@ var ParsedRuleset data.RuleSet
     strenum       *data.StringEnumeration
     expr          *data.Expression
     exprs         *data.Expressions
+    hextokens     *data.HexTokens
 }
 
 

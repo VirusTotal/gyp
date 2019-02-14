@@ -43,6 +43,7 @@ import (
     proto "github.com/golang/protobuf/proto"
 
     "github.com/VirusTotal/go-yara-parser/data"
+    "github.com/VirusTotal/go-yara-parser/hex"
     yaraerr "github.com/VirusTotal/go-yara-parser/error"
 )
 
@@ -390,7 +391,13 @@ u?int(8|16|32)(be)? {
   // NOTE: The above comment may not apply. We plan to not use hex_lexer.l
 
   // No need to collect like str and regexp start conditions
-  yylval.s = strings.TrimSpace(strings.Trim(YYtext, "{}"))
+  hexReader := strings.NewReader(YYtext)
+
+  hexString, err := hex.Parse(hexReader)
+  if err != nil {
+    panic(err)
+  }
+  yylval.hextokens = &hexString
 
   return _HEX_STRING_;
 }
