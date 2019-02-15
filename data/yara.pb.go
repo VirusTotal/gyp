@@ -20,12 +20,15 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+// Keywords used in expressions of rule condition.
 type Keyword int32
 
 const (
-	Keyword_UNKNOWN    Keyword = 1
+	Keyword_UNKNOWN Keyword = 1
+	// Raw offset of a PE or ELF file entrypoint.
 	Keyword_ENTRYPOINT Keyword = 2
-	Keyword_FILESIZE   Keyword = 3
+	// Size of the scanned file.
+	Keyword_FILESIZE Keyword = 3
 )
 
 var Keyword_name = map[int32]string{
@@ -63,10 +66,13 @@ func (Keyword) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_81b40ed188bd6c91, []int{0}
 }
 
+// Keywords used in FOR expressions.
 type ForKeyword int32
 
 const (
+	// All items must satisfy a condition.
 	ForKeyword_ALL ForKeyword = 1
+	// At least one item must satisfy a condition.
 	ForKeyword_ANY ForKeyword = 2
 )
 
@@ -103,9 +109,11 @@ func (ForKeyword) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_81b40ed188bd6c91, []int{1}
 }
 
+// Keywords used in string sets.
 type StringSetKeyword int32
 
 const (
+	// All the strings in the rule (equivalent to $*).
 	StringSetKeyword_THEM StringSetKeyword = 1
 )
 
@@ -283,8 +291,11 @@ func (UnaryExpression_Operator) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_81b40ed188bd6c91, []int{12, 0}
 }
 
+// Rule modifiers
 type RuleModifiers struct {
-	Global               *bool    `protobuf:"varint,1,opt,name=global" json:"global,omitempty"`
+	// Impose restrictions on all the rules in the ruleset.
+	Global *bool `protobuf:"varint,1,opt,name=global" json:"global,omitempty"`
+	// Rule is not reported when matches a file.
 	Private              *bool    `protobuf:"varint,2,opt,name=private" json:"private,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -330,8 +341,12 @@ func (m *RuleModifiers) GetPrivate() bool {
 	return false
 }
 
+// Rule metadata entry
 type Meta struct {
+	// Metadata key. Can be repeated. Required.
 	Key *string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+	// Entry value, which can be a string, a number or a boolean.
+	//
 	// Types that are valid to be assigned to Value:
 	//	*Meta_Text
 	//	*Meta_Number
@@ -433,8 +448,13 @@ func (*Meta) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// Rule string entry.
 type String struct {
+	// String identifier. Required.
 	Id *string `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	// String value, which can be a text string, an hexadecimal string or a
+	// regular expression.
+	//
 	// Types that are valid to be assigned to Value:
 	//	*String_Text
 	//	*String_Hex
@@ -536,13 +556,21 @@ func (*String) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// Modifiers for TextStrings and Regexps.
 type StringModifiers struct {
-	Nocase               *bool    `protobuf:"varint,1,opt,name=nocase" json:"nocase,omitempty"`
-	Ascii                *bool    `protobuf:"varint,2,opt,name=ascii" json:"ascii,omitempty"`
-	Wide                 *bool    `protobuf:"varint,3,opt,name=wide" json:"wide,omitempty"`
-	Fullword             *bool    `protobuf:"varint,4,opt,name=fullword" json:"fullword,omitempty"`
-	Xor                  *bool    `protobuf:"varint,5,opt,name=xor" json:"xor,omitempty"`
-	I                    *bool    `protobuf:"varint,6,opt,name=i" json:"i,omitempty"`
+	// Case-insensitive.
+	Nocase *bool `protobuf:"varint,1,opt,name=nocase" json:"nocase,omitempty"`
+	// Strings should be ASCII-encoded.
+	Ascii *bool `protobuf:"varint,2,opt,name=ascii" json:"ascii,omitempty"`
+	// String should be encoded with two bytes per character.
+	Wide *bool `protobuf:"varint,3,opt,name=wide" json:"wide,omitempty"`
+	// Only matches the string if it appears delimited by non-alphanumeric chars.
+	Fullword *bool `protobuf:"varint,4,opt,name=fullword" json:"fullword,omitempty"`
+	// Matches strings with a single-byte XOR applied to them.
+	Xor *bool `protobuf:"varint,5,opt,name=xor" json:"xor,omitempty"`
+	// Regexp case-insensitive modifier.
+	I *bool `protobuf:"varint,6,opt,name=i" json:"i,omitempty"`
+	// Regexp single-line modifier.
 	S                    *bool    `protobuf:"varint,7,opt,name=s" json:"s,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -623,8 +651,11 @@ func (m *StringModifiers) GetS() bool {
 	return false
 }
 
+// Text string.
 type TextString struct {
-	Text                 *string          `protobuf:"bytes,1,opt,name=text" json:"text,omitempty"`
+	// String content.
+	Text *string `protobuf:"bytes,1,opt,name=text" json:"text,omitempty"`
+	// String modifiers.
 	Modifiers            *StringModifiers `protobuf:"bytes,2,opt,name=modifiers" json:"modifiers,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
 	XXX_unrecognized     []byte           `json:"-"`
@@ -670,8 +701,11 @@ func (m *TextString) GetModifiers() *StringModifiers {
 	return nil
 }
 
+// Regular expression string.
 type Regexp struct {
-	Text                 *string          `protobuf:"bytes,1,opt,name=text" json:"text,omitempty"`
+	// String content.
+	Text *string `protobuf:"bytes,1,opt,name=text" json:"text,omitempty"`
+	// String modifiers.
 	Modifiers            *StringModifiers `protobuf:"bytes,2,opt,name=modifiers" json:"modifiers,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
 	XXX_unrecognized     []byte           `json:"-"`
@@ -717,7 +751,9 @@ func (m *Regexp) GetModifiers() *StringModifiers {
 	return nil
 }
 
+// Sequence of hexadecimal string tokens.
 type HexTokens struct {
+	// Tokens.
 	Token                []*HexToken `protobuf:"bytes,1,rep,name=token" json:"token,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
@@ -756,6 +792,8 @@ func (m *HexTokens) GetToken() []*HexToken {
 	return nil
 }
 
+// A token in a hexadecimal string. A token can be either a sequence of bytes,
+// a jump or an alternative.
 type HexToken struct {
 	// Types that are valid to be assigned to Value:
 	//	*HexToken_Sequence
@@ -851,7 +889,9 @@ func (*HexToken) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// List of alternatives for a part in the hexadecimal string.
 type HexAlternative struct {
+	// Alternatives, which are sequences of tokens.
 	Tokens               []*HexTokens `protobuf:"bytes,1,rep,name=tokens" json:"tokens,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
 	XXX_unrecognized     []byte       `json:"-"`
@@ -890,8 +930,17 @@ func (m *HexAlternative) GetTokens() []*HexTokens {
 	return nil
 }
 
+// A sequence of bytes, which may contain wildcards.
 type BytesSequence struct {
-	Value                []byte   `protobuf:"bytes,1,opt,name=value" json:"value,omitempty"`
+	// The list of values.
+	Value []byte `protobuf:"bytes,1,opt,name=value" json:"value,omitempty"`
+	// The mask applied to each byte in value.
+	// Indexes and length of value and mask must match.
+	// Possible masks:
+	// 00 -> Full wildcard, value is ignored (??).
+	// 0F -> Partial wildcard (?v).
+	// F0 -> Partial wildcard (v?).
+	// FF -> No wildcard (vv).
 	Mask                 []byte   `protobuf:"bytes,2,opt,name=mask" json:"mask,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -937,8 +986,11 @@ func (m *BytesSequence) GetMask() []byte {
 	return nil
 }
 
+// Sequence of arbitrary content and variable length.
 type Jump struct {
-	Start                *int64   `protobuf:"varint,1,opt,name=start" json:"start,omitempty"`
+	// Minimum jump length. 0 if not present.
+	Start *int64 `protobuf:"varint,1,opt,name=start" json:"start,omitempty"`
+	// Maximum jump length. Infinite if not present.
 	End                  *int64   `protobuf:"varint,2,opt,name=end" json:"end,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -984,13 +1036,17 @@ func (m *Jump) GetEnd() int64 {
 	return 0
 }
 
+// Binary expression, consisting of two expressions joined by an operator.
 type BinaryExpression struct {
-	Operator             *BinaryExpression_Operator `protobuf:"varint,1,opt,name=operator,enum=BinaryExpression_Operator" json:"operator,omitempty"`
-	Left                 *Expression                `protobuf:"bytes,2,opt,name=left" json:"left,omitempty"`
-	Right                *Expression                `protobuf:"bytes,3,opt,name=right" json:"right,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
-	XXX_unrecognized     []byte                     `json:"-"`
-	XXX_sizecache        int32                      `json:"-"`
+	// Operator. Required.
+	Operator *BinaryExpression_Operator `protobuf:"varint,1,opt,name=operator,enum=BinaryExpression_Operator" json:"operator,omitempty"`
+	// Left expression. Required.
+	Left *Expression `protobuf:"bytes,2,opt,name=left" json:"left,omitempty"`
+	// Right expression. Required.
+	Right                *Expression `protobuf:"bytes,3,opt,name=right" json:"right,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
 }
 
 func (m *BinaryExpression) Reset()         { *m = BinaryExpression{} }
@@ -1039,12 +1095,15 @@ func (m *BinaryExpression) GetRight() *Expression {
 	return nil
 }
 
+// Unary expression, consisting of an operator applied to an expression.
 type UnaryExpression struct {
-	Operator             *UnaryExpression_Operator `protobuf:"varint,1,opt,name=operator,enum=UnaryExpression_Operator" json:"operator,omitempty"`
-	Expression           *Expression               `protobuf:"bytes,2,opt,name=expression" json:"expression,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
-	XXX_unrecognized     []byte                    `json:"-"`
-	XXX_sizecache        int32                     `json:"-"`
+	// Operator. Required.
+	Operator *UnaryExpression_Operator `protobuf:"varint,1,opt,name=operator,enum=UnaryExpression_Operator" json:"operator,omitempty"`
+	// Expression. Required.
+	Expression           *Expression `protobuf:"bytes,2,opt,name=expression" json:"expression,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
 }
 
 func (m *UnaryExpression) Reset()         { *m = UnaryExpression{} }
@@ -1086,8 +1145,12 @@ func (m *UnaryExpression) GetExpression() *Expression {
 	return nil
 }
 
+// A range of values. The start and end of a range are expressions, so they do
+// not need to be constants.
 type Range struct {
-	Start                *Expression `protobuf:"bytes,1,opt,name=start" json:"start,omitempty"`
+	// Range start. Required.
+	Start *Expression `protobuf:"bytes,1,opt,name=start" json:"start,omitempty"`
+	// Range end. Required.
 	End                  *Expression `protobuf:"bytes,2,opt,name=end" json:"end,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
@@ -1133,8 +1196,11 @@ func (m *Range) GetEnd() *Expression {
 	return nil
 }
 
+// Functions for reading data from a file at a specified offset or virtual address.
 type IntegerFunction struct {
-	Function             *string     `protobuf:"bytes,1,opt,name=function" json:"function,omitempty"`
+	// Integer function: (u)intXX(be). Required.
+	Function *string `protobuf:"bytes,1,opt,name=function" json:"function,omitempty"`
+	// Offset or virtual address. Required.
 	Expression           *Expression `protobuf:"bytes,2,opt,name=expression" json:"expression,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
@@ -1180,14 +1246,20 @@ func (m *IntegerFunction) GetExpression() *Expression {
 	return nil
 }
 
+// Expression for iterating over string occurrences.
+// Example: for any i in (1..10) : @s1[i] != @s2[i]
 type ForInExpression struct {
-	ForExpression        *ForExpression `protobuf:"bytes,1,opt,name=for_expression,json=forExpression" json:"for_expression,omitempty"`
-	Identifier           *string        `protobuf:"bytes,2,opt,name=identifier" json:"identifier,omitempty"`
-	IntegerSet           *IntegerSet    `protobuf:"bytes,3,opt,name=integer_set,json=integerSet" json:"integer_set,omitempty"`
-	Expression           *Expression    `protobuf:"bytes,4,opt,name=expression" json:"expression,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	// FOR expression: "for any". Required.
+	ForExpression *ForExpression `protobuf:"bytes,1,opt,name=for_expression,json=forExpression" json:"for_expression,omitempty"`
+	// Identifier to use in the expression to match: "i". Required.
+	Identifier *string `protobuf:"bytes,2,opt,name=identifier" json:"identifier,omitempty"`
+	// Integer set: "(1..10)". Required.
+	IntegerSet *IntegerSet `protobuf:"bytes,3,opt,name=integer_set,json=integerSet" json:"integer_set,omitempty"`
+	// Expression to match: "@s1[i] != @s2[i]". Required.
+	Expression           *Expression `protobuf:"bytes,4,opt,name=expression" json:"expression,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
 }
 
 func (m *ForInExpression) Reset()         { *m = ForInExpression{} }
@@ -1243,6 +1315,8 @@ func (m *ForInExpression) GetExpression() *Expression {
 	return nil
 }
 
+// Set of integer numbers, which can be either an enumeration of integer values
+// or a range of values.
 type IntegerSet struct {
 	// Types that are valid to be assigned to Set:
 	//	*IntegerSet_IntegerEnumeration
@@ -1323,7 +1397,9 @@ func (*IntegerSet) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// Enumeration of integer values.
 type IntegerEnumeration struct {
+	// Enumeration values, which can be calculated from an expression.
 	Values               []*Expression `protobuf:"bytes,1,rep,name=values" json:"values,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
@@ -1362,6 +1438,8 @@ func (m *IntegerEnumeration) GetValues() []*Expression {
 	return nil
 }
 
+// FOR expression, used as part of ForInExpressions and ForOrExpressions.
+// Can contain either an expression or a keyword.
 type ForExpression struct {
 	// Types that are valid to be assigned to For:
 	//	*ForExpression_Expression
@@ -1442,13 +1520,19 @@ func (*ForExpression) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// A ForOfExpression is satisfied if at least "expression" strings in "string_set"
+// satisfy "expression".
+// Example: for all of ($s1, $s2) : (@$ > 10)
 type ForOfExpression struct {
-	ForExpression        *ForExpression `protobuf:"bytes,1,opt,name=for_expression,json=forExpression" json:"for_expression,omitempty"`
-	StringSet            *StringSet     `protobuf:"bytes,2,opt,name=string_set,json=stringSet" json:"string_set,omitempty"`
-	Expression           *Expression    `protobuf:"bytes,3,opt,name=expression" json:"expression,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	// FOR expression: "for all". Required.
+	ForExpression *ForExpression `protobuf:"bytes,1,opt,name=for_expression,json=forExpression" json:"for_expression,omitempty"`
+	// String set: "($s1, $s2)". Required.
+	StringSet *StringSet `protobuf:"bytes,2,opt,name=string_set,json=stringSet" json:"string_set,omitempty"`
+	// Expression to match: "(@$ > 10)"
+	Expression           *Expression `protobuf:"bytes,3,opt,name=expression" json:"expression,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
 }
 
 func (m *ForOfExpression) Reset()         { *m = ForOfExpression{} }
@@ -1497,6 +1581,7 @@ func (m *ForOfExpression) GetExpression() *Expression {
 	return nil
 }
 
+// Set of strings. Can be either an enumeration of strings or a keyword.
 type StringSet struct {
 	// Types that are valid to be assigned to Set:
 	//	*StringSet_Strings
@@ -1577,7 +1662,11 @@ func (*StringSet) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// Enumeration of strings, referenced by their identifier.
+// A wildcard can be used to match multiple strings.
+// Examples: $str1, $str*
 type StringEnumeration struct {
+	// Items in the strings enumeration.
 	Items                []*StringEnumeration_StringEnumerationItem `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                                   `json:"-"`
 	XXX_unrecognized     []byte                                     `json:"-"`
@@ -1616,8 +1705,11 @@ func (m *StringEnumeration) GetItems() []*StringEnumeration_StringEnumerationIte
 	return nil
 }
 
+// An entry in the strings enumeration.
 type StringEnumeration_StringEnumerationItem struct {
-	StringIdentifier     *string  `protobuf:"bytes,1,opt,name=string_identifier,json=stringIdentifier" json:"string_identifier,omitempty"`
+	// String identifier or part of it if a wildcard is used.
+	StringIdentifier *string `protobuf:"bytes,1,opt,name=string_identifier,json=stringIdentifier" json:"string_identifier,omitempty"`
+	// Wildcard (*).
 	HasWildcard          *bool    `protobuf:"varint,2,opt,name=has_wildcard,json=hasWildcard" json:"has_wildcard,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -1665,6 +1757,7 @@ func (m *StringEnumeration_StringEnumerationItem) GetHasWildcard() bool {
 	return false
 }
 
+// Expression used as part of a rule condition.
 type Expression struct {
 	// Types that are valid to be assigned to Expression:
 	//	*Expression_BoolValue
@@ -2015,8 +2108,15 @@ func (*Expression) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// Refers to the offset or virtual address at which a string (or, optionally,
+// the i-th occurence of the string) is found.
+// Examples:
+// - $s1 at 1000
+// - $s1[2] at 1000
 type StringOffset struct {
-	StringIdentifier     *string     `protobuf:"bytes,1,opt,name=string_identifier,json=stringIdentifier" json:"string_identifier,omitempty"`
+	// String identifier. Required.
+	StringIdentifier *string `protobuf:"bytes,1,opt,name=string_identifier,json=stringIdentifier" json:"string_identifier,omitempty"`
+	// The index of the occurrence of the string.
 	Index                *Expression `protobuf:"bytes,2,opt,name=index" json:"index,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
@@ -2062,8 +2162,16 @@ func (m *StringOffset) GetIndex() *Expression {
 	return nil
 }
 
+// Refers to the length of the matches of a string (or, optionally, to the
+// length of the i-th match). It is useful when combined with regular
+// expressions or hexadecimal strings, which may contain jumps.
+// Examples:
+// - !$s1 > 50
+// - !$s1[1] != 30
 type StringLength struct {
-	StringIdentifier     *string     `protobuf:"bytes,1,opt,name=string_identifier,json=stringIdentifier" json:"string_identifier,omitempty"`
+	// String Identifier. Required.
+	StringIdentifier *string `protobuf:"bytes,1,opt,name=string_identifier,json=stringIdentifier" json:"string_identifier,omitempty"`
+	// The index of the match.
 	Index                *Expression `protobuf:"bytes,2,opt,name=index" json:"index,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
@@ -2109,7 +2217,14 @@ func (m *StringLength) GetIndex() *Expression {
 	return nil
 }
 
+// Identifier used as part of expressions.
+// Consists of sequence of identifiers, expressions and arguments.
+// Examples:
+// - my_var
+// - pe.number_of_resources
+// - math.entropy(mystr[i])
 type Identifier struct {
+	// Items in the identifier.
 	Items                []*Identifier_IdentifierItem `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
 	XXX_unrecognized     []byte                       `json:"-"`
@@ -2243,7 +2358,9 @@ func (*Identifier_IdentifierItem) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// Sequence of expressions.
 type Expressions struct {
+	// Terms in the sequence.
 	Terms                []*Expression `protobuf:"bytes,1,rep,name=terms" json:"terms,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
@@ -2282,16 +2399,23 @@ func (m *Expressions) GetTerms() []*Expression {
 	return nil
 }
 
+// YARA rule.
 type Rule struct {
-	Modifiers            *RuleModifiers `protobuf:"bytes,1,opt,name=modifiers" json:"modifiers,omitempty"`
-	Identifier           *string        `protobuf:"bytes,2,opt,name=identifier" json:"identifier,omitempty"`
-	Tags                 []string       `protobuf:"bytes,3,rep,name=tags" json:"tags,omitempty"`
-	Meta                 []*Meta        `protobuf:"bytes,4,rep,name=meta" json:"meta,omitempty"`
-	Strings              []*String      `protobuf:"bytes,5,rep,name=strings" json:"strings,omitempty"`
-	Condition            *Expression    `protobuf:"bytes,6,opt,name=condition" json:"condition,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
+	// Rule modifiers (global, private).
+	Modifiers *RuleModifiers `protobuf:"bytes,1,opt,name=modifiers" json:"modifiers,omitempty"`
+	// Rule identifier. Must be unique in the ruleset. Required.
+	Identifier *string `protobuf:"bytes,2,opt,name=identifier" json:"identifier,omitempty"`
+	// Tags. Cannot be repeated.
+	Tags []string `protobuf:"bytes,3,rep,name=tags" json:"tags,omitempty"`
+	// Metadata.
+	Meta []*Meta `protobuf:"bytes,4,rep,name=meta" json:"meta,omitempty"`
+	// String declarations.
+	Strings []*String `protobuf:"bytes,5,rep,name=strings" json:"strings,omitempty"`
+	// Boolean expression to check.
+	Condition            *Expression `protobuf:"bytes,6,opt,name=condition" json:"condition,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
 }
 
 func (m *Rule) Reset()         { *m = Rule{} }
@@ -2361,9 +2485,17 @@ func (m *Rule) GetCondition() *Expression {
 	return nil
 }
 
+// Set of YARA rules.
 type RuleSet struct {
-	Imports              []string `protobuf:"bytes,1,rep,name=imports" json:"imports,omitempty"`
-	Includes             []string `protobuf:"bytes,2,rep,name=includes" json:"includes,omitempty"`
+	// Names of the imported modules.
+	// Examples: "pe", "elf", "cuckoo", "magic", "hash", "math", ...
+	Imports []string `protobuf:"bytes,1,rep,name=imports" json:"imports,omitempty"`
+	// Path to other YARA source files whose content should be included.
+	// Examples:
+	// - "other_rule.yar"
+	// - "rules/rule1.yar"
+	Includes []string `protobuf:"bytes,2,rep,name=includes" json:"includes,omitempty"`
+	// Set of rules.
 	Rules                []*Rule  `protobuf:"bytes,3,rep,name=rules" json:"rules,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

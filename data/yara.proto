@@ -5,13 +5,20 @@ syntax = "proto2";
 
 option go_package = "data";
 
+// Rule modifiers.
 message RuleModifiers {
+  // Impose restrictions on all the rules in the ruleset.
   optional bool global = 1;
+  // Rule is not reported when matches a file.
   optional bool private = 2;
 }
 
+// Rule metadata entry.
 message Meta {
-  optional string key = 1;  // Required
+  // Metadata key. Can be repeated. Required.
+  optional string key = 1;
+
+  // Entry value, which can be a string, a number or a boolean.
   oneof value {
     string text = 2;
     int64 number = 3;
@@ -19,8 +26,13 @@ message Meta {
   }
 }
 
+// Rule string entry.
 message String {
-  optional string id = 1;  // Required
+  // String identifier. Required.
+  optional string id = 1;
+
+  // String value, which can be a text string, an hexadecimal string or a
+  // regular expression.
   oneof value {
     TextString text = 2;
     HexTokens hex = 3;
@@ -28,166 +40,279 @@ message String {
   }
 }
 
+// Modifiers for TextStrings and Regexps.
 message StringModifiers {
+  // Case-insensitive.
   optional bool nocase = 1;
+
+  // Strings should be ASCII-encoded.
   optional bool ascii = 2;
+
+  // String should be encoded with two bytes per character.
   optional bool wide = 3;
+
+  // Only matches the string if it appears delimited by non-alphanumeric chars.
   optional bool fullword = 4;
+
+  // Matches strings with a single-byte XOR applied to them.
   optional bool xor = 5;
+
+  // Regexp case-insensitive modifier.
   optional bool i = 6;
+
+  // Regexp single-line modifier.
   optional bool s = 7;
 }
 
+// Text string.
 message TextString {
+  // String content.
   optional string text = 1;
+
+  // String modifiers.
   optional StringModifiers modifiers = 2;
 }
 
+// Regular expression string.
 message Regexp {
-  optional string text = 1;  // Required
+  // String content.
+  optional string text = 1;
+
+  // String modifiers.
   optional StringModifiers modifiers = 2;
 }
 
+// Sequence of hexadecimal string tokens.
 message HexTokens {
+  // Tokens.
   repeated HexToken token = 1;
 }
 
+// A token in a hexadecimal string. A token can be either a sequence of bytes,
+// a jump or an alternative.
 message HexToken {
   oneof value {
+    // A sequence of bytes, which may contain wildcards.
     BytesSequence sequence = 1;
+
+    // A jump.
     Jump jump = 2;
+
+    // An alternative of token sequences.
     HexAlternative alternative = 3;
   }
 }
 
+// List of alternatives for a part in the hexadecimal string.
 message HexAlternative {
+  // Alternatives, which are sequences of tokens.
   repeated HexTokens tokens = 1;
 }
 
+// A sequence of bytes, which may contain wildcards.
 message BytesSequence {
+  // The list of values.
   optional bytes value = 1;
-  optional bytes mask = 2;  // 00 = any, 0F = ?v, F0 = v?, FF = vv
+
+  // The mask applied to each byte in value.
+  // Indexes and length of value and mask must match.
+  // Possible masks:
+  // 00 -> Full wildcard, value is ignored (??).
+  // 0F -> Partial wildcard (?v).
+  // F0 -> Partial wildcard (v?).
+  // FF -> No wildcard (vv).
+  optional bytes mask = 2;
 }
 
+// Sequence of arbitrary content and variable length.
 message Jump {
+  // Minimum jump length. 0 if not present.
   optional int64 start = 1;  // 0 if not present
-  optional int64 end = 2;  // Inclusive. Inf is not present.
+
+  // Maximum jump length. Infinite if not present.
+  optional int64 end = 2;
 }
 
+// Binary expression, consisting of two expressions joined by an operator.
 message BinaryExpression {
   enum Operator {
     UNKNOWN = 0;
-    MATCHES = 1;
-    CONTAINS = 2;
-    AT = 3;
-    IN = 4;
-    LT = 5; 
-    GT = 6;
-    LE = 7;
-    GE = 8;
-    EQ = 9;
-    NEQ = 10;
-    INTEGER_FUNCTION = 11;
-    PLUS = 12;
-    MINUS = 13;
-    TIMES = 14;
-    DIV = 15;
-    MOD = 16;
-    XOR = 17;
-    BITWISE_AND = 18;
-    BITWISE_OR = 19;
-    SHIFT_LEFT = 20;
-    SHIFT_RIGHT = 21;
+    MATCHES = 1;  // matches
+    CONTAINS = 2;  // contains
+    AT = 3;  // at
+    IN = 4;  // in
+    LT = 5;  // <
+    GT = 6;  // >
+    LE = 7;  // <=
+    GE = 8;  // >=
+    EQ = 9;  // ==
+    NEQ = 10;  // !=
+    INTEGER_FUNCTION = 11;  // intXX and uintXX functions
+    PLUS = 12;  // +
+    MINUS = 13;  // -
+    TIMES = 14;  // *
+    DIV = 15;  // \
+    MOD = 16;  // %
+    XOR = 17;  // ^
+    BITWISE_AND = 18;  // &
+    BITWISE_OR = 19;  // |
+    SHIFT_LEFT = 20;  // <<
+    SHIFT_RIGHT = 21;  // >>
   }
 
-  optional Operator operator = 1;  // Required
-  optional Expression left = 2;  // Required
-  optional Expression right = 3;  // Required
+  // Operator. Required.
+  optional Operator operator = 1;
+
+  // Left expression. Required.
+  optional Expression left = 2;
+
+  // Right expression. Required.
+  optional Expression right = 3;
 }
 
+// Unary expression, consisting of an operator applied to an expression.
 message UnaryExpression {
   enum Operator {
     UNKNOWN = 0;
-    UNARY_MINUS = 1;
-    BITWISE_NOT = 2;
+    UNARY_MINUS = 1;  // -
+    BITWISE_NOT = 2;  // ~
   }
 
-  optional Operator operator = 1;  // Required
-  optional Expression expression = 2;  // Required
+  // Operator. Required.
+  optional Operator operator = 1;
+
+  // Expression. Required.
+  optional Expression expression = 2;
 }
 
+// A range of values. The start and end of a range are expressions, so they do
+// not need to be constants.
 message Range {
-  optional Expression start = 1;  // Required
-  optional Expression end = 2;  // Required
+  // Range start. Required.
+  optional Expression start = 1;
+
+  // Range end. Required.
+  optional Expression end = 2;
 }
 
+// Functions for reading data from a file at a specified offset or virtual address.
 message IntegerFunction {
-  optional string function = 1;  // Required
-  optional Expression expression = 2;  // Required
+  // Integer function: (u)intXX(be). Required.
+  optional string function = 1;
+
+  // Offset or virtual address. Required.
+  optional Expression expression = 2;
 }
 
+// Expression for iterating over string occurrences.
+// Example: for any i in (1..10) : @s1[i] != @s2[i]
 message ForInExpression {
-  optional ForExpression for_expression = 1;  // Required
-  optional string identifier = 2;  // Required
-  optional IntegerSet integer_set = 3;  // Required
-  optional Expression expression = 4;  // Required
+  // FOR expression: "for any". Required.
+  optional ForExpression for_expression = 1;
+
+  // Identifier to use in the expression to match: "i". Required.
+  optional string identifier = 2;
+
+  // Integer set: "(1..10)". Required.
+  optional IntegerSet integer_set = 3;
+
+  // Expression to match: "@s1[i] != @s2[i]". Required.
+  optional Expression expression = 4;
 }
 
+// Set of integer numbers, which can be either an enumeration of integer values
+// or a range of values.
 message IntegerSet {
   oneof set {
+    // Enumeration of integer values.
     IntegerEnumeration integer_enumeration = 1;
+
+    // Range of values.
     Range range = 2;
   }
 }
 
+// Enumeration of integer values.
 message IntegerEnumeration {
+  // Enumeration values, which can be calculated from an expression.
   repeated Expression values = 1;
 }
 
+// FOR expression, used as part of ForInExpressions and ForOrExpressions.
+// Can contain either an expression or a keyword.
 message ForExpression {
   oneof for {
-    Expression expression = 1;  
-    ForKeyword keyword = 2;
+    Expression expression = 1;  // Example: "for 10"
+    ForKeyword keyword = 2;  // Example: "for all"
   }
 }
 
+// A ForOfExpression is satisfied if at least "expression" strings in "string_set"
+// satisfy "expression".
+// Example: for all of ($s1, $s2) : (@$ > 10)
 message ForOfExpression {
-  optional ForExpression for_expression = 1;  // Required
-  optional StringSet string_set = 2;  // Required
+  // FOR expression: "for all". Required.
+  optional ForExpression for_expression = 1;
+
+  // String set: "($s1, $s2)". Required.
+  optional StringSet string_set = 2;
+
+  // Expression to match: "(@$ > 10)"
   optional Expression expression = 3;
 }
 
+// Set of strings. Can be either an enumeration of strings or a keyword.
 message StringSet {
   oneof set {
+    // Enumeration of strings. Example: ($s1, $s2, $s3)
     StringEnumeration strings = 1;
+
+    // Keyword. Examples: any, all
     StringSetKeyword keyword = 2;
   }
 }
 
+// Enumeration of strings, referenced by their identifier.
+// A wildcard can be used to match multiple strings.
+// Examples: $str1, $str*
 message StringEnumeration {
+  // An entry in the strings enumeration.
   message StringEnumerationItem {
+    // String identifier or part of it if a wildcard is used.
     optional string string_identifier = 1;
+
+    // Wildcard (*).
     optional bool has_wildcard = 2;
   }
 
+  // Items in the strings enumeration.
   repeated StringEnumerationItem items = 1;
 }
 
+// Keywords used in expressions of rule condition.
 enum Keyword {
   UNKNOWN = 1;
+  // Raw offset of a PE or ELF file entrypoint.
   ENTRYPOINT = 2;
+  // Size of the scanned file.
   FILESIZE = 3;
 }
 
+// Keywords used in FOR expressions.
 enum ForKeyword {
+  // All items must satisfy a condition.
   ALL = 1;
+  // At least one item must satisfy a condition.
   ANY = 2;
 }
 
+// Keywords used in string sets.
 enum StringSetKeyword {
+  // All the strings in the rule (equivalent to $*).
   THEM = 1;
 }
 
+// Expression used as part of a rule condition.
 message Expression {
   oneof expression {
     bool bool_value = 1;
@@ -213,16 +338,39 @@ message Expression {
   }
 }
 
+// Refers to the offset or virtual address at which a string (or, optionally,
+// the i-th occurence of the string) is found.
+// Examples:
+// - $s1 at 1000
+// - $s1[2] at 1000
 message StringOffset {
-  optional string string_identifier = 1;  // Required
+  // String identifier. Required.
+  optional string string_identifier = 1;
+
+  // The index of the occurrence of the string.
   optional Expression index = 2;
 }
 
+// Refers to the length of the matches of a string (or, optionally, to the
+// length of the i-th match). It is useful when combined with regular
+// expressions or hexadecimal strings, which may contain jumps.
+// Examples:
+// - !$s1 > 50
+// - !$s1[1] != 30
 message StringLength {
-  optional string string_identifier = 1;  // Required
+  // String Identifier. Required.
+  optional string string_identifier = 1;
+
+  // The index of the match.
   optional Expression index = 2;
 }
 
+// Identifier used as part of expressions.
+// Consists of sequence of identifiers, expressions and arguments.
+// Examples:
+// - my_var
+// - pe.number_of_resources
+// - math.entropy(mystr[i])
 message Identifier {
   message IdentifierItem {
     oneof item {
@@ -232,25 +380,50 @@ message Identifier {
     }
   }
 
+  // Items in the identifier.
   repeated IdentifierItem items = 1;
 }
 
+// Sequence of expressions.
 message Expressions {
+  // Terms in the sequence.
   repeated Expression terms = 1;  
 }
 
+// YARA rule.
 message Rule {
+  // Rule modifiers (global, private).
   optional RuleModifiers modifiers = 1;
-  optional string identifier = 2;  // Required
+
+  // Rule identifier. Must be unique in the ruleset. Required.
+  optional string identifier = 2;
+
+  // Tags. Cannot be repeated.
   repeated string tags = 3;
+
+  // Metadata.
   repeated Meta meta = 4;
+
+  // String declarations.
   repeated String strings = 5;
+
+  // Boolean expression to check.
   optional Expression condition = 6;
 }
 
+// Set of YARA rules.
 message RuleSet {
+  // Names of the imported modules.
+  // Examples: "pe", "elf", "cuckoo", "magic", "hash", "math", ...
   repeated string imports = 1;
+
+  // Path to other YARA source files whose content should be included.
+  // Examples:
+  // - "other_rule.yar"
+  // - "rules/rule1.yar"
   repeated string includes = 2;
+
+  // Set of rules.
   repeated Rule rules = 3;
 }
 
