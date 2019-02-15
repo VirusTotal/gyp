@@ -221,7 +221,7 @@ rule
                     gyperror.DuplicateTagError,
                     fmt.Sprintf(
                       `"%s" at rule "%s"`,
-                      $<yr>4.Identifier,
+                      $<yr>4.GetIdentifier(),
                       t),
                   }
                   panic(err)
@@ -244,7 +244,7 @@ rule
                     gyperror.DuplicateStringError,
                     fmt.Sprintf(
                       `"%s" at rule "%s"`,
-                      $<yr>4.Identifier,
+                      $<yr>4.GetIdentifier(),
                       s.GetId(),
                     ),
                   }

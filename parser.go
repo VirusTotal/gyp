@@ -828,7 +828,7 @@ xxdefault:
 						gyperror.DuplicateTagError,
 						fmt.Sprintf(
 							`"%s" at rule "%s"`,
-							xxDollar[4].yr.Identifier,
+							xxDollar[4].yr.GetIdentifier(),
 							t),
 					}
 					panic(err)
@@ -851,7 +851,7 @@ xxdefault:
 						gyperror.DuplicateStringError,
 						fmt.Sprintf(
 							`"%s" at rule "%s"`,
-							xxDollar[4].yr.Identifier,
+							xxDollar[4].yr.GetIdentifier(),
 							s.GetId(),
 						),
 					}
