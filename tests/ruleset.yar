@@ -13,10 +13,21 @@ rule BASIC_BOOL2 {
     false
 }
 
-rule HEX_STRING {
+rule HEX_STRING1 {
   strings:
-    $h1 = {01 23 45 67 89 ab}
-    $h2 = {cd ef 01 23 45 67}
+    $h1 = { 01 23 45 67 89 AB }
+    $h2 = { CD EF 01 23 45 67 }
+  condition:
+    any of ($h*)
+}
+
+rule HEX_STRING2 {
+  strings:
+    $h1 = { 01 23 ( 45 67 | 89 AB | CD ) ?? ?A ?B }
+    $h2 = { CD EF 01 [10-20] 23 45 [-] 67 }
+    $h3 = { CD EF 01 [10-20] 23 45 [30-] 67 }
+    $h4 = { CD ?? 01 [5] 23 }
+    $h5 = { 01 23 ( 45 [30-35] 67 | 89 [40] AB [50-60] CD ) ?? ?A ?B }
   condition:
     any of ($h*)
 }
@@ -124,7 +135,7 @@ rule FOR_OF {
   strings:
     $a = "str"
     $b = /regex/
-    $c = {00 11 22}
+    $c = { 00 11 22 }
   condition:
     for all of ($a, $b, $c) : ($ at entrypoint)
 }
@@ -181,7 +192,7 @@ rule AND_OR_PRECEDENCE_NO_PARENS {
   strings:
     $foo1 = "foo1"
     $foo2 = /foo2/
-    $foo3 = {AA BB CC}
+    $foo3 = { AA BB CC }
   condition:
     $foo1 or $foo2 or $foo3 and $foo4
 }
@@ -190,7 +201,7 @@ rule AND_OR_PRECEDENCE_PARENS {
   strings:
     $foo1 = "foo1"
     $foo2 = /foo2/
-    $foo3 = {AA BB CC}
+    $foo3 = { AA BB CC }
   condition:
     ($foo1 or $foo2 or $foo3) and $foo4
 }
