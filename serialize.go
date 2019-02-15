@@ -395,7 +395,7 @@ func (ys *YaraSerializer) serializeHexToken(t *data.HexToken) error {
 	case *data.HexToken_Jump:
 		return ys.serializeJump(t.GetJump())
 	case *data.HexToken_Alternative:
-		return ys.serializeAlternative(t.GetAlternative())
+		return ys.serializeHexAlternative(t.GetAlternative())
 	default:
 		return fmt.Errorf(`Unsupported HexToken type: "%T"`, val)
 	}
@@ -465,8 +465,8 @@ func (ys *YaraSerializer) serializeJump(jump *data.Jump) error {
 	return nil
 }
 
-func (ys *YaraSerializer) serializeAlternative(alt *data.Alternative) error {
-	if err := ys.writeString("("); err != nil {
+func (ys *YaraSerializer) serializeHexAlternative(alt *data.HexAlternative) error {
+	if err := ys.writeString("( "); err != nil {
 		return err
 	}
 

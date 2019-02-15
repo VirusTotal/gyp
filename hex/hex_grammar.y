@@ -78,7 +78,7 @@ $token _PIPE_
   token   *data.HexToken
   tokens  *data.HexTokens
   bm      ByteWithMask
-  alt     *data.Alternative
+  alt     *data.HexAlternative
   rng     *data.Jump
 }
 
@@ -252,7 +252,7 @@ range
 alternatives
     : tokens
       {
-          $$ = &data.Alternative{ Tokens: []*data.HexTokens{$1} }
+          $$ = &data.HexAlternative{ Tokens: []*data.HexTokens{$1} }
       }
     | alternatives _PIPE_ tokens
       {

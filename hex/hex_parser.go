@@ -33,7 +33,7 @@ type xxSymType struct {
 	token   *data.HexToken
 	tokens  *data.HexTokens
 	bm      ByteWithMask
-	alt     *data.Alternative
+	alt     *data.HexAlternative
 	rng     *data.Jump
 }
 
@@ -701,7 +701,7 @@ xxdefault:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
 //line hex/hex_grammar.y:254
 		{
-			xxVAL.alt = &data.Alternative{Tokens: []*data.HexTokens{xxDollar[1].tokens}}
+			xxVAL.alt = &data.HexAlternative{Tokens: []*data.HexTokens{xxDollar[1].tokens}}
 		}
 	case 18:
 		xxDollar = xxS[xxpt-3 : xxpt+1]

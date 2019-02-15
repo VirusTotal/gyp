@@ -56,11 +56,11 @@ message HexToken {
   oneof value {
     BytesSequence sequence = 1;
     Jump jump = 2;
-    Alternative alternative = 3;
+    HexAlternative alternative = 3;
   }
 }
 
-message Alternative {
+message HexAlternative {
   repeated HexTokens tokens = 1;
 }
 
