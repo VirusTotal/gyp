@@ -317,7 +317,7 @@ func (ys *YaraSerializer) serializeString(str *data.String) error {
 	case *data.String_Text:
 		return ys.serializeTextString(str.GetText())
 	case *data.String_Hex:
-		return ys.serializeHexTokens(str.GetHex())
+		return ys.serializeHexString(str.GetHex())
 	case *data.String_Regexp:
 		if err := ys.serializeRegexp(str.GetRegexp()); err != nil {
 			return err
@@ -370,19 +370,23 @@ func (ys *YaraSerializer) serializeStringModifiers(m *data.StringModifiers) erro
 	return ys.writeString(strings.Join(modifiers, " "))
 }
 
-func (ys *YaraSerializer) serializeHexTokens(ts *data.HexTokens) error {
+func (ys *YaraSerializer) serializeHexString(h *data.HexTokens) error {
 	if err := ys.writeString("{ "); err != nil {
 		return err
 	}
 
+	if err := ys.serializeHexTokens(h); err != nil {
+		return err
+	}
+
+	return ys.writeString("}")
+}
+
+func (ys *YaraSerializer) serializeHexTokens(ts *data.HexTokens) error {
 	for _, t := range ts.Token {
 		if err := ys.serializeHexToken(t); err != nil {
 			return err
 		}
-	}
-
-	if err := ys.writeString("}"); err != nil {
-		return err
 	}
 
 	return nil
@@ -442,6 +446,10 @@ func (ys *YaraSerializer) serializeJump(jump *data.Jump) error {
 		return err
 	}
 
+	if jump.Start != nil && jump.End != nil && jump.GetStart() == jump.GetEnd() {
+		return ys.writeString(fmt.Sprintf("%d] ", jump.GetStart()))
+	}
+
 	if jump.Start != nil {
 		if err := ys.writeString(fmt.Sprintf("%d", jump.GetStart())); err != nil {
 			return err
@@ -470,14 +478,16 @@ func (ys *YaraSerializer) serializeHexAlternative(alt *data.HexAlternative) erro
 		return err
 	}
 
-	for _, tokens := range alt.Tokens {
+	for i, tokens := range alt.Tokens {
 		ys.serializeHexTokens(tokens)
-		if err := ys.writeString("| "); err != nil {
-			return err
+		if i < len(alt.Tokens)-1 {
+			if err := ys.writeString("| "); err != nil {
+				return err
+			}
 		}
 	}
 
-	if err := ys.writeString(")"); err != nil {
+	if err := ys.writeString(") "); err != nil {
 		return err
 	}
 
