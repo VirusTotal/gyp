@@ -934,7 +934,7 @@ func (ys *YaraSerializer) serializeIntegerFunction(e *data.IntegerFunction) erro
 		return err
 	}
 
-	if err := ys.serializeExpression(e.GetExpression()); err != nil {
+	if err := ys.serializeExpression(e.GetOffsetOrVaddress()); err != nil {
 		return err
 	}
 

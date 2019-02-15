@@ -844,7 +844,7 @@ primary_expression
               Expression: &data.Expression_IntegerFunction{
                   &data.IntegerFunction{
                       Function: proto.String($1),
-                      Expression: $3,
+                      OffsetOrVaddress: $3,
                   },
               },
           }

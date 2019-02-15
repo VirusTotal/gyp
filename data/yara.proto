@@ -201,7 +201,7 @@ message IntegerFunction {
   optional string function = 1;
 
   // Offset or virtual address. Required.
-  optional Expression expression = 2;
+  optional Expression offset_or_vaddress = 2;
 }
 
 // Expression for iterating over string occurrences.

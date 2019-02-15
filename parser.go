@@ -1589,8 +1589,8 @@ xxdefault:
 			xxVAL.expr = &data.Expression{
 				Expression: &data.Expression_IntegerFunction{
 					&data.IntegerFunction{
-						Function:   proto.String(xxDollar[1].s),
-						Expression: xxDollar[3].expr,
+						Function:         proto.String(xxDollar[1].s),
+						OffsetOrVaddress: xxDollar[3].expr,
 					},
 				},
 			}
