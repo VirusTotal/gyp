@@ -7,7 +7,7 @@ hexgrammar:
 	flexgo -G -v -o hex/hex_lexer.go hex/hex_lexer.l && goyacc -p xx -o hex/hex_parser.go hex/hex_grammar.y
 
 proto:
-	protoc --go_out=. data/yara.proto
+	protoc --go_out=. ast/yara.proto
 
 j2y:
 	go build github.com/VirusTotal/gyp/cmd/j2y

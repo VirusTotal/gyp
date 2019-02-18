@@ -42,7 +42,7 @@ import (
     "strings"
     proto "github.com/golang/protobuf/proto"
 
-    "github.com/VirusTotal/gyp/data"
+    "github.com/VirusTotal/gyp/ast"
     "github.com/VirusTotal/gyp/hex"
     "github.com/VirusTotal/gyp/error"
 )
@@ -325,7 +325,7 @@ u?int(8|16|32)(be)? {
 
   txt := strings.TrimSuffix(textBuilder.String(), YYtext)
   
-  var mods data.StringModifiers
+  var mods ast.StringModifiers
 
   for _, c := range YYtext {
       switch c {
@@ -344,7 +344,7 @@ u?int(8|16|32)(be)? {
       }
   }
 
-  yylval.reg = data.Regexp {
+  yylval.reg = ast.Regexp {
       Text: &txt,
       Modifiers: &mods,
   }

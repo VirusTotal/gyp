@@ -8,7 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/VirusTotal/gyp/data"
+	"github.com/VirusTotal/gyp/ast"
 	"github.com/VirusTotal/gyp/error"
 )
 
@@ -19,7 +19,7 @@ func init() {
 }
 
 // Parse parses an hex string in a YARA rule from the provided input source
-func Parse(input io.Reader) (hexstr data.HexTokens, err error) {
+func Parse(input io.Reader) (hexstr ast.HexTokens, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if yaraError, ok := r.(gyperror.Error); ok {
@@ -31,7 +31,7 @@ func Parse(input io.Reader) (hexstr data.HexTokens, err error) {
 	}()
 
 	// "Reset" the global ParsedHexString
-	ParsedHexString = data.HexTokens{}
+	ParsedHexString = ast.HexTokens{}
 
 	lexer := Lexer{
 		lexer: *NewScanner(),

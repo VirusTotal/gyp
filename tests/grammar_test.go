@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	"github.com/VirusTotal/gyp"
-	"github.com/VirusTotal/gyp/data"
+	"github.com/VirusTotal/gyp/ast"
 )
 
 const testFile = "ruleset.yar"
 
-var ruleset data.RuleSet
+var ruleset ast.RuleSet
 var inputYaraRuleset string
 
 func init() {

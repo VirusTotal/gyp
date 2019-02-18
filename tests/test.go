@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/VirusTotal/gyp"
-	"github.com/VirusTotal/gyp/data"
+	"github.com/VirusTotal/gyp/ast"
 )
 
 // These are just utilities
@@ -20,12 +20,12 @@ func openTestFile(t *testing.T, fname string) io.Reader {
 	return f
 }
 
-func parseTestFile(t *testing.T, fname string) (data.RuleSet, error) {
+func parseTestFile(t *testing.T, fname string) (ast.RuleSet, error) {
 	f := openTestFile(t, fname)
 	return gyp.Parse(f)
 }
 
-func parseRuleStr(s string) (data.RuleSet, error) {
+func parseRuleStr(s string) (ast.RuleSet, error) {
 	buf := bytes.NewBufferString(s)
 	return gyp.Parse(buf)
 }

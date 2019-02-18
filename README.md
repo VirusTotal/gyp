@@ -227,7 +227,7 @@ The `Makefile` includes targets for quickly building the parser and lexer and th
 
 - Build rulesets parser and lexer: `make grammar`
 - Build hex strings parser and lexer: `make hexgrammar`
-- Build data protocol buffer: `make proto`
+- Build ruleset protocol buffer: `make proto`
 - Build `y2j` tool: `make y2j`
 - Build `j2y` tool: `make j2y`
 

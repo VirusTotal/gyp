@@ -34,13 +34,13 @@ import (
   "fmt"
   proto "github.com/golang/protobuf/proto"
 
-  "github.com/VirusTotal/gyp/data"
+  "github.com/VirusTotal/gyp/ast"
   "github.com/VirusTotal/gyp/error"
 )
 
 const StringChainingThreshold int64 = 200
 
-var ParsedHexString data.HexTokens
+var ParsedHexString ast.HexTokens
 
 var insideOr int
 
@@ -75,11 +75,11 @@ $token _PIPE_
 
 %union {
   integer int64
-  token   *data.HexToken
-  tokens  *data.HexTokens
+  token   *ast.HexToken
+  tokens  *ast.HexTokens
   bm      ByteWithMask
-  alt     *data.HexAlternative
-  rng     *data.Jump
+  alt     *ast.HexAlternative
+  rng     *ast.Jump
 }
 
 %%
@@ -95,18 +95,18 @@ hex_string
 tokens
     : token
       {
-        $$ = &data.HexTokens{ Token: []*data.HexToken{$1} }
+        $$ = &ast.HexTokens{ Token: []*ast.HexToken{$1} }
       }
     | token token
       {
-        $$ = &data.HexTokens{ Token: mergeTokens($1, $2) }
+        $$ = &ast.HexTokens{ Token: mergeTokens($1, $2) }
       }
     | token token_sequence token
       {
-        tokens := append([]*data.HexToken{$1}, $2.Token...)
+        tokens := append([]*ast.HexToken{$1}, $2.Token...)
         tokens = append(tokens, $3)
         tokens = mergeTokens(tokens...)
-        $$ = &data.HexTokens{ Token: tokens }
+        $$ = &ast.HexTokens{ Token: tokens }
       }
     ;
 
@@ -114,7 +114,7 @@ tokens
 token_sequence
     : token_or_range
       {
-        $$ = &data.HexTokens{ Token: []*data.HexToken{$1} }
+        $$ = &ast.HexTokens{ Token: []*ast.HexToken{$1} }
       }
     | token_sequence token_or_range
       {
@@ -131,7 +131,7 @@ token_or_range
       }
     |  range
       {
-        $$ = &data.HexToken{ Value: &data.HexToken_Jump{$1} }
+        $$ = &ast.HexToken{ Value: &ast.HexToken_Jump{$1} }
       }
     ;
 
@@ -139,9 +139,9 @@ token_or_range
 token
     : byte
       {
-        $$ = &data.HexToken{
-          Value: &data.HexToken_Sequence{
-            &data.BytesSequence{
+        $$ = &ast.HexToken{
+          Value: &ast.HexToken_Sequence{
+            &ast.BytesSequence{
               Mask: []byte{$1.Mask},
               Value: []byte{$1.Value},
             },
@@ -154,7 +154,7 @@ token
       }
        alternatives
       {
-        $$ = &data.HexToken{ Value: &data.HexToken_Alternative{ $3 } }
+        $$ = &ast.HexToken{ Value: &ast.HexToken_Alternative{ $3 } }
       }
       _RPARENS_
       {
@@ -183,7 +183,7 @@ range
           panic(err)
         }
 
-        $$ = &data.Jump{ Start: proto.Int64($2), End: proto.Int64($2) }
+        $$ = &ast.Jump{ Start: proto.Int64($2), End: proto.Int64($2) }
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _NUMBER_ _RBRACKET_
       {
@@ -212,7 +212,7 @@ range
           panic(err)
         }
 
-        $$ = &data.Jump{ Start: proto.Int64($2), End: proto.Int64($4) }
+        $$ = &ast.Jump{ Start: proto.Int64($2), End: proto.Int64($4) }
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _RBRACKET_
       {
@@ -232,7 +232,7 @@ range
           panic(err)
         }
 
-        $$ = &data.Jump{ Start: proto.Int64($2) }
+        $$ = &ast.Jump{ Start: proto.Int64($2) }
       }
     | _LBRACKET_ _HYPHEN_ _RBRACKET_ 
       {
@@ -244,7 +244,7 @@ range
           panic(err)
         }
 
-        $$ = &data.Jump{}
+        $$ = &ast.Jump{}
       }
     ;
 
@@ -252,7 +252,7 @@ range
 alternatives
     : tokens
       {
-          $$ = &data.HexAlternative{ Tokens: []*data.HexTokens{$1} }
+          $$ = &ast.HexAlternative{ Tokens: []*ast.HexTokens{$1} }
       }
     | alternatives _PIPE_ tokens
       {
@@ -274,9 +274,9 @@ byte
 
 %%
 
-func appendToken(tokens *data.HexTokens, t *data.HexToken) {
+func appendToken(tokens *ast.HexTokens, t *ast.HexToken) {
   if len(tokens.Token) == 0 {
-    tokens.Token = []*data.HexToken{t}
+    tokens.Token = []*ast.HexToken{t}
     return
   }
 
@@ -285,7 +285,7 @@ func appendToken(tokens *data.HexTokens, t *data.HexToken) {
   tokens.Token = append(tokens.Token[:numTokens - 1], mergeTokens(lastToken, t)...)
 }
 
-func mergeTokens(tokens... *data.HexToken) (out []*data.HexToken) {
+func mergeTokens(tokens... *ast.HexToken) (out []*ast.HexToken) {
   if len(tokens) == 0 {
     return
   }

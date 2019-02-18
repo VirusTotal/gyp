@@ -3,7 +3,7 @@
 
 syntax = "proto2";
 
-option go_package = "data";
+option go_package = "ast";
 
 // Rule modifiers.
 message RuleModifiers {

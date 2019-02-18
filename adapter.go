@@ -8,7 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/VirusTotal/gyp/data"
+	"github.com/VirusTotal/gyp/ast"
 	"github.com/VirusTotal/gyp/error"
 )
 
@@ -19,7 +19,7 @@ func init() {
 }
 
 // Parse parses a YARA rule from the provided input source
-func Parse(input io.Reader) (rs data.RuleSet, err error) {
+func Parse(input io.Reader) (rs ast.RuleSet, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if yaraError, ok := r.(gyperror.Error); ok {
@@ -31,7 +31,7 @@ func Parse(input io.Reader) (rs data.RuleSet, err error) {
 	}()
 
 	// "Reset" the global ParsedRuleset
-	ParsedRuleset = data.RuleSet{}
+	ParsedRuleset = ast.RuleSet{}
 
 	lexer := Lexer{
 		lexer: *NewScanner(),

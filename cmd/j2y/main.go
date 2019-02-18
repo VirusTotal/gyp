@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/VirusTotal/gyp"
-	"github.com/VirusTotal/gyp/data"
+	"github.com/VirusTotal/gyp/ast"
 )
 
 // global options
@@ -22,7 +22,7 @@ func main() {
 	}
 	defer handleErr(jsonFile.Close)
 
-	var ruleset data.RuleSet
+	var ruleset ast.RuleSet
 	unmarshaler := jsonpb.Unmarshaler{}
 	err = unmarshaler.Unmarshal(jsonFile, &ruleset)
 

@@ -12,7 +12,7 @@ import (
     "strings"
     proto "github.com/golang/protobuf/proto"
 
-    "github.com/VirusTotal/gyp/data"
+    "github.com/VirusTotal/gyp/ast"
     "github.com/VirusTotal/gyp/hex"
     "github.com/VirusTotal/gyp/error"
 )
@@ -1826,7 +1826,7 @@ case 66:
 
   txt := strings.TrimSuffix(textBuilder.String(), YYtext)
   
-  var mods data.StringModifiers
+  var mods ast.StringModifiers
 
   for _, c := range YYtext {
       switch c {
@@ -1845,7 +1845,7 @@ case 66:
       }
   }
 
-  yylval.reg = data.Regexp {
+  yylval.reg = ast.Regexp {
       Text: &txt,
       Modifiers: &mods,
   }
