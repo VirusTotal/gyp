@@ -938,8 +938,8 @@ type BytesSequence struct {
 	// Indexes and length of value and mask must match.
 	// Possible masks:
 	// 00 -> Full wildcard, value is ignored (??).
-	// 0F -> Partial wildcard (?v).
-	// F0 -> Partial wildcard (v?).
+	// 0F -> Nibble-wise wildcard (?v).
+	// F0 -> Nibble-wise wildcard (v?).
 	// FF -> No wildcard (vv).
 	Mask                 []byte   `protobuf:"bytes,2,opt,name=mask" json:"mask,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
