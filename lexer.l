@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Lexical analyzer for YARA */
 
 %top{
-package yara
+package gyp
 
 import (
     "fmt"
@@ -41,6 +41,10 @@ import (
     "strconv"
     "strings"
     proto "github.com/golang/protobuf/proto"
+
+    "github.com/VirusTotal/gyp/ast"
+    "github.com/VirusTotal/gyp/hex"
+    "github.com/VirusTotal/gyp/error"
 )
 
 // Necessary types for flexgo
@@ -307,12 +311,12 @@ u?int(8|16|32)(be)? {
 
 
 <str>\n  {
-  panic(newError(UnterminatedStringError, ""))
+  panic(gyperror.Error{ gyperror.UnterminatedStringError, "" })
 }
 
 
 <str>\\(.|\n) {
-  panic(newError(IllegalEscapeSequenceError, ""))
+  panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "" })
 }
 
 
@@ -321,7 +325,7 @@ u?int(8|16|32)(be)? {
 
   txt := strings.TrimSuffix(textBuilder.String(), YYtext)
   
-  var mods StringModifiers
+  var mods ast.StringModifiers
 
   for _, c := range YYtext {
       switch c {
@@ -336,11 +340,11 @@ u?int(8|16|32)(be)? {
 
       default:
           // Should be impossible
-          panic(newError(InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c)))
+          panic(gyperror.Error{ gyperror.InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c) })
       }
   }
 
-  yylval.reg = Regexp {
+  yylval.reg = ast.Regexp {
       Text: &txt,
       Modifiers: &mods,
   }
@@ -362,7 +366,7 @@ u?int(8|16|32)(be)? {
 
 
 <regexp>\n  {
-  panic(newError(UnterminatedRegexError, ""))
+  panic(gyperror.Error{ gyperror.UnterminatedRegexError, "" })
 }
 
 
@@ -387,7 +391,13 @@ u?int(8|16|32)(be)? {
   // NOTE: The above comment may not apply. We plan to not use hex_lexer.l
 
   // No need to collect like str and regexp start conditions
-  yylval.s = strings.TrimSpace(strings.Trim(YYtext, "{}"))
+  hexReader := strings.NewReader(YYtext)
+
+  hexString, err := hex.Parse(hexReader)
+  if err != nil {
+    panic(err)
+  }
+  yylval.hextokens = &hexString
 
   return _HEX_STRING_;
 }
@@ -403,7 +413,7 @@ u?int(8|16|32)(be)? {
     return r
   }
 
-  panic(newError(NonAsciiByteError, fmt.Sprintf(`"%d"`, r)))
+  panic(gyperror.Error{ gyperror.NonAsciiByteError, fmt.Sprintf(`"%d"`, r) })
 }
 
 %%

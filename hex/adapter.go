@@ -1,7 +1,7 @@
 // adapter.go provides an adapter for a flexgo lexer to work
 // with a goyacc parser
 
-package gyp
+package hex
 
 import (
 	"fmt"
@@ -18,8 +18,8 @@ func init() {
 	xxErrorVerbose = true
 }
 
-// Parse parses a YARA rule from the provided input source
-func Parse(input io.Reader) (rs ast.RuleSet, err error) {
+// Parse parses an hex string in a YARA rule from the provided input source
+func Parse(input io.Reader) (hexstr ast.HexTokens, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if yaraError, ok := r.(gyperror.Error); ok {
@@ -30,8 +30,8 @@ func Parse(input io.Reader) (rs ast.RuleSet, err error) {
 		}
 	}()
 
-	// "Reset" the global ParsedRuleset
-	ParsedRuleset = ast.RuleSet{}
+	// "Reset" the global ParsedHexString
+	ParsedHexString = ast.HexTokens{}
 
 	lexer := Lexer{
 		lexer: *NewScanner(),
@@ -43,7 +43,7 @@ func Parse(input io.Reader) (rs ast.RuleSet, err error) {
 		err = lexicalError
 	}
 
-	rs = ParsedRuleset
+	hexstr = ParsedHexString
 
 	return
 }

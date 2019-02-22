@@ -6,7 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/VirusTotal/go-yara-parser"
+	"github.com/VirusTotal/gyp"
+	"github.com/VirusTotal/gyp/ast"
 )
 
 // These are just utilities
@@ -19,12 +20,12 @@ func openTestFile(t *testing.T, fname string) io.Reader {
 	return f
 }
 
-func parseTestFile(t *testing.T, fname string) (yara.RuleSet, error) {
+func parseTestFile(t *testing.T, fname string) (ast.RuleSet, error) {
 	f := openTestFile(t, fname)
-	return yara.Parse(f)
+	return gyp.Parse(f)
 }
 
-func parseRuleStr(s string) (yara.RuleSet, error) {
+func parseRuleStr(s string) (ast.RuleSet, error) {
 	buf := bytes.NewBufferString(s)
-	return yara.Parse(buf)
+	return gyp.Parse(buf)
 }

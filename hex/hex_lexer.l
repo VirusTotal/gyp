@@ -29,97 +29,142 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Lexical analyzer for hex strings */
 
+%top{
+package hex
+
+import (
+    "fmt"
+    "io"
+    "log"
+    "os"
+    "strconv"
+)
+
+// Necessary types for flexgo
+type YYtype interface{}
+type YYcontext interface{}
+}
+
 %{
+
+// Define a constant for end-of-file
+const eof = 0
+
+// These globals must be accessible to the goyacc parser.
+// Bear in mind that the xx prefix is used because the parser is generated
+// with this prefix in order to avoid name collisions.
+var yylval *xxSymType
+var err error
 
 %}
 
 %option reentrant bison-bridge
-%option noyywrap
-%option nounistd
-%option noinput
 %option nounput
 %option never-interactive
 %option yylineno
 %option prefix="hex_yy"
 
-%option outfile="lex.yy.go"
-
 %option verbose
 %option warn
+
+%x comment
+%x yrange
 
 digit         [0-9]
 letter        [a-zA-Z]
 hexdigit      [a-fA-F0-9]
 
-%x comment
-%x range
-
 %%
 
+"{"                     { return _LBRACE_; }
+"}"                     { return _RBRACE_; }
+
+<<EOF>> { return eof }
 
 <INITIAL>{hexdigit}{2}  {
+  val, err := strconv.ParseInt(string(yytext), 16, 16)
+  if err != nil {
+    fmt.Printf("Error parsing byte: %s\n", err)
+  }
+  yylval.bm = ByteWithMask{ Mask: byte(0xFF), Value: byte(val) }
   return _BYTE_;
 }
 
 <INITIAL>{hexdigit}\?  {
+  yytext[1] = '0'  // Replace ? with 0
+  val, err := strconv.ParseInt(string(yytext), 16, 16)
+  if err != nil {
+    fmt.Printf("Error parsing byte: %s\n", err)
+  }
+  yylval.bm = ByteWithMask{ Mask: byte(0xF0), Value: byte(val) }
   return _MASKED_BYTE_;
 }
 
 \?{hexdigit}  {
+  yytext[0] = '0'
+  val, err := strconv.ParseInt(string(yytext), 16, 16)
+  if err != nil {
+    fmt.Printf("Error parsing byte: %s\n", err)
+  }
+  yylval.bm = ByteWithMask{ Mask: byte(0x0F), Value: byte(val) }
   return _MASKED_BYTE_;
 }
 
 \?\? {
+  yylval.bm = ByteWithMask{ Mask: byte(0x00) }
   return _MASKED_BYTE_;
 }
 
 \[ {
-
-  BEGIN(range);
-  return yytext[0];
+  BEGIN (yrange);
+  return _LBRACKET_;
 }
 
 "/*"(.|\n)*"*/"    // skip comments
 
 "//".*             // skip single-line comments
 
-<range>\- {
-  return yytext[0];
+<yrange>\- {
+  return _HYPHEN_;
 }
 
-<range>{digit}+ {
+<yrange>{digit}+ {
+  val, err := strconv.ParseInt(string(yytext), 10, 64)
+  if err != nil {
+    fmt.Printf("Error parsing jump limit: %s\n", err)
+  }
+  yylval.integer = int64(val)
+
   return _NUMBER_;
 }
 
-<range>\] {
-
-  BEGIN(INITIAL);
-  return yytext[0];
+<yrange>\] {
+  BEGIN (INITIAL);
+  return _RBRACKET_;
 }
 
-<range>[ \t\r\n]   // skip whitespaces
+<yrange>[ \t\r\n]   // skip whitespaces
 
-<range>. {
-
-  /*
-  yyerror(yyscanner, lex_env, "invalid character in hex string jump");
-  yyterminate();
-  */
+<yrange>. {
+  panic(fmt.Errorf("Invalid character in hex string jump: %s", yytext[0]))
 }
 
 [ \t\r\n]         // skip whitespaces
 
-[{}()|]  {        // pass valid characters to the parser
+"(" {
+  return _LPARENS_
+}
 
-  return yytext[0];
+")" {
+  return _RPARENS_
+}
+
+"|" {
+  return _PIPE_
 }
 
 . {               // reject all other characters
-
-  /*
-  yyerror(yyscanner, lex_env, "invalid character in hex string");
-  yyterminate();
-  */
+  panic(fmt.Errorf("Invalid character in hex string: %s", yytext[0]))
 }
 
 %%

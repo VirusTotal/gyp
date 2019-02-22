@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/VirusTotal/go-yara-parser"
+	"github.com/VirusTotal/gyp"
+	"github.com/VirusTotal/gyp/ast"
 )
 
 // global options
@@ -21,7 +22,7 @@ func main() {
 	}
 	defer handleErr(jsonFile.Close)
 
-	var ruleset yara.RuleSet
+	var ruleset ast.RuleSet
 	unmarshaler := jsonpb.Unmarshaler{}
 	err = unmarshaler.Unmarshal(jsonFile, &ruleset)
 
@@ -44,7 +45,7 @@ func main() {
 		out = f
 	}
 
-	serializer := yara.NewSerializer(out)
+	serializer := gyp.NewSerializer(out)
 	serializer.SetIndent(opts.Indent)
 	if err := serializer.Serialize(ruleset); err != nil {
 		perror(`Couldn't serialize ruleset: %s`, err)

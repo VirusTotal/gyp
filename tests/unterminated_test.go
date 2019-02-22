@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/VirusTotal/go-yara-parser"
+	"github.com/VirusTotal/gyp/error"
 )
 
 // TestUnterminatedString tests for a rule with an unterminated string
@@ -20,8 +20,8 @@ condition:
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
 	}
-	yaraErr, ok := err.(yara.Error)
-	if !ok || yaraErr.Code != yara.UnterminatedStringError {
+	yaraErr, ok := err.(gyperror.Error)
+	if !ok || yaraErr.Code != gyperror.UnterminatedStringError {
 		t.Fatalf(`Unexpected error: "%s", expected UnterminatedStringError`, err)
 	}
 }
@@ -40,8 +40,8 @@ condition:
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
 	}
-	yaraErr, ok := err.(yara.Error)
-	if !ok || yaraErr.Code != yara.UnterminatedRegexError {
+	yaraErr, ok := err.(gyperror.Error)
+	if !ok || yaraErr.Code != gyperror.UnterminatedRegexError {
 		t.Fatalf(`Unexpected error: "%s", expected UnterminatedRegexError`, err)
 	}
 }
