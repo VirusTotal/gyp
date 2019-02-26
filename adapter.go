@@ -66,7 +66,7 @@ func (l *Lexer) Lex(lval *xxSymType) int {
 // Here, it simply writes the error to stdout.
 func (l *Lexer) Error(e string) {
 	lexicalError = gyperror.Error{
-		gyperror.LexicalError,
-		fmt.Sprintf(`@%d - "%s"`, l.lexer.Lineno, e),
+		Code: gyperror.LexicalError,
+		Data: fmt.Sprintf(`@%d - "%s"`, l.lexer.Lineno, e),
 	}
 }

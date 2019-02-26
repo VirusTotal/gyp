@@ -21,7 +21,7 @@ type YaraSerializer struct {
 	w io.Writer
 }
 
-// NewSerialize returns a YaraSerializer that writes the serialization
+// NewSerializer returns a YaraSerializer that writes the serialization
 // output to w.
 func NewSerializer(w io.Writer) *YaraSerializer {
 	return &YaraSerializer{indent: "  ", w: w}
