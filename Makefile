@@ -1,4 +1,4 @@
-all: grammar y2j
+all: proto grammar y2j
 
 grammar:
 	flexgo -G -v -o lexer.go lexer.l && goyacc -p xx -o parser.go grammar.y
