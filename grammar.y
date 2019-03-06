@@ -458,9 +458,9 @@ identifier
           $$.Items = append(
               $1.Items,
               &ast.Identifier_IdentifierItem{
-                 Item: &ast.Identifier_IdentifierItem_Expression{$3},
+                 Item: &ast.Identifier_IdentifierItem_Index{$3},
               },
-          ) 
+          )
       }
     | identifier '(' arguments ')'
       {
@@ -511,13 +511,13 @@ expression
       {
           $$ = &ast.Expression{
              Expression: &ast.Expression_BoolValue{true},
-          } 
+          }
       }
     | _FALSE_
       {
           $$ = &ast.Expression{
              Expression: &ast.Expression_BoolValue{false},
-          } 
+          }
       }
     | primary_expression _MATCHES_ regexp
       {
@@ -844,7 +844,7 @@ primary_expression
               Expression: &ast.Expression_IntegerFunction{
                   &ast.IntegerFunction{
                       Function: proto.String($1),
-                      OffsetOrVaddress: $3,
+                      Argument: $3,
                   },
               },
           }

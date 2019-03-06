@@ -89,9 +89,9 @@ YY_USER_ACTION(
 const eof = 0
 
 // These globals must be accessible to the goyacc parser.
-// Bear in mind that the xx prefix is used because the parser is generated
+// Bear in mind that the yr prefix is used because the parser is generated
 // with this prefix in order to avoid name collisions.
-var yylval *xxSymType
+var yylval *yrSymType
 var err error // Actually, this is global for lexer action access.
 
 %}
@@ -162,7 +162,7 @@ octdigit      [0-7]
 "import"                { return _IMPORT_;      }
 
 "{"                     { return _LBRACE_; }
-"}"                     { 
+"}"                     {
                           if collect {
                             collect = false
                           }
@@ -324,7 +324,7 @@ u?int(8|16|32)(be)? {
   collectText = false
 
   txt := strings.TrimSuffix(textBuilder.String(), YYtext)
-  
+
   var mods ast.StringModifiers
 
   for _, c := range YYtext {

@@ -13,7 +13,7 @@ import (
 
 const testFile = "ruleset.yar"
 
-var ruleset ast.RuleSet
+var ruleset *ast.RuleSet
 var inputYaraRuleset string
 
 func init() {

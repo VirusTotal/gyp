@@ -1,7 +1,7 @@
 all: proto grammar y2j
 
 grammar:
-	flexgo -G -v -o lexer.go lexer.l && goyacc -p xx -o parser.go grammar.y
+	flexgo -G -v -o lexer.go lexer.l && goyacc -p yr -o parser.go grammar.y
 
 hexgrammar:
 	flexgo -G -v -o hex/hex_lexer.go hex/hex_lexer.l && goyacc -p xx -o hex/hex_parser.go hex/hex_grammar.y

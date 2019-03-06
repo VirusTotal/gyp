@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 
+	"github.com/VirusTotal/gyp"
 	"github.com/VirusTotal/gyp/error"
 )
 
@@ -16,7 +17,7 @@ strings:
 condition:
   any of them
 }`
-	_, err := parseRuleStr(rs)
+	_, err := gyp.ParseString(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
 	}
@@ -36,7 +37,7 @@ strings:
 condition:
   any of them
 }`
-	_, err := parseRuleStr(rs)
+	_, err := gyp.ParseString(rs)
 	if err == nil {
 		t.Fatalf(`Parsing succeeded; should have failed`)
 	}
