@@ -56,6 +56,22 @@ func TestTraversal(t *testing.T) {
 		condition:
 			for all i in (1..filesize + 1) : (true)
 		}
+		rule rule_5 {
+		strings:
+			$a = "foo"
+			$b = "bar"
+		condition:
+			for any of ($a, $b) : (# < 10)
+		}
+		rule rule_6 {
+		strings:
+			$a = "foo"
+		condition:
+			@a[1 + 1] > 2
+		}
+		rule rule_7 {
+			condition: not true
+		}
 		`)
 
 	assert.NoError(t, err)
@@ -67,33 +83,83 @@ func TestTraversal(t *testing.T) {
 	}
 
 	assert.Equal(t, []string{
+		// rule_1
 		"true",
+
+		// rule_2
 		"foo or bar",
 		"foo",
 		"bar",
+
+		// rule_3
 		"int64(3)",
 		"3",
+
+		// rule_4
 		"for all i in (1..filesize + 1) : (true)",
 		"1",
 		"filesize + 1",
 		"filesize",
 		"1",
+		"true",
+
+		// rule_5
+		"for any of ($a, $b) : (# < 10)",
+		"# < 10",
+		"#",
+		"10",
+
+		// rule_6
+		"@a[1 + 1] > 2",
+		"@a[1 + 1]",
+		"1 + 1",
+		"1",
+		"1",
+		"2",
+
+		// rule_7
+		"not true",
 		"true",
 	}, v.preOrderResults)
 
 	assert.Equal(t, []string{
+		// rule_1
 		"true",
+
+		// rule_2
 		"foo",
 		"bar",
 		"foo or bar",
+
+		// rule_3
 		"3",
 		"int64(3)",
+
+		// rule_4
 		"1",
 		"filesize",
 		"1",
 		"filesize + 1",
 		"true",
 		"for all i in (1..filesize + 1) : (true)",
+
+		// rule_5
+		"#",
+		"10",
+		"# < 10",
+		"for any of ($a, $b) : (# < 10)",
+
+		// rule_6
+		"1",
+		"1",
+		"1 + 1",
+		"@a[1 + 1]",
+		"2",
+		"@a[1 + 1] > 2",
+
+		// rule_7
+		"true",
+		"not true",
 	}, v.postOrderResults)
 
 }

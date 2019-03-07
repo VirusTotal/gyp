@@ -47,6 +47,10 @@ func (e *Expression) DepthFirstSearch(v Visitor) {
 		binaryExpr.GetLeft().DepthFirstSearch(v)
 		binaryExpr.GetRight().DepthFirstSearch(v)
 		postOrder(v, e)
+	case *Expression_NotExpression:
+		preOrder(v, e)
+		e.GetNotExpression().DepthFirstSearch(v)
+		postOrder(v, e)
 	case *Expression_AndExpression:
 		preOrder(v, e)
 		for _, term := range e.GetAndExpression().GetTerms() {
@@ -90,6 +94,14 @@ func (e *Expression) DepthFirstSearch(v Visitor) {
 	case *Expression_Range:
 		preOrder(v, e)
 		e.GetRange().DepthFirstSearch(v)
+		postOrder(v, e)
+	case *Expression_StringOffset:
+		preOrder(v, e)
+		e.GetStringOffset().GetIndex().DepthFirstSearch(v)
+		postOrder(v, e)
+	case *Expression_StringLength:
+		preOrder(v, e)
+		e.GetStringLength().GetIndex().DepthFirstSearch(v)
 		postOrder(v, e)
 	default:
 		preOrder(v, e)
