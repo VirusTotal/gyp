@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"bytes"
 	"io"
 	"os"
 	"testing"
@@ -20,12 +19,7 @@ func openTestFile(t *testing.T, fname string) io.Reader {
 	return f
 }
 
-func parseTestFile(t *testing.T, fname string) (ast.RuleSet, error) {
+func parseTestFile(t *testing.T, fname string) (*ast.RuleSet, error) {
 	f := openTestFile(t, fname)
 	return gyp.Parse(f)
-}
-
-func parseRuleStr(s string) (ast.RuleSet, error) {
-	buf := bytes.NewBufferString(s)
-	return gyp.Parse(buf)
 }

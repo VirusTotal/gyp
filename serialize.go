@@ -34,8 +34,8 @@ func (ys *YaraSerializer) SetIndent(indent string) {
 }
 
 // Serialize converts the provided RuleSet proto to a YARA ruleset.
-func (ys *YaraSerializer) Serialize(rs ast.RuleSet) error {
-	return ys.serializeRuleSet(&rs)
+func (ys *YaraSerializer) Serialize(rs *ast.RuleSet) error {
+	return ys.serializeRuleSet(rs)
 }
 
 var keywords = map[ast.Keyword]string{
@@ -224,7 +224,7 @@ func (ys *YaraSerializer) serializeRule(r *ast.Rule) error {
 		return err
 	}
 
-	if err := ys.serializeExpression(r.Condition); err != nil {
+	if err := ys.SerializeExpression(r.Condition); err != nil {
 		return err
 	}
 
@@ -494,8 +494,8 @@ func (ys *YaraSerializer) serializeHexAlternative(alt *ast.HexAlternative) error
 	return nil
 }
 
-// Serializes an Expression in a YARA rule condition.
-func (ys *YaraSerializer) serializeExpression(e *ast.Expression) error {
+// SerializeExpression serializes an Expression in a YARA rule condition.
+func (ys *YaraSerializer) SerializeExpression(e *ast.Expression) error {
 	switch val := e.GetExpression().(type) {
 	case *ast.Expression_BoolValue:
 		return ys.writeString(fmt.Sprintf("%v", e.GetBoolValue()))
@@ -568,7 +568,7 @@ func (ys *YaraSerializer) serializeTerms(terms []*ast.Expression, joinStr string
 			}
 		}
 
-		if err := ys.serializeExpression(term); err != nil {
+		if err := ys.SerializeExpression(term); err != nil {
 			return err
 		}
 
@@ -614,7 +614,7 @@ func (ys *YaraSerializer) serializeForInExpression(e *ast.ForInExpression) error
 		return err
 	}
 
-	if err := ys.serializeExpression(e.Expression); err != nil {
+	if err := ys.SerializeExpression(e.Expression); err != nil {
 		return err
 	}
 
@@ -625,7 +625,7 @@ func (ys *YaraSerializer) serializeForInExpression(e *ast.ForInExpression) error
 func (ys *YaraSerializer) serializeForExpression(e *ast.ForExpression) error {
 	switch val := e.GetFor().(type) {
 	case *ast.ForExpression_Expression:
-		return ys.serializeExpression(e.GetExpression())
+		return ys.SerializeExpression(e.GetExpression())
 	case *ast.ForExpression_Keyword:
 		return ys.serializeForKeyword(e.GetKeyword())
 	default:
@@ -664,7 +664,7 @@ func (ys *YaraSerializer) serializeRange(e *ast.Range) error {
 		return err
 	}
 
-	if err := ys.serializeExpression(e.Start); err != nil {
+	if err := ys.SerializeExpression(e.Start); err != nil {
 		return err
 	}
 
@@ -672,7 +672,7 @@ func (ys *YaraSerializer) serializeRange(e *ast.Range) error {
 		return err
 	}
 
-	if err := ys.serializeExpression(e.End); err != nil {
+	if err := ys.SerializeExpression(e.End); err != nil {
 		return err
 	}
 
@@ -704,7 +704,7 @@ func (ys *YaraSerializer) serializeForOfExpression(e *ast.ForOfExpression) error
 			return err
 		}
 
-		if err := ys.serializeExpression(e.Expression); err != nil {
+		if err := ys.SerializeExpression(e.Expression); err != nil {
 			return err
 		}
 
@@ -785,7 +785,7 @@ func (ys *YaraSerializer) serializeBinaryExpression(e *ast.BinaryExpression) err
 			return err
 		}
 	}
-	if err := ys.serializeExpression(e.Left); err != nil {
+	if err := ys.SerializeExpression(e.Left); err != nil {
 		return err
 	}
 	if getExpressionPrecedence(e.Left) < getBinaryExpressionPrecedence(e) {
@@ -808,7 +808,7 @@ func (ys *YaraSerializer) serializeBinaryExpression(e *ast.BinaryExpression) err
 			return err
 		}
 	}
-	if err := ys.serializeExpression(e.Right); err != nil {
+	if err := ys.SerializeExpression(e.Right); err != nil {
 		return err
 	}
 	if getExpressionPrecedence(e.Right) < getBinaryExpressionPrecedence(e) {
@@ -833,11 +833,11 @@ func (ys *YaraSerializer) serializeIdentifier(i *ast.Identifier) error {
 			if err := ys.writeString(item.GetIdentifier()); err != nil {
 				return err
 			}
-		case *ast.Identifier_IdentifierItem_Expression:
+		case *ast.Identifier_IdentifierItem_Index:
 			if err := ys.writeString("["); err != nil {
 				return err
 			}
-			if err := ys.serializeExpression(item.GetExpression()); err != nil {
+			if err := ys.SerializeExpression(item.GetIndex()); err != nil {
 				return err
 			}
 
@@ -850,7 +850,7 @@ func (ys *YaraSerializer) serializeIdentifier(i *ast.Identifier) error {
 			}
 
 			for i, arg := range item.GetArguments().Terms {
-				if err := ys.serializeExpression(arg); err != nil {
+				if err := ys.SerializeExpression(arg); err != nil {
 					return err
 				}
 				if i < len(item.GetArguments().Terms)-1 {
@@ -911,7 +911,7 @@ func (ys *YaraSerializer) serializeNotExpression(e *ast.Expression) error {
 		}
 	}
 
-	if err := ys.serializeExpression(e); err != nil {
+	if err := ys.SerializeExpression(e); err != nil {
 		return err
 	}
 
@@ -934,7 +934,7 @@ func (ys *YaraSerializer) serializeIntegerFunction(e *ast.IntegerFunction) error
 		return err
 	}
 
-	if err := ys.serializeExpression(e.GetOffsetOrVaddress()); err != nil {
+	if err := ys.SerializeExpression(e.GetArgument()); err != nil {
 		return err
 	}
 
@@ -951,7 +951,7 @@ func (ys *YaraSerializer) serializeStringOffset(e *ast.StringOffset) error {
 		if err := ys.writeString("["); err != nil {
 			return err
 		}
-		if err := ys.serializeExpression(e.GetIndex()); err != nil {
+		if err := ys.SerializeExpression(e.GetIndex()); err != nil {
 			return err
 		}
 		if err := ys.writeString("]"); err != nil {
@@ -972,7 +972,7 @@ func (ys *YaraSerializer) serializeStringLength(e *ast.StringLength) error {
 		if err := ys.writeString("["); err != nil {
 			return err
 		}
-		if err := ys.serializeExpression(e.GetIndex()); err != nil {
+		if err := ys.SerializeExpression(e.GetIndex()); err != nil {
 			return err
 		}
 		if err := ys.writeString("]"); err != nil {

@@ -482,9 +482,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 const eof = 0
 
 // These globals must be accessible to the goyacc parser.
-// Bear in mind that the xx prefix is used because the parser is generated
+// Bear in mind that the yr prefix is used because the parser is generated
 // with this prefix in order to avoid name collisions.
-var yylval *xxSymType
+var yylval *yrSymType
 var err error // Actually, this is global for lexer action access.
 
 
@@ -1303,7 +1303,7 @@ case 40:
 
 
 //line lexer.l:165
-{ 
+{
                           if collect {
                             collect = false
                           }
@@ -1825,7 +1825,7 @@ case 66:
   collectText = false
 
   txt := strings.TrimSuffix(textBuilder.String(), YYtext)
-  
+
   var mods ast.StringModifiers
 
   for _, c := range YYtext {

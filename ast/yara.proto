@@ -201,7 +201,7 @@ message IntegerFunction {
   optional string function = 1;
 
   // Offset or virtual address. Required.
-  optional Expression offset_or_vaddress = 2;
+  optional Expression argument = 2;
 }
 
 // Expression for iterating over string occurrences.
@@ -320,7 +320,7 @@ message Expression {
     UnaryExpression unary_expression = 3;
     string string_identifier = 4;
     ForInExpression for_in_expression = 5;
-    ForOfExpression for_of_expression = 6; 
+    ForOfExpression for_of_expression = 6;
     Expression not_expression = 7;
     Expressions or_expression = 8;
     Expressions and_expression = 9;
@@ -328,7 +328,7 @@ message Expression {
     Regexp regexp = 11;
     Keyword keyword = 12;
     int64 number_value = 13;
-    double double_value = 14; 
+    double double_value = 14;
     string text = 15;
     string string_count = 16;
     StringOffset string_offset = 17;
@@ -375,7 +375,7 @@ message Identifier {
   message IdentifierItem {
     oneof item {
       string identifier = 1;
-      Expression expression = 2;
+      Expression index = 2;
       Expressions arguments = 3;
     }
   }
@@ -387,7 +387,7 @@ message Identifier {
 // Sequence of expressions.
 message Expressions {
   // Terms in the sequence.
-  repeated Expression terms = 1;  
+  repeated Expression terms = 1;
 }
 
 // YARA rule.
