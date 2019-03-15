@@ -47,7 +47,7 @@ func main() {
 
 	serializer := gyp.NewSerializer(out)
 	serializer.SetIndent(opts.Indent)
-	if err := serializer.Serialize(ruleset); err != nil {
+	if err := serializer.Serialize(&ruleset); err != nil {
 		perror(`Couldn't serialize ruleset: %s`, err)
 		os.Exit(6)
 	}
