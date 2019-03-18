@@ -267,7 +267,7 @@ message StringSet {
     // Enumeration of strings. Example: ($s1, $s2, $s3)
     StringEnumeration strings = 1;
 
-    // Keyword. Examples: any, all
+    // Keyword. Example: them.
     StringSetKeyword keyword = 2;
   }
 }
@@ -278,7 +278,8 @@ message StringSet {
 message StringEnumeration {
   // An entry in the strings enumeration.
   message StringEnumerationItem {
-    // String identifier or part of it if a wildcard is used.
+    // String identifier or part of it if a wildcard (*) is used.
+    // Includes the wildcard if present.
     optional string string_identifier = 1;
 
     // Wildcard (*).

@@ -44,7 +44,7 @@ func main() {
 	marshaler := jsonpb.Marshaler{
 		Indent: "  ",
 	}
-	err = marshaler.Marshal(out, &ruleset)
+	err = marshaler.Marshal(out, ruleset)
 	if err != nil {
 		perror(`Error writing JSON: %s`, err)
 		os.Exit(6)
