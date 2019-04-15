@@ -94,7 +94,6 @@ const eof = 0
 // Bear in mind that the yr prefix is used because the parser is generated
 // with this prefix in order to avoid name collisions.
 var yylval *yrSymType
-var err error // Actually, this is global for lexer action access.
 
 %}
 

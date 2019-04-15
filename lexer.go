@@ -479,13 +479,12 @@ const eof = 0
 // Bear in mind that the yr prefix is used because the parser is generated
 // with this prefix in order to avoid name collisions.
 var yylval *yrSymType
-var err error // Actually, this is global for lexer action access.
 
 
 
 
 
-//line lexer.go:489
+//line lexer.go:488
 // SKEL ----------------------------------------------------------------
 
 const yyInitial  = 0
@@ -570,10 +569,10 @@ func (yy *Scanner) Lex() YYtype {
 	_ = yyout
 
 // [7.0] user's declarations go here -----------------------------------
-//line lexer.l:120
+//line lexer.l:119
 
 
-//line lexer.go:577
+//line lexer.go:576
 // SKEL ----------------------------------------------------------------
 
 	for { // loops until end-of-file is reached
@@ -676,7 +675,7 @@ case 1:
     textBuilder.Write(yytext)
   }
 
-//line lexer.l:122
+//line lexer.l:121
 {
     collectCondition = true
     conditionBuilder.Reset()
@@ -696,7 +695,7 @@ case 2:
   }
 
 
-//line lexer.l:128
+//line lexer.l:127
 { return _DOT_DOT_;     }
 case 3:
 
@@ -712,7 +711,7 @@ case 3:
   }
 
 
-//line lexer.l:129
+//line lexer.l:128
 { return _LT_;          }
 case 4:
 
@@ -728,7 +727,7 @@ case 4:
   }
 
 
-//line lexer.l:130
+//line lexer.l:129
 { return _GT_;          }
 case 5:
 
@@ -744,7 +743,7 @@ case 5:
   }
 
 
-//line lexer.l:131
+//line lexer.l:130
 { return _LE_;          }
 case 6:
 
@@ -760,7 +759,7 @@ case 6:
   }
 
 
-//line lexer.l:132
+//line lexer.l:131
 { return _GE_;          }
 case 7:
 
@@ -776,7 +775,7 @@ case 7:
   }
 
 
-//line lexer.l:133
+//line lexer.l:132
 { return _EQ_;          }
 case 8:
 
@@ -792,7 +791,7 @@ case 8:
   }
 
 
-//line lexer.l:134
+//line lexer.l:133
 { return _NEQ_;         }
 case 9:
 
@@ -808,7 +807,7 @@ case 9:
   }
 
 
-//line lexer.l:135
+//line lexer.l:134
 { return _SHIFT_LEFT_;  }
 case 10:
 
@@ -824,7 +823,7 @@ case 10:
   }
 
 
-//line lexer.l:136
+//line lexer.l:135
 { return _SHIFT_RIGHT_; }
 case 11:
 
@@ -840,7 +839,7 @@ case 11:
   }
 
 
-//line lexer.l:137
+//line lexer.l:136
 { return _PRIVATE_;     }
 case 12:
 
@@ -856,7 +855,7 @@ case 12:
   }
 
 
-//line lexer.l:138
+//line lexer.l:137
 { return _GLOBAL_;      }
 case 13:
 
@@ -872,7 +871,7 @@ case 13:
   }
 
 
-//line lexer.l:139
+//line lexer.l:138
 { return _RULE_;        }
 case 14:
 
@@ -888,7 +887,7 @@ case 14:
   }
 
 
-//line lexer.l:140
+//line lexer.l:139
 { return _META_;        }
 case 15:
 
@@ -904,7 +903,7 @@ case 15:
   }
 
 
-//line lexer.l:141
+//line lexer.l:140
 { return _STRINGS_;     }
 case 16:
 
@@ -920,7 +919,7 @@ case 16:
   }
 
 
-//line lexer.l:142
+//line lexer.l:141
 { return _ASCII_;       }
 case 17:
 
@@ -936,7 +935,7 @@ case 17:
   }
 
 
-//line lexer.l:143
+//line lexer.l:142
 { return _WIDE_;        }
 case 18:
 
@@ -952,7 +951,7 @@ case 18:
   }
 
 
-//line lexer.l:144
+//line lexer.l:143
 { return _XOR_;         }
 case 19:
 
@@ -968,7 +967,7 @@ case 19:
   }
 
 
-//line lexer.l:145
+//line lexer.l:144
 { return _FULLWORD_;    }
 case 20:
 
@@ -984,7 +983,7 @@ case 20:
   }
 
 
-//line lexer.l:146
+//line lexer.l:145
 { return _NOCASE_;      }
 case 21:
 
@@ -1000,7 +999,7 @@ case 21:
   }
 
 
-//line lexer.l:147
+//line lexer.l:146
 { return _CONDITION_;   }
 case 22:
 
@@ -1016,7 +1015,7 @@ case 22:
   }
 
 
-//line lexer.l:148
+//line lexer.l:147
 { return _TRUE_;        }
 case 23:
 
@@ -1032,7 +1031,7 @@ case 23:
   }
 
 
-//line lexer.l:149
+//line lexer.l:148
 { return _FALSE_;       }
 case 24:
 
@@ -1048,7 +1047,7 @@ case 24:
   }
 
 
-//line lexer.l:150
+//line lexer.l:149
 { return _NOT_;         }
 case 25:
 
@@ -1064,7 +1063,7 @@ case 25:
   }
 
 
-//line lexer.l:151
+//line lexer.l:150
 { return _AND_;         }
 case 26:
 
@@ -1080,7 +1079,7 @@ case 26:
   }
 
 
-//line lexer.l:152
+//line lexer.l:151
 { return _OR_;          }
 case 27:
 
@@ -1096,7 +1095,7 @@ case 27:
   }
 
 
-//line lexer.l:153
+//line lexer.l:152
 { return _AT_;          }
 case 28:
 
@@ -1112,7 +1111,7 @@ case 28:
   }
 
 
-//line lexer.l:154
+//line lexer.l:153
 { return _IN_;          }
 case 29:
 
@@ -1128,7 +1127,7 @@ case 29:
   }
 
 
-//line lexer.l:155
+//line lexer.l:154
 { return _OF_;          }
 case 30:
 
@@ -1144,7 +1143,7 @@ case 30:
   }
 
 
-//line lexer.l:156
+//line lexer.l:155
 { return _THEM_;        }
 case 31:
 
@@ -1160,7 +1159,7 @@ case 31:
   }
 
 
-//line lexer.l:157
+//line lexer.l:156
 { return _FOR_;         }
 case 32:
 
@@ -1176,7 +1175,7 @@ case 32:
   }
 
 
-//line lexer.l:158
+//line lexer.l:157
 { return _ALL_;         }
 case 33:
 
@@ -1192,7 +1191,7 @@ case 33:
   }
 
 
-//line lexer.l:159
+//line lexer.l:158
 { return _ANY_;         }
 case 34:
 
@@ -1208,7 +1207,7 @@ case 34:
   }
 
 
-//line lexer.l:160
+//line lexer.l:159
 { return _ENTRYPOINT_;  }
 case 35:
 
@@ -1224,7 +1223,7 @@ case 35:
   }
 
 
-//line lexer.l:161
+//line lexer.l:160
 { return _FILESIZE_;    }
 case 36:
 
@@ -1240,7 +1239,7 @@ case 36:
   }
 
 
-//line lexer.l:162
+//line lexer.l:161
 { return _MATCHES_;     }
 case 37:
 
@@ -1256,7 +1255,7 @@ case 37:
   }
 
 
-//line lexer.l:163
+//line lexer.l:162
 { return _CONTAINS_;    }
 case 38:
 
@@ -1272,7 +1271,7 @@ case 38:
   }
 
 
-//line lexer.l:164
+//line lexer.l:163
 { return _IMPORT_;      }
 case 39:
 
@@ -1288,7 +1287,7 @@ case 39:
   }
 
 
-//line lexer.l:166
+//line lexer.l:165
 { return _LBRACE_; }
 case 40:
 
@@ -1304,7 +1303,7 @@ case 40:
   }
 
 
-//line lexer.l:167
+//line lexer.l:166
 {
                           if collectCondition {
                             collectCondition = false
@@ -1325,7 +1324,7 @@ case 41:
   }
 
 
-//line lexer.l:173
+//line lexer.l:172
 { return _INCLUDE_; }
 case 42:
 
@@ -1341,7 +1340,7 @@ case 42:
   }
 
 
-//line lexer.l:175
+//line lexer.l:174
 { yy.start = 1 + 2*  (comment);       }
 case 43:
 
@@ -1357,7 +1356,7 @@ case 43:
   }
 
 
-//line lexer.l:176
+//line lexer.l:175
 { yy.start = 1 + 2*  (yyInitial );       }
 case 44:
 /* rule 44 can match eol */
@@ -1374,7 +1373,7 @@ case 44:
   }
 
 
-//line lexer.l:177
+//line lexer.l:176
 { /* skip comments */   }
 case 45:
 
@@ -1390,7 +1389,7 @@ case 45:
   }
 
 
-//line lexer.l:180
+//line lexer.l:179
 { /* skip single-line comments */ }
 case (yyEndOfBuffer + yyInitial  + 1) :
 	fallthrough
@@ -1401,7 +1400,7 @@ case (yyEndOfBuffer + regexp + 1) :
 case (yyEndOfBuffer + include + 1) :
 	fallthrough
 case (yyEndOfBuffer + comment + 1) :
-//line lexer.l:182
+//line lexer.l:181
 { return eof }
 case 46:
 
@@ -1417,7 +1416,7 @@ case 46:
   }
 
 
-//line lexer.l:185
+//line lexer.l:184
 {
   yylval.s = string(yytext)
   return _STRING_IDENTIFIER_WITH_WILDCARD_;
@@ -1436,7 +1435,7 @@ case 47:
   }
 
 
-//line lexer.l:191
+//line lexer.l:190
 {
   yylval.s = string(yytext)
   return _STRING_IDENTIFIER_;
@@ -1455,7 +1454,7 @@ case 48:
   }
 
 
-//line lexer.l:197
+//line lexer.l:196
 {
   yylval.s = string(yytext)
   return _STRING_COUNT_;
@@ -1474,7 +1473,7 @@ case 49:
   }
 
 
-//line lexer.l:203
+//line lexer.l:202
 {
   yylval.s = string(yytext)
   return _STRING_OFFSET_;
@@ -1493,7 +1492,7 @@ case 50:
   }
 
 
-//line lexer.l:209
+//line lexer.l:208
 {
   yylval.s = string(yytext)
   return _STRING_LENGTH_;
@@ -1512,7 +1511,7 @@ case 51:
   }
 
 
-//line lexer.l:215
+//line lexer.l:214
 {
   yylval.s = string(yytext)
   return _INTEGER_FUNCTION_;
@@ -1531,7 +1530,7 @@ case 52:
   }
 
 
-//line lexer.l:221
+//line lexer.l:220
 {
   yylval.s = string(yytext)
   return _IDENTIFIER_;
@@ -1550,7 +1549,7 @@ case 53:
   }
 
 
-//line lexer.l:227
+//line lexer.l:226
 {
   var err error
   s := strings.TrimRight(YYtext, "MKB")
@@ -1592,7 +1591,7 @@ case 54:
   }
 
 
-//line lexer.l:255
+//line lexer.l:254
 {
   return _DOUBLE_;
 }
@@ -1610,7 +1609,7 @@ case 55:
   }
 
 
-//line lexer.l:259
+//line lexer.l:258
 {
   var err error
   yylval.i64, err = strconv.ParseInt(YYtext, 0, 64)
@@ -1634,7 +1633,7 @@ case 56:
   }
 
 
-//line lexer.l:269
+//line lexer.l:268
 {
   var err error
   s := strings.TrimLeft(YYtext, "0o")
@@ -1658,7 +1657,7 @@ case 57:
   }
 
 
-//line lexer.l:280
+//line lexer.l:279
 {     /* saw closing quote - all done */
 
   // NOTE: textBuilder.String() will end with `"` char
@@ -1683,7 +1682,7 @@ case 58:
   }
 
 
-//line lexer.l:292
+//line lexer.l:291
 {
 }
 case 59:
@@ -1700,7 +1699,7 @@ case 59:
   }
 
 
-//line lexer.l:296
+//line lexer.l:295
 {
 }
 case 60:
@@ -1717,7 +1716,7 @@ case 60:
   }
 
 
-//line lexer.l:300
+//line lexer.l:299
 {
 }
 case 61:
@@ -1734,7 +1733,7 @@ case 61:
   }
 
 
-//line lexer.l:304
+//line lexer.l:303
 {
 }
 case 62:
@@ -1751,7 +1750,7 @@ case 62:
   }
 
 
-//line lexer.l:308
+//line lexer.l:307
 {
 }
 case 63:
@@ -1768,7 +1767,7 @@ case 63:
   }
 
 
-//line lexer.l:312
+//line lexer.l:311
 { }
 case 64:
 /* rule 64 can match eol */
@@ -1785,7 +1784,7 @@ case 64:
   }
 
 
-//line lexer.l:315
+//line lexer.l:314
 {
   panic(gyperror.Error{ gyperror.UnterminatedStringError, "" })
 }
@@ -1804,7 +1803,7 @@ case 65:
   }
 
 
-//line lexer.l:320
+//line lexer.l:319
 {
   panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "" })
 }
@@ -1822,7 +1821,7 @@ case 66:
   }
 
 
-//line lexer.l:325
+//line lexer.l:324
 {
   collectText = false
 
@@ -1869,7 +1868,7 @@ case 67:
   }
 
 
-//line lexer.l:359
+//line lexer.l:358
 {
 }
 case 68:
@@ -1886,7 +1885,7 @@ case 68:
   }
 
 
-//line lexer.l:363
+//line lexer.l:362
 {
 }
 case 69:
@@ -1903,7 +1902,7 @@ case 69:
   }
 
 
-//line lexer.l:367
+//line lexer.l:366
 { }
 case 70:
 /* rule 70 can match eol */
@@ -1920,7 +1919,7 @@ case 70:
   }
 
 
-//line lexer.l:370
+//line lexer.l:369
 {
   panic(gyperror.Error{ gyperror.UnterminatedRegexError, "" })
 }
@@ -1938,7 +1937,7 @@ case 71:
   }
 
 
-//line lexer.l:375
+//line lexer.l:374
 {
   collectText = true
   textBuilder.Reset()
@@ -1958,7 +1957,7 @@ case 72:
   }
 
 
-//line lexer.l:382
+//line lexer.l:381
 {
   collectText = true
   textBuilder.Reset()
@@ -1979,7 +1978,7 @@ case 73:
   }
 
 
-//line lexer.l:389
+//line lexer.l:388
 {
   // Match hex-digits with whitespace or comments. The latter are stripped
   // out by hex_lexer.l
@@ -2012,7 +2011,7 @@ case 74:
   }
 
 
-//line lexer.l:408
+//line lexer.l:407
 /* skip whitespace */
 case 75:
 
@@ -2028,7 +2027,7 @@ case 75:
   }
 
 
-//line lexer.l:410
+//line lexer.l:409
 {
 
   r := int(yytext[0])
@@ -2053,9 +2052,9 @@ case 76:
   }
 
 
-//line lexer.l:421
+//line lexer.l:420
 yyout.Write(yytext) 
-//line lexer.go:2059
+//line lexer.go:2058
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -2516,7 +2515,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line lexer.l:421
+//line lexer.l:420
 
 
 
