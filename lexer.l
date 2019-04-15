@@ -49,7 +49,12 @@ import (
 
 // Necessary types for flexgo
 type YYtype interface{}
-type YYcontext interface{}
+
+// Note that the parser is generated with the yr prefix to avoid name
+// collisions with the hex and regexp parsers.
+type YYcontext struct {
+  lval *yrSymType
+}
 
 // The YY_USER_DATA macro is used to define variables inside the Scanner
 // Lex() method. These variables manage buffers for gathering groups of
@@ -89,12 +94,6 @@ YY_USER_ACTION(
 
 // Define a constant for end-of-file
 const eof = 0
-
-// These globals must be accessible to the goyacc parser.
-// Bear in mind that the yr prefix is used because the parser is generated
-// with this prefix in order to avoid name collisions.
-var yylval *yrSymType
-
 %}
 
 %option reentrant bison-bridge
@@ -182,43 +181,43 @@ octdigit      [0-7]
 
 
 $({letter}|{digit}|_)*"*"  {
-  yylval.s = string(yytext)
+  yy.Context.lval.s = string(yytext)
   return _STRING_IDENTIFIER_WITH_WILDCARD_;
 }
 
 
 $({letter}|{digit}|_)*  {
-  yylval.s = string(yytext)
+  yy.Context.lval.s = string(yytext)
   return _STRING_IDENTIFIER_;
 }
 
 
 #({letter}|{digit}|_)*  {
-  yylval.s = string(yytext)
+  yy.Context.lval.s = string(yytext)
   return _STRING_COUNT_;
 }
 
 
 @({letter}|{digit}|_)*  {
-  yylval.s = string(yytext)
+  yy.Context.lval.s = string(yytext)
   return _STRING_OFFSET_;
 }
 
 
 !({letter}|{digit}|_)*  {
-  yylval.s = string(yytext)
+  yy.Context.lval.s = string(yytext)
   return _STRING_LENGTH_;
 }
 
 
 u?int(8|16|32)(be)? {
-  yylval.s = string(yytext)
+  yy.Context.lval.s = string(yytext)
   return _INTEGER_FUNCTION_;
 }
 
 
 ({letter}|_)({letter}|{digit}|_)*  {
-  yylval.s = string(yytext)
+  yy.Context.lval.s = string(yytext)
   return _IDENTIFIER_;
 }
 
@@ -226,26 +225,26 @@ u?int(8|16|32)(be)? {
 {digit}+(MB|KB){0,1}  {
   var err error
   s := strings.TrimRight(YYtext, "MKB")
-  yylval.i64, err = strconv.ParseInt(s, 10, 64)
+  yy.Context.lval.i64, err = strconv.ParseInt(s, 10, 64)
   if err != nil {
       panic(fmt.Errorf("Number conversion error: %s", err))
   }
 
   if strings.HasSuffix(YYtext, "KB") {
-      if yylval.i64 > math.MaxInt64 / 1024 {
+      if yy.Context.lval.i64 > math.MaxInt64 / 1024 {
           err := fmt.Errorf("Integer overflow: %s; max %d",
               YYtext, math.MaxInt64)
           panic(err)
       } else {
-          yylval.i64 *= 1024
+          yy.Context.lval.i64 *= 1024
       }
   } else if strings.HasSuffix(YYtext, "MB") {
-      if yylval.i64 > math.MaxInt64 / 1048576 {
+      if yy.Context.lval.i64 > math.MaxInt64 / 1048576 {
           err := fmt.Errorf("Integer overflow: %s; max %d",
               YYtext, math.MaxInt64)
           panic(err)
       } else {
-          yylval.i64 *= 1048576
+          yy.Context.lval.i64 *= 1048576
       }
   }
   return _NUMBER_;
@@ -257,7 +256,7 @@ u?int(8|16|32)(be)? {
 
 0x{hexdigit}+  {
   var err error
-  yylval.i64, err = strconv.ParseInt(YYtext, 0, 64)
+  yy.Context.lval.i64, err = strconv.ParseInt(YYtext, 0, 64)
   if err != nil {
       panic(fmt.Errorf("Number conversion error: %s", err))
   }
@@ -268,7 +267,7 @@ u?int(8|16|32)(be)? {
 0o{octdigit}+  {
   var err error
   s := strings.TrimLeft(YYtext, "0o")
-  yylval.i64, err = strconv.ParseInt(s, 8, 64)
+  yy.Context.lval.i64, err = strconv.ParseInt(s, 8, 64)
   if err != nil {
       panic(fmt.Errorf("Number conversion error: %s", err))
   }
@@ -280,7 +279,7 @@ u?int(8|16|32)(be)? {
 
   // NOTE: textBuilder.String() will end with `"` char
   collectText = false
-  yylval.s = strings.TrimSuffix(textBuilder.String(), `"`)
+  yy.Context.lval.s = strings.TrimSuffix(textBuilder.String(), `"`)
 
   BEGIN (INITIAL);
 
@@ -345,7 +344,7 @@ u?int(8|16|32)(be)? {
       }
   }
 
-  yylval.reg = ast.Regexp {
+  yy.Context.lval.reg = ast.Regexp {
       Text: &txt,
       Modifiers: &mods,
   }
@@ -398,7 +397,7 @@ u?int(8|16|32)(be)? {
   if err != nil {
     panic(err)
   }
-  yylval.hextokens = &hexString
+  yy.Context.lval.hextokens = &hexString
 
   return _HEX_STRING_;
 }

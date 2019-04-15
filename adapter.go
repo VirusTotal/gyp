@@ -60,11 +60,11 @@ type Lexer struct {
 }
 
 // Lex provides the interface expected by the goyacc parser.
-// It sets the global yylval pointer (defined in the lexer file)
+// It sets the context's lval pointer (defined in the lexer file)
 // to the one passed as an argument so that the parser actions
 // can make use of it.
 func (l *Lexer) Lex(lval *yrSymType) int {
-	yylval = lval
+	l.lexer.Context.lval = lval
 	return l.lexer.Lex().(int)
 }
 
