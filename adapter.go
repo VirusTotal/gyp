@@ -13,8 +13,6 @@ import (
 	"github.com/VirusTotal/gyp/error"
 )
 
-var lexicalError gyperror.Error
-
 func init() {
 	yrErrorVerbose = true
 }
@@ -41,7 +39,7 @@ func Parse(input io.Reader) (rs *ast.RuleSet, err error) {
 	lexer.lexer.Out = ioutil.Discard
 
 	if result := yrParse(&lexer); result != 0 {
-		err = lexicalError
+		err = lexer.lexicalError
 	}
 
 	rs = &ParsedRuleset
@@ -56,7 +54,8 @@ func ParseString(s string) (*ast.RuleSet, error) {
 
 // Lexer is an adapter that fits the flexgo lexer ("Scanner") into goyacc
 type Lexer struct {
-	lexer Scanner
+	lexer        Scanner
+	lexicalError gyperror.Error
 }
 
 // Lex provides the interface expected by the goyacc parser.
@@ -71,7 +70,7 @@ func (l *Lexer) Lex(lval *yrSymType) int {
 // Error satisfies the interface expected of the goyacc parser.
 // Here, it simply writes the error to stdout.
 func (l *Lexer) Error(e string) {
-	lexicalError = gyperror.Error{
+	l.lexicalError = gyperror.Error{
 		Code: gyperror.LexicalError,
 		Data: fmt.Sprintf(`@%d - "%s"`, l.lexer.Lineno, e),
 	}
