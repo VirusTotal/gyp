@@ -51,32 +51,34 @@ import (
 type YYtype interface{}
 type YYcontext interface{}
 
-// Global YYtext - each action sets this to the current yytext
-var YYtext string
+// The YY_USER_DATA macro is used to define variables inside the Scanner
+// Lex() method. These variables manage buffers for gathering groups of
+// tokens. Flex collects tokens individually but strings and conditions may
+// contain several tokens.
+// Two different buffers are necessary because conditions may contain strings.
 
-// Accumulators for gathering groups of tokens as text because text collection
-// is like an "inclusive" start condition while the lexer requires "exclusive"
-var (
-    collect           bool  // condition text
-    conditionBuilder  strings.Builder
-    collectText       bool  // string/regex/etc text
-    textBuilder       strings.Builder
-)
-
-  // This comment applies to the YY_USER_ACTION macro, which is having
-  // a problem with comments...
-  // For condition, the colons and whitespace will be collected in the
-  // prefix and the right brace for the suffix. Use strings.TrimLeft/Right
-
-
+// This comment applies to the YY_USER_ACTION macro, which is having
+// a problem with comments...
+// For condition, the colons and whitespace will be collected in the
+// prefix and the right brace for the suffix. Use strings.TrimLeft/Right
 }
 
 %{
 
+YY_USER_DATA(
+  var (
+      collectCondition  bool
+      conditionBuilder  strings.Builder
+      collectText       bool   // string/regex/etc text
+      textBuilder       strings.Builder
+      YYtext            string // each action sets this to the current yytext
+  )
+)
+
 YY_USER_ACTION(
   YYtext = string(yytext)
 
-  if collect {
+  if collectCondition {
     conditionBuilder.Write(yytext)
   }
 
@@ -118,7 +120,7 @@ octdigit      [0-7]
 %%
 
 "condition" {
-    collect = true
+    collectCondition = true
     conditionBuilder.Reset()
     return _CONDITION_
 }
@@ -163,8 +165,8 @@ octdigit      [0-7]
 
 "{"                     { return _LBRACE_; }
 "}"                     {
-                          if collect {
-                            collect = false
+                          if collectCondition {
+                            collectCondition = false
                           }
                           return _RBRACE_;
                         }
