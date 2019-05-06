@@ -72,11 +72,11 @@ type YYcontext struct {
 
 YY_USER_DATA(
   var (
-      collectCondition  bool
-      conditionBuilder  strings.Builder
-      collectText       bool   // string/regex/etc text
-      textBuilder       strings.Builder
-      YYtext            string // each action sets this to the current yytext
+    collectCondition  bool            // true when reading a condition
+    conditionBuilder  strings.Builder // collects text while reading a condition
+    collectText       bool            // true when reading string/regex/hex text
+    textBuilder       strings.Builder // collects text while reading a string/regex/hex
+    YYtext            string          // each action sets this to the current yytext
   )
 )
 
