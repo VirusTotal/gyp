@@ -6,6 +6,7 @@ package gyp
 import __yyfmt__ "fmt"
 
 //line grammar.y:31
+
 import (
 	"fmt"
 	proto "github.com/golang/protobuf/proto"
