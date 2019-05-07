@@ -24,7 +24,10 @@ func Parse(input io.Reader) (rs *ast.RuleSet, err error) {
 			if yaraError, ok := r.(gyperror.Error); ok {
 				err = yaraError
 			} else {
-				panic(r)
+				err = gyperror.Error{
+					Code: gyperror.UnknownError,
+					Data: fmt.Sprintf("%v", r),
+				}
 			}
 		}
 	}()
@@ -68,7 +71,6 @@ func (l *Lexer) Lex(lval *yrSymType) int {
 }
 
 // Error satisfies the interface expected of the goyacc parser.
-// Here, it simply writes the error to stdout.
 func (l *Lexer) Error(e string) {
 	l.lexicalError = gyperror.Error{
 		Code: gyperror.LexicalError,

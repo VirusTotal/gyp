@@ -8,7 +8,8 @@ import (
 type Code int
 
 const (
-	LexicalError Code = iota
+	UnknownError Code = iota
+	LexicalError
 	DuplicateRuleError
 	DuplicateTagError
 	DuplicateStringError
@@ -23,6 +24,8 @@ const (
 	InvalidJumpRangeError
 	UnboundedJumpInsideAlternationError
 	InvalidCharInHexStringError
+	NumberConversionError
+	IntegerOverflowError
 )
 
 type Error struct {
@@ -61,4 +64,6 @@ var errorMessages = map[Code]string{
 	InvalidJumpRangeError:               "invalid jump range",
 	UnboundedJumpInsideAlternationError: "unbounded jump inside alternation",
 	InvalidCharInHexStringError:         "invalid char in hex string",
+	NumberConversionError:               "number conversion error",
+	IntegerOverflowError:                "integer overflow error",
 }
