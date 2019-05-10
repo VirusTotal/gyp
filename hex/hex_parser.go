@@ -622,7 +622,7 @@ xxdefault:
 
 			if insideOr > 0 && xxDollar[2].integer > StringChainingThreshold {
 				err := gyperror.Error{
-					gyperror.JumpTooLargeInsideAlternation,
+					gyperror.JumpTooLargeInsideAlternationError,
 					fmt.Sprintf("%d", xxDollar[2].integer),
 				}
 				panic(err)
@@ -637,7 +637,7 @@ xxdefault:
 			if insideOr > 0 &&
 				(xxDollar[2].integer > StringChainingThreshold || xxDollar[4].integer > StringChainingThreshold) {
 				err := gyperror.Error{
-					gyperror.JumpTooLargeInsideAlternation,
+					gyperror.JumpTooLargeInsideAlternationError,
 					fmt.Sprintf("%d-%d", xxDollar[2].integer, xxDollar[4].integer),
 				}
 				panic(err)
@@ -645,7 +645,7 @@ xxdefault:
 
 			if xxDollar[2].integer < 0 || xxDollar[4].integer < 0 {
 				err := gyperror.Error{
-					gyperror.NegativeJump,
+					gyperror.NegativeJumpError,
 					fmt.Sprintf("%d-$d", xxDollar[2].integer, xxDollar[4].integer),
 				}
 				panic(err)
@@ -653,7 +653,7 @@ xxdefault:
 
 			if xxDollar[2].integer > xxDollar[4].integer {
 				err := gyperror.Error{
-					gyperror.InvalidJumpRange,
+					gyperror.InvalidJumpRangeError,
 					fmt.Sprintf("%d-%d", xxDollar[2].integer, xxDollar[4].integer),
 				}
 				panic(err)
@@ -667,7 +667,7 @@ xxdefault:
 		{
 			if insideOr > 0 {
 				err := gyperror.Error{
-					gyperror.UnboundedJumpInsideAlternation,
+					gyperror.UnboundedJumpInsideAlternationError,
 					fmt.Sprintf("%d-", xxDollar[2].integer),
 				}
 				panic(err)
@@ -675,7 +675,7 @@ xxdefault:
 
 			if xxDollar[2].integer < 0 {
 				err := gyperror.Error{
-					gyperror.NegativeJump,
+					gyperror.NegativeJumpError,
 					fmt.Sprintf("%d-", xxDollar[2].integer),
 				}
 				panic(err)
@@ -689,7 +689,7 @@ xxdefault:
 		{
 			if insideOr > 0 {
 				err := gyperror.Error{
-					gyperror.UnboundedJumpInsideAlternation,
+					gyperror.UnboundedJumpInsideAlternationError,
 					"-",
 				}
 				panic(err)

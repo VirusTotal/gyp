@@ -227,22 +227,33 @@ u?int(8|16|32)(be)? {
   s := strings.TrimRight(YYtext, "MKB")
   yy.Context.lval.i64, err = strconv.ParseInt(s, 10, 64)
   if err != nil {
-      panic(fmt.Errorf("Number conversion error: %s", err))
+    panic(
+      gyperror.Error{
+        gyperror.NumberConversionError,
+        fmt.Sprintf("%s", err),
+      },
+    )
   }
 
   if strings.HasSuffix(YYtext, "KB") {
       if yy.Context.lval.i64 > math.MaxInt64 / 1024 {
-          err := fmt.Errorf("Integer overflow: %s; max %d",
-              YYtext, math.MaxInt64)
-          panic(err)
+        panic(
+          gyperror.Error{
+            gyperror.IntegerOverflowError,
+            fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64),
+          },
+        )
       } else {
-          yy.Context.lval.i64 *= 1024
+        yy.Context.lval.i64 *= 1024
       }
   } else if strings.HasSuffix(YYtext, "MB") {
       if yy.Context.lval.i64 > math.MaxInt64 / 1048576 {
-          err := fmt.Errorf("Integer overflow: %s; max %d",
-              YYtext, math.MaxInt64)
-          panic(err)
+        panic(
+          gyperror.Error{
+            gyperror.IntegerOverflowError,
+            fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64),
+          },
+        )
       } else {
           yy.Context.lval.i64 *= 1048576
       }
@@ -258,7 +269,12 @@ u?int(8|16|32)(be)? {
   var err error
   yy.Context.lval.i64, err = strconv.ParseInt(YYtext, 0, 64)
   if err != nil {
-      panic(fmt.Errorf("Number conversion error: %s", err))
+    panic(
+      gyperror.Error{
+        gyperror.NumberConversionError,
+        fmt.Sprintf("%s", err),
+      },
+    )
   }
 
   return _NUMBER_;
@@ -269,7 +285,12 @@ u?int(8|16|32)(be)? {
   s := strings.TrimLeft(YYtext, "0o")
   yy.Context.lval.i64, err = strconv.ParseInt(s, 8, 64)
   if err != nil {
-      panic(fmt.Errorf("Number conversion error: %s", err))
+    panic(
+      gyperror.Error{
+        gyperror.NumberConversionError,
+        fmt.Sprintf("%s", err),
+      },
+    )
   }
   return _NUMBER_;
 }
@@ -340,7 +361,12 @@ u?int(8|16|32)(be)? {
 
       default:
           // Should be impossible
-          panic(gyperror.Error{ gyperror.InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c) })
+          panic(
+            gyperror.Error{
+              gyperror.InvalidRegexModifierError,
+              fmt.Sprintf(`"%c"`, c),
+            },
+          )
       }
   }
 

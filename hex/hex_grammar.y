@@ -177,7 +177,7 @@ range
 
         if insideOr > 0 && $2 > StringChainingThreshold {
           err := gyperror.Error{
-            gyperror.JumpTooLargeInsideAlternation,
+            gyperror.JumpTooLargeInsideAlternationError,
             fmt.Sprintf("%d", $2),
           }
           panic(err)
@@ -190,7 +190,7 @@ range
         if insideOr > 0 &&
           ($2 > StringChainingThreshold || $4 > StringChainingThreshold) {
           err := gyperror.Error{
-            gyperror.JumpTooLargeInsideAlternation,
+            gyperror.JumpTooLargeInsideAlternationError,
             fmt.Sprintf("%d-%d", $2, $4),
           }
           panic(err)
@@ -198,7 +198,7 @@ range
 
         if $2 < 0 || $4 < 0 {
           err := gyperror.Error{
-            gyperror.NegativeJump,
+            gyperror.NegativeJumpError,
             fmt.Sprintf("%d-$d", $2, $4),
           }
           panic(err)
@@ -206,7 +206,7 @@ range
 
         if $2 > $4 {
           err := gyperror.Error{
-            gyperror.InvalidJumpRange,
+            gyperror.InvalidJumpRangeError,
             fmt.Sprintf("%d-%d", $2, $4),
           }
           panic(err)
@@ -218,7 +218,7 @@ range
       {
         if insideOr > 0 {
           err := gyperror.Error{
-            gyperror.UnboundedJumpInsideAlternation,
+            gyperror.UnboundedJumpInsideAlternationError,
             fmt.Sprintf("%d-", $2),
           }
           panic(err)
@@ -226,7 +226,7 @@ range
 
         if $2 < 0 {
           err := gyperror.Error{
-            gyperror.NegativeJump,
+            gyperror.NegativeJumpError,
             fmt.Sprintf("%d-", $2),
           }
           panic(err)
@@ -238,7 +238,7 @@ range
       {
         if insideOr > 0 {
           err := gyperror.Error{
-            gyperror.UnboundedJumpInsideAlternation,
+            gyperror.UnboundedJumpInsideAlternationError,
             "-",
           }
           panic(err)

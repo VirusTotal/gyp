@@ -1554,22 +1554,33 @@ case 53:
   s := strings.TrimRight(YYtext, "MKB")
   yy.Context.lval.i64, err = strconv.ParseInt(s, 10, 64)
   if err != nil {
-      panic(fmt.Errorf("Number conversion error: %s", err))
+    panic(
+      gyperror.Error{
+        gyperror.NumberConversionError,
+        fmt.Sprintf("%s", err),
+      },
+    )
   }
 
   if strings.HasSuffix(YYtext, "KB") {
       if yy.Context.lval.i64 > math.MaxInt64 / 1024 {
-          err := fmt.Errorf("Integer overflow: %s; max %d",
-              YYtext, math.MaxInt64)
-          panic(err)
+        panic(
+          gyperror.Error{
+            gyperror.IntegerOverflowError,
+            fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64),
+          },
+        )
       } else {
-          yy.Context.lval.i64 *= 1024
+        yy.Context.lval.i64 *= 1024
       }
   } else if strings.HasSuffix(YYtext, "MB") {
       if yy.Context.lval.i64 > math.MaxInt64 / 1048576 {
-          err := fmt.Errorf("Integer overflow: %s; max %d",
-              YYtext, math.MaxInt64)
-          panic(err)
+        panic(
+          gyperror.Error{
+            gyperror.IntegerOverflowError,
+            fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64),
+          },
+        )
       } else {
           yy.Context.lval.i64 *= 1048576
       }
@@ -1590,7 +1601,7 @@ case 54:
   }
 
 
-//line lexer.l:253
+//line lexer.l:264
 {
   return _DOUBLE_;
 }
@@ -1608,12 +1619,17 @@ case 55:
   }
 
 
-//line lexer.l:257
+//line lexer.l:268
 {
   var err error
   yy.Context.lval.i64, err = strconv.ParseInt(YYtext, 0, 64)
   if err != nil {
-      panic(fmt.Errorf("Number conversion error: %s", err))
+    panic(
+      gyperror.Error{
+        gyperror.NumberConversionError,
+        fmt.Sprintf("%s", err),
+      },
+    )
   }
 
   return _NUMBER_;
@@ -1632,13 +1648,18 @@ case 56:
   }
 
 
-//line lexer.l:267
+//line lexer.l:283
 {
   var err error
   s := strings.TrimLeft(YYtext, "0o")
   yy.Context.lval.i64, err = strconv.ParseInt(s, 8, 64)
   if err != nil {
-      panic(fmt.Errorf("Number conversion error: %s", err))
+    panic(
+      gyperror.Error{
+        gyperror.NumberConversionError,
+        fmt.Sprintf("%s", err),
+      },
+    )
   }
   return _NUMBER_;
 }
@@ -1656,7 +1677,7 @@ case 57:
   }
 
 
-//line lexer.l:278
+//line lexer.l:299
 {     /* saw closing quote - all done */
 
   // NOTE: textBuilder.String() will end with `"` char
@@ -1681,7 +1702,7 @@ case 58:
   }
 
 
-//line lexer.l:290
+//line lexer.l:311
 {
 }
 case 59:
@@ -1698,7 +1719,7 @@ case 59:
   }
 
 
-//line lexer.l:294
+//line lexer.l:315
 {
 }
 case 60:
@@ -1715,7 +1736,7 @@ case 60:
   }
 
 
-//line lexer.l:298
+//line lexer.l:319
 {
 }
 case 61:
@@ -1732,7 +1753,7 @@ case 61:
   }
 
 
-//line lexer.l:302
+//line lexer.l:323
 {
 }
 case 62:
@@ -1749,7 +1770,7 @@ case 62:
   }
 
 
-//line lexer.l:306
+//line lexer.l:327
 {
 }
 case 63:
@@ -1766,7 +1787,7 @@ case 63:
   }
 
 
-//line lexer.l:310
+//line lexer.l:331
 { }
 case 64:
 /* rule 64 can match eol */
@@ -1783,7 +1804,7 @@ case 64:
   }
 
 
-//line lexer.l:313
+//line lexer.l:334
 {
   panic(gyperror.Error{ gyperror.UnterminatedStringError, "" })
 }
@@ -1802,7 +1823,7 @@ case 65:
   }
 
 
-//line lexer.l:318
+//line lexer.l:339
 {
   panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "" })
 }
@@ -1820,7 +1841,7 @@ case 66:
   }
 
 
-//line lexer.l:323
+//line lexer.l:344
 {
   collectText = false
 
@@ -1841,7 +1862,12 @@ case 66:
 
       default:
           // Should be impossible
-          panic(gyperror.Error{ gyperror.InvalidRegexModifierError, fmt.Sprintf(`"%c"`, c) })
+          panic(
+            gyperror.Error{
+              gyperror.InvalidRegexModifierError,
+              fmt.Sprintf(`"%c"`, c),
+            },
+          )
       }
   }
 
@@ -1867,7 +1893,7 @@ case 67:
   }
 
 
-//line lexer.l:357
+//line lexer.l:383
 {
 }
 case 68:
@@ -1884,7 +1910,7 @@ case 68:
   }
 
 
-//line lexer.l:361
+//line lexer.l:387
 {
 }
 case 69:
@@ -1901,7 +1927,7 @@ case 69:
   }
 
 
-//line lexer.l:365
+//line lexer.l:391
 { }
 case 70:
 /* rule 70 can match eol */
@@ -1918,7 +1944,7 @@ case 70:
   }
 
 
-//line lexer.l:368
+//line lexer.l:394
 {
   panic(gyperror.Error{ gyperror.UnterminatedRegexError, "" })
 }
@@ -1936,7 +1962,7 @@ case 71:
   }
 
 
-//line lexer.l:373
+//line lexer.l:399
 {
   collectText = true
   textBuilder.Reset()
@@ -1956,7 +1982,7 @@ case 72:
   }
 
 
-//line lexer.l:380
+//line lexer.l:406
 {
   collectText = true
   textBuilder.Reset()
@@ -1977,7 +2003,7 @@ case 73:
   }
 
 
-//line lexer.l:387
+//line lexer.l:413
 {
   // Match hex-digits with whitespace or comments. The latter are stripped
   // out by hex_lexer.l
@@ -2010,7 +2036,7 @@ case 74:
   }
 
 
-//line lexer.l:406
+//line lexer.l:432
 /* skip whitespace */
 case 75:
 
@@ -2026,7 +2052,7 @@ case 75:
   }
 
 
-//line lexer.l:408
+//line lexer.l:434
 {
 
   r := int(yytext[0])
@@ -2051,9 +2077,9 @@ case 76:
   }
 
 
-//line lexer.l:419
+//line lexer.l:445
 yyout.Write(yytext) 
-//line lexer.go:2057
+//line lexer.go:2083
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -2514,7 +2540,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line lexer.l:419
+//line lexer.l:445
 
 
 

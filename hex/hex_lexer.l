@@ -38,6 +38,8 @@ import (
     "log"
     "os"
     "strconv"
+
+    "github.com/VirusTotal/gyp/error"
 )
 
 // Necessary types for flexgo
@@ -146,7 +148,12 @@ hexdigit      [a-fA-F0-9]
 <yrange>[ \t\r\n]   // skip whitespaces
 
 <yrange>. {
-  panic(fmt.Errorf("Invalid character in hex string jump: %s", yytext[0]))
+  panic(
+    gyperror.Error{
+      gyperror.InvalidCharInHexStringError,
+      string(yytext[0]),
+    },
+  )
 }
 
 [ \t\r\n]         // skip whitespaces
@@ -164,7 +171,12 @@ hexdigit      [a-fA-F0-9]
 }
 
 . {               // reject all other characters
-  panic(fmt.Errorf("Invalid character in hex string: %s", yytext[0]))
+  panic(
+    gyperror.Error{
+      gyperror.InvalidCharInHexStringError,
+      string(yytext[0]),
+    },
+  )
 }
 
 %%

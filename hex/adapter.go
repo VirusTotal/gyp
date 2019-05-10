@@ -25,7 +25,10 @@ func Parse(input io.Reader) (hexstr ast.HexTokens, err error) {
 			if yaraError, ok := r.(gyperror.Error); ok {
 				err = yaraError
 			} else {
-				panic(r)
+				err = gyperror.Error{
+					Code: gyperror.UnknownError,
+					Data: fmt.Sprintf("%s", r),
+				}
 			}
 		}
 	}()
@@ -63,7 +66,6 @@ func (l *Lexer) Lex(lval *xxSymType) int {
 }
 
 // Error satisfies the interface expected of the goyacc parser.
-// Here, it simply writes the error to stdout.
 func (l *Lexer) Error(e string) {
 	lexicalError = gyperror.Error{
 		gyperror.LexicalError,

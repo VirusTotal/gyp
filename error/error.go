@@ -8,7 +8,8 @@ import (
 type Code int
 
 const (
-	LexicalError Code = iota
+	UnknownError Code = iota
+	LexicalError
 	DuplicateRuleError
 	DuplicateTagError
 	DuplicateStringError
@@ -18,10 +19,13 @@ const (
 	UnterminatedRegexError
 	NonAsciiByteError
 	InvalidJumpLengthError
-	JumpTooLargeInsideAlternation
-	NegativeJump
-	InvalidJumpRange
-	UnboundedJumpInsideAlternation
+	JumpTooLargeInsideAlternationError
+	NegativeJumpError
+	InvalidJumpRangeError
+	UnboundedJumpInsideAlternationError
+	InvalidCharInHexStringError
+	NumberConversionError
+	IntegerOverflowError
 )
 
 type Error struct {
@@ -45,18 +49,21 @@ func (e Error) Error() string {
 }
 
 var errorMessages = map[Code]string{
-	LexicalError:                   "lexical error",
-	DuplicateRuleError:             "duplicate rule",
-	DuplicateTagError:              "duplicate tag",
-	DuplicateStringError:           "duplicate string",
-	UnterminatedStringError:        "unterminated string",
-	IllegalEscapeSequenceError:     "illegal escape sequence",
-	InvalidRegexModifierError:      "invalid regex modifier",
-	UnterminatedRegexError:         "unterminated regular expression",
-	NonAsciiByteError:              "non-ASCII byte",
-	InvalidJumpLengthError:         "invalid jump length",
-	JumpTooLargeInsideAlternation:  "jump too large inside alternation",
-	NegativeJump:                   "negative jump",
-	InvalidJumpRange:               "invalid jump range",
-	UnboundedJumpInsideAlternation: "unbounded jump inside alternation",
+	LexicalError:                        "lexical error",
+	DuplicateRuleError:                  "duplicate rule",
+	DuplicateTagError:                   "duplicate tag",
+	DuplicateStringError:                "duplicate string",
+	UnterminatedStringError:             "unterminated string",
+	IllegalEscapeSequenceError:          "illegal escape sequence",
+	InvalidRegexModifierError:           "invalid regex modifier",
+	UnterminatedRegexError:              "unterminated regular expression",
+	NonAsciiByteError:                   "non-ASCII byte",
+	InvalidJumpLengthError:              "invalid jump length",
+	JumpTooLargeInsideAlternationError:  "jump too large inside alternation",
+	NegativeJumpError:                   "negative jump",
+	InvalidJumpRangeError:               "invalid jump range",
+	UnboundedJumpInsideAlternationError: "unbounded jump inside alternation",
+	InvalidCharInHexStringError:         "invalid char in hex string",
+	NumberConversionError:               "number conversion error",
+	IntegerOverflowError:                "integer overflow error",
 }
