@@ -544,11 +544,11 @@ func (yy *Scanner) Lex() YYtype {
 	_ =  yylineno 
 
 	var (
-    collectCondition  bool            // true when reading a condition
-    conditionBuilder  strings.Builder // collects text while reading a condition
-    collectText       bool            // true when reading string/regex/hex text
-    textBuilder       strings.Builder // collects text while reading a string/regex/hex
-    YYtext            string          // each action sets this to the current yytext
+    collectCondition  bool    // true when reading a condition
+    condition         []byte  // collects text while reading a condition
+    collectText       bool    // true when reading string/regex/hex text
+    text              []byte  // collects text while reading a string/regex/hex
+    YYtext            string  // each action sets this to the current yytext
   )
 
 	if !yy.init {
@@ -667,17 +667,17 @@ case 1:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 //line lexer.l:120
 {
     collectCondition = true
-    conditionBuilder.Reset()
+    condition = []byte{}
     return _CONDITION_
 }
 case 2:
@@ -686,11 +686,11 @@ case 2:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -702,11 +702,11 @@ case 3:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -718,11 +718,11 @@ case 4:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -734,11 +734,11 @@ case 5:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -750,11 +750,11 @@ case 6:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -766,11 +766,11 @@ case 7:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -782,11 +782,11 @@ case 8:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -798,11 +798,11 @@ case 9:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -814,11 +814,11 @@ case 10:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -830,11 +830,11 @@ case 11:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -846,11 +846,11 @@ case 12:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -862,11 +862,11 @@ case 13:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -878,11 +878,11 @@ case 14:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -894,11 +894,11 @@ case 15:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -910,11 +910,11 @@ case 16:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -926,11 +926,11 @@ case 17:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -942,11 +942,11 @@ case 18:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -958,11 +958,11 @@ case 19:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -974,11 +974,11 @@ case 20:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -990,11 +990,11 @@ case 21:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1006,11 +1006,11 @@ case 22:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1022,11 +1022,11 @@ case 23:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1038,11 +1038,11 @@ case 24:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1054,11 +1054,11 @@ case 25:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1070,11 +1070,11 @@ case 26:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1086,11 +1086,11 @@ case 27:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1102,11 +1102,11 @@ case 28:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1118,11 +1118,11 @@ case 29:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1134,11 +1134,11 @@ case 30:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1150,11 +1150,11 @@ case 31:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1166,11 +1166,11 @@ case 32:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1182,11 +1182,11 @@ case 33:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1198,11 +1198,11 @@ case 34:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1214,11 +1214,11 @@ case 35:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1230,11 +1230,11 @@ case 36:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1246,11 +1246,11 @@ case 37:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1262,11 +1262,11 @@ case 38:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1278,11 +1278,11 @@ case 39:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1294,11 +1294,11 @@ case 40:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1315,11 +1315,11 @@ case 41:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1331,11 +1331,11 @@ case 42:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1347,11 +1347,11 @@ case 43:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1364,11 +1364,11 @@ case 44:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1380,11 +1380,11 @@ case 45:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1407,11 +1407,11 @@ case 46:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1426,11 +1426,11 @@ case 47:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1445,11 +1445,11 @@ case 48:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1464,11 +1464,11 @@ case 49:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1483,11 +1483,11 @@ case 50:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1502,11 +1502,11 @@ case 51:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1521,11 +1521,11 @@ case 52:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1540,11 +1540,11 @@ case 53:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1593,11 +1593,11 @@ case 54:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1611,11 +1611,11 @@ case 55:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1640,11 +1640,11 @@ case 56:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1669,20 +1669,20 @@ case 57:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
 //line lexer.l:299
 {     /* saw closing quote - all done */
 
-  // NOTE: textBuilder.String() will end with `"` char
+  // NOTE: text will end with `"` char
   collectText = false
-  yy.Context.lval.s = strings.TrimSuffix(textBuilder.String(), `"`)
+  yy.Context.lval.s = strings.TrimSuffix(string(text), `"`)
 
   yy.start = 1 + 2*  (yyInitial );
 
@@ -1694,11 +1694,11 @@ case 58:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1711,11 +1711,11 @@ case 59:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1728,11 +1728,11 @@ case 60:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1745,11 +1745,11 @@ case 61:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1762,11 +1762,11 @@ case 62:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1779,11 +1779,11 @@ case 63:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1796,11 +1796,11 @@ case 64:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1815,11 +1815,11 @@ case 65:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1833,11 +1833,11 @@ case 66:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1845,7 +1845,7 @@ case 66:
 {
   collectText = false
 
-  txt := strings.TrimSuffix(textBuilder.String(), YYtext)
+  txt := strings.TrimSuffix(string(text), YYtext)
 
   var mods ast.StringModifiers
 
@@ -1885,11 +1885,11 @@ case 67:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1902,11 +1902,11 @@ case 68:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1919,11 +1919,11 @@ case 69:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1936,11 +1936,11 @@ case 70:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -1954,18 +1954,18 @@ case 71:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
 //line lexer.l:399
 {
   collectText = true
-  textBuilder.Reset()
+  text = []byte{}
   yy.start = 1 + 2*  (str);
 }
 case 72:
@@ -1974,18 +1974,18 @@ case 72:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
 //line lexer.l:406
 {
   collectText = true
-  textBuilder.Reset()
+  text = []byte{}
   yy.start = 1 + 2*  (regexp);
 }
 case 73:
@@ -1995,11 +1995,11 @@ case 73:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -2028,11 +2028,11 @@ case 74:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -2044,11 +2044,11 @@ case 75:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
@@ -2069,11 +2069,11 @@ case 76:
 	YYtext = string(yytext)
 
   if collectCondition {
-    conditionBuilder.Write(yytext)
+    condition = append(condition, yytext...)
   }
 
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 

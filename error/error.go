@@ -2,7 +2,6 @@ package gyperror
 
 import (
 	"fmt"
-	"strings"
 )
 
 type Code int
@@ -35,14 +34,11 @@ type Error struct {
 
 func (e Error) Error() string {
 	if msg, ok := errorMessages[e.Code]; ok {
-		var b strings.Builder
-		b.WriteString(msg)
-		if e.Data != "" {
-			b.WriteString(": ")
-			b.WriteString(e.Data)
+		if e.Data == "" {
+			return msg
 		}
 
-		return b.String()
+		return fmt.Sprintf("%s: %s", msg, e.Data)
 	}
 
 	return fmt.Sprintf("unknown error: %d", e.Code)
