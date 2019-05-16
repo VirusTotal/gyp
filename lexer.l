@@ -72,8 +72,6 @@ type YYcontext struct {
 
 YY_USER_DATA(
   var (
-    collectCondition  bool    // true when reading a condition
-    condition         []byte  // collects text while reading a condition
     collectText       bool    // true when reading string/regex/hex text
     text              []byte  // collects text while reading a string/regex/hex
     YYtext            string  // each action sets this to the current yytext
@@ -82,10 +80,6 @@ YY_USER_DATA(
 
 YY_USER_ACTION(
   YYtext = string(yytext)
-
-  if collectCondition {
-    condition = append(condition, yytext...)
-  }
 
   if collectText {
     text = append(text, yytext...)
@@ -116,12 +110,6 @@ hexdigit      [a-fA-F0-9]
 octdigit      [0-7]
 
 %%
-
-"condition" {
-    collectCondition = true
-    condition = []byte{}
-    return _CONDITION_
-}
 
 ".."                    { return _DOT_DOT_;     }
 "<"                     { return _LT_;          }
@@ -162,12 +150,7 @@ octdigit      [0-7]
 "import"                { return _IMPORT_;      }
 
 "{"                     { return _LBRACE_; }
-"}"                     {
-                          if collectCondition {
-                            collectCondition = false
-                          }
-                          return _RBRACE_;
-                        }
+"}"                     { return _RBRACE_; }
 "include"               { return _INCLUDE_; }
 
 "/*"                    { BEGIN (comment);       }
