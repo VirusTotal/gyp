@@ -72,23 +72,17 @@ type YYcontext struct {
 
 YY_USER_DATA(
   var (
-    collectCondition  bool            // true when reading a condition
-    conditionBuilder  strings.Builder // collects text while reading a condition
-    collectText       bool            // true when reading string/regex/hex text
-    textBuilder       strings.Builder // collects text while reading a string/regex/hex
-    YYtext            string          // each action sets this to the current yytext
+    collectText       bool    // true when reading string/regex/hex text
+    text              []byte  // collects text while reading a string/regex/hex
+    YYtext            string  // each action sets this to the current yytext
   )
 )
 
 YY_USER_ACTION(
   YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 )
 
@@ -116,12 +110,6 @@ hexdigit      [a-fA-F0-9]
 octdigit      [0-7]
 
 %%
-
-"condition" {
-    collectCondition = true
-    conditionBuilder.Reset()
-    return _CONDITION_
-}
 
 ".."                    { return _DOT_DOT_;     }
 "<"                     { return _LT_;          }
@@ -162,12 +150,7 @@ octdigit      [0-7]
 "import"                { return _IMPORT_;      }
 
 "{"                     { return _LBRACE_; }
-"}"                     {
-                          if collectCondition {
-                            collectCondition = false
-                          }
-                          return _RBRACE_;
-                        }
+"}"                     { return _RBRACE_; }
 "include"               { return _INCLUDE_; }
 
 "/*"                    { BEGIN (comment);       }
@@ -298,9 +281,9 @@ u?int(8|16|32)(be)? {
 
 <str>\"   {     /* saw closing quote - all done */
 
-  // NOTE: textBuilder.String() will end with `"` char
+  // NOTE: text will end with `"` char
   collectText = false
-  yy.Context.lval.s = strings.TrimSuffix(textBuilder.String(), `"`)
+  yy.Context.lval.s = strings.TrimSuffix(string(text), `"`)
 
   BEGIN (INITIAL);
 
@@ -344,7 +327,7 @@ u?int(8|16|32)(be)? {
 <regexp>\/i?s?  {
   collectText = false
 
-  txt := strings.TrimSuffix(textBuilder.String(), YYtext)
+  txt := strings.TrimSuffix(string(text), YYtext)
 
   var mods ast.StringModifiers
 
@@ -398,14 +381,14 @@ u?int(8|16|32)(be)? {
 
 \"  {
   collectText = true
-  textBuilder.Reset()
+  text = []byte{}
   BEGIN (str);
 }
 
 
 "/"  {
   collectText = true
-  textBuilder.Reset()
+  text = []byte{}
   BEGIN (regexp);
 }
 

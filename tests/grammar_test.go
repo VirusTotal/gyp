@@ -225,7 +225,7 @@ rule STRING_LENGTH {
 
 rule MODULE {
   condition:
-    foo.bar(10, 20, 30) != "text"
+    foo.bar(10, 20, 30) != /(test){1}/
 }
 
 `

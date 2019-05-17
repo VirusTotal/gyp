@@ -135,36 +135,36 @@ const yyInteractiveDefault = false
 // SKEL ----------------------------------------------------------------
 
 // [4.0] data tables for the DFA go here -------------------------------
-const yyNumRules = 76
-const yyEndOfBuffer = 77
+const yyNumRules = 75
+const yyEndOfBuffer = 76
 var yyAccept = [245]int16{   0,
         0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-       77,   75,   74,   74,   50,   71,   48,   47,   75,   72,
-       53,   53,    3,   75,    4,   49,   52,   52,   52,   52,
-       52,   52,   52,   52,   52,   52,   52,   52,   52,   52,
-       52,   52,   52,   39,   40,   63,   64,   57,   76,   69,
-       70,   66,   76,   76,   44,   44,   50,    8,   48,   46,
-       47,    2,   42,   45,    0,   53,    0,    0,    0,    0,
-        9,    5,    7,    6,   10,   49,   52,   52,   52,   52,
-       27,   52,   52,   52,   52,   52,   52,   52,   52,   28,
-       52,   52,   52,   29,   26,   52,   52,   52,   52,   52,
+       76,   74,   73,   73,   49,   70,   47,   46,   74,   71,
+       52,   52,    2,   74,    3,   48,   51,   51,   51,   51,
+       51,   51,   51,   51,   51,   51,   51,   51,   51,   51,
+       51,   51,   51,   38,   39,   62,   63,   56,   75,   68,
+       69,   65,   75,   75,   43,   43,   49,    7,   47,   45,
+       46,    1,   41,   44,    0,   52,    0,    0,    0,    0,
+        8,    4,    6,    5,    9,   48,   51,   51,   51,   51,
+       26,   51,   51,   51,   51,   51,   51,   51,   51,   27,
+       51,   51,   51,   28,   25,   51,   51,   51,   51,   51,
 
-       52,   52,   52,    0,    0,   63,   65,   60,   61,   59,
-       58,   65,   69,   66,   66,   68,   67,   43,   45,   54,
-       53,   56,   55,   32,   25,   33,   52,   52,   52,   52,
-       52,   31,   52,   52,   52,   52,   52,   52,   52,   52,
-       24,   52,   52,   52,   52,   52,   52,   52,   18,   73,
-        0,    0,    0,   52,   52,   52,   52,   52,   52,   52,
-       52,   52,   52,   52,   52,   51,   52,   14,   52,   52,
-       13,   52,   30,   22,   17,    0,    0,    0,    0,    0,
-       73,   62,   16,   52,   52,   52,   23,   52,   52,   52,
-       52,   52,   52,   52,   52,   52,   52,    0,    0,   52,
+       51,   51,   51,    0,    0,   62,   64,   59,   60,   58,
+       57,   64,   68,   65,   65,   67,   66,   42,   44,   53,
+       52,   55,   54,   31,   24,   32,   51,   51,   51,   51,
+       51,   30,   51,   51,   51,   51,   51,   51,   51,   51,
+       23,   51,   51,   51,   51,   51,   51,   51,   17,   72,
+        0,    0,    0,   51,   51,   51,   51,   51,   51,   51,
+       51,   51,   51,   51,   51,   50,   51,   13,   51,   51,
+       12,   51,   29,   21,   16,    0,    0,    0,    0,    0,
+       72,   61,   15,   51,   51,   51,   22,   51,   51,   51,
+       51,   51,   51,   51,   51,   51,   51,    0,    0,   51,
 
-       52,   52,   52,   52,   12,   38,   52,   51,   52,   20,
-       52,   52,    0,    0,    0,    0,    0,   73,   52,   52,
-       52,   52,   52,   41,   36,   11,   15,    0,   73,    0,
-        0,    0,   52,   37,   52,   35,   19,    0,    0,    0,
-        1,   52,   34,    0,
+       51,   51,   51,   51,   11,   37,   51,   50,   51,   19,
+       51,   51,    0,    0,    0,    0,    0,   72,   51,   51,
+       51,   51,   51,   40,   35,   10,   14,    0,   72,    0,
+        0,    0,   51,   36,   51,   34,   18,    0,    0,    0,
+       20,   51,   33,    0,
     }
 
 var yyEc = [256]byte{    0,
@@ -434,11 +434,11 @@ var yyChk = [702]int16{   0,
     }
 
 /* Table of booleans, true if rule could match eol. */
-var yyRuleCanMatchEol = [77]int32{   0,
+var yyRuleCanMatchEol = [76]int32{   0,
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,     };
+    0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0,     };
 
 //line lexer.l:1
 /*
@@ -544,11 +544,9 @@ func (yy *Scanner) Lex() YYtype {
 	_ =  yylineno 
 
 	var (
-    collectCondition  bool            // true when reading a condition
-    conditionBuilder  strings.Builder // collects text while reading a condition
-    collectText       bool            // true when reading string/regex/hex text
-    textBuilder       strings.Builder // collects text while reading a string/regex/hex
-    YYtext            string          // each action sets this to the current yytext
+    collectText       bool    // true when reading string/regex/hex text
+    text              []byte  // collects text while reading a string/regex/hex
+    YYtext            string  // each action sets this to the current yytext
   )
 
 	if !yy.init {
@@ -568,10 +566,10 @@ func (yy *Scanner) Lex() YYtype {
 	_ = yyout
 
 // [7.0] user's declarations go here -----------------------------------
-//line lexer.l:118
+//line lexer.l:112
 
 
-//line lexer.go:575
+//line lexer.go:573
 // SKEL ----------------------------------------------------------------
 
 	for { // loops until end-of-file is reached
@@ -666,729 +664,528 @@ case 1:
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
-//line lexer.l:120
-{
-    collectCondition = true
-    conditionBuilder.Reset()
-    return _CONDITION_
-}
+//line lexer.l:114
+{ return _DOT_DOT_;     }
 case 2:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:126
-{ return _DOT_DOT_;     }
+//line lexer.l:115
+{ return _LT_;          }
 case 3:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:127
-{ return _LT_;          }
+//line lexer.l:116
+{ return _GT_;          }
 case 4:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:128
-{ return _GT_;          }
+//line lexer.l:117
+{ return _LE_;          }
 case 5:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:129
-{ return _LE_;          }
+//line lexer.l:118
+{ return _GE_;          }
 case 6:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:130
-{ return _GE_;          }
+//line lexer.l:119
+{ return _EQ_;          }
 case 7:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:131
-{ return _EQ_;          }
+//line lexer.l:120
+{ return _NEQ_;         }
 case 8:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:132
-{ return _NEQ_;         }
+//line lexer.l:121
+{ return _SHIFT_LEFT_;  }
 case 9:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:133
-{ return _SHIFT_LEFT_;  }
+//line lexer.l:122
+{ return _SHIFT_RIGHT_; }
 case 10:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:134
-{ return _SHIFT_RIGHT_; }
+//line lexer.l:123
+{ return _PRIVATE_;     }
 case 11:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:135
-{ return _PRIVATE_;     }
+//line lexer.l:124
+{ return _GLOBAL_;      }
 case 12:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:136
-{ return _GLOBAL_;      }
+//line lexer.l:125
+{ return _RULE_;        }
 case 13:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:137
-{ return _RULE_;        }
+//line lexer.l:126
+{ return _META_;        }
 case 14:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:138
-{ return _META_;        }
+//line lexer.l:127
+{ return _STRINGS_;     }
 case 15:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:139
-{ return _STRINGS_;     }
+//line lexer.l:128
+{ return _ASCII_;       }
 case 16:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:140
-{ return _ASCII_;       }
+//line lexer.l:129
+{ return _WIDE_;        }
 case 17:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:141
-{ return _WIDE_;        }
+//line lexer.l:130
+{ return _XOR_;         }
 case 18:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:142
-{ return _XOR_;         }
+//line lexer.l:131
+{ return _FULLWORD_;    }
 case 19:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:143
-{ return _FULLWORD_;    }
+//line lexer.l:132
+{ return _NOCASE_;      }
 case 20:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:144
-{ return _NOCASE_;      }
+//line lexer.l:133
+{ return _CONDITION_;   }
 case 21:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:145
-{ return _CONDITION_;   }
+//line lexer.l:134
+{ return _TRUE_;        }
 case 22:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:146
-{ return _TRUE_;        }
+//line lexer.l:135
+{ return _FALSE_;       }
 case 23:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:147
-{ return _FALSE_;       }
+//line lexer.l:136
+{ return _NOT_;         }
 case 24:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:148
-{ return _NOT_;         }
+//line lexer.l:137
+{ return _AND_;         }
 case 25:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:149
-{ return _AND_;         }
+//line lexer.l:138
+{ return _OR_;          }
 case 26:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:150
-{ return _OR_;          }
+//line lexer.l:139
+{ return _AT_;          }
 case 27:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:151
-{ return _AT_;          }
+//line lexer.l:140
+{ return _IN_;          }
 case 28:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:152
-{ return _IN_;          }
+//line lexer.l:141
+{ return _OF_;          }
 case 29:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:153
-{ return _OF_;          }
+//line lexer.l:142
+{ return _THEM_;        }
 case 30:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:154
-{ return _THEM_;        }
+//line lexer.l:143
+{ return _FOR_;         }
 case 31:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:155
-{ return _FOR_;         }
+//line lexer.l:144
+{ return _ALL_;         }
 case 32:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:156
-{ return _ALL_;         }
+//line lexer.l:145
+{ return _ANY_;         }
 case 33:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:157
-{ return _ANY_;         }
+//line lexer.l:146
+{ return _ENTRYPOINT_;  }
 case 34:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:158
-{ return _ENTRYPOINT_;  }
+//line lexer.l:147
+{ return _FILESIZE_;    }
 case 35:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:159
-{ return _FILESIZE_;    }
+//line lexer.l:148
+{ return _MATCHES_;     }
 case 36:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:160
-{ return _MATCHES_;     }
+//line lexer.l:149
+{ return _CONTAINS_;    }
 case 37:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:161
-{ return _CONTAINS_;    }
+//line lexer.l:150
+{ return _IMPORT_;      }
 case 38:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:162
-{ return _IMPORT_;      }
+//line lexer.l:152
+{ return _LBRACE_; }
 case 39:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:164
-{ return _LBRACE_; }
+//line lexer.l:153
+{ return _RBRACE_; }
 case 40:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:165
-{
-                          if collectCondition {
-                            collectCondition = false
-                          }
-                          return _RBRACE_;
-                        }
+//line lexer.l:154
+{ return _INCLUDE_; }
 case 41:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:171
-{ return _INCLUDE_; }
+//line lexer.l:156
+{ yy.start = 1 + 2*  (comment);       }
 case 42:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:173
-{ yy.start = 1 + 2*  (comment);       }
-case 43:
-
-	yylineno = yy.Lineno
-	YYtext = string(yytext)
-
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
-  if collectText {
-    textBuilder.Write(yytext)
-  }
-
-
-//line lexer.l:174
+//line lexer.l:157
 { yy.start = 1 + 2*  (yyInitial );       }
-case 44:
-/* rule 44 can match eol */
+case 43:
+/* rule 43 can match eol */
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:175
+//line lexer.l:158
 { /* skip comments */   }
-case 45:
+case 44:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:178
+//line lexer.l:161
 { /* skip single-line comments */ }
 case (yyEndOfBuffer + yyInitial  + 1) :
 	fallthrough
@@ -1399,156 +1196,124 @@ case (yyEndOfBuffer + regexp + 1) :
 case (yyEndOfBuffer + include + 1) :
 	fallthrough
 case (yyEndOfBuffer + comment + 1) :
-//line lexer.l:180
+//line lexer.l:163
 { return eof }
+case 45:
+
+	yylineno = yy.Lineno
+	YYtext = string(yytext)
+
+  if collectText {
+    text = append(text, yytext...)
+  }
+
+
+//line lexer.l:166
+{
+  yy.Context.lval.s = string(yytext)
+  return _STRING_IDENTIFIER_WITH_WILDCARD_;
+}
 case 46:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:183
+//line lexer.l:172
 {
   yy.Context.lval.s = string(yytext)
-  return _STRING_IDENTIFIER_WITH_WILDCARD_;
+  return _STRING_IDENTIFIER_;
 }
 case 47:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:189
+//line lexer.l:178
 {
   yy.Context.lval.s = string(yytext)
-  return _STRING_IDENTIFIER_;
+  return _STRING_COUNT_;
 }
 case 48:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:195
+//line lexer.l:184
 {
   yy.Context.lval.s = string(yytext)
-  return _STRING_COUNT_;
+  return _STRING_OFFSET_;
 }
 case 49:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:201
+//line lexer.l:190
 {
   yy.Context.lval.s = string(yytext)
-  return _STRING_OFFSET_;
+  return _STRING_LENGTH_;
 }
 case 50:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:207
+//line lexer.l:196
 {
   yy.Context.lval.s = string(yytext)
-  return _STRING_LENGTH_;
+  return _INTEGER_FUNCTION_;
 }
 case 51:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:213
+//line lexer.l:202
 {
   yy.Context.lval.s = string(yytext)
-  return _INTEGER_FUNCTION_;
+  return _IDENTIFIER_;
 }
 case 52:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:219
-{
-  yy.Context.lval.s = string(yytext)
-  return _IDENTIFIER_;
-}
-case 53:
-
-	yylineno = yy.Lineno
-	YYtext = string(yytext)
-
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
-  if collectText {
-    textBuilder.Write(yytext)
-  }
-
-
-//line lexer.l:225
+//line lexer.l:208
 {
   var err error
   s := strings.TrimRight(YYtext, "MKB")
@@ -1587,39 +1352,31 @@ case 53:
   }
   return _NUMBER_;
 }
+case 53:
+
+	yylineno = yy.Lineno
+	YYtext = string(yytext)
+
+  if collectText {
+    text = append(text, yytext...)
+  }
+
+
+//line lexer.l:247
+{
+  return _DOUBLE_;
+}
 case 54:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:264
-{
-  return _DOUBLE_;
-}
-case 55:
-
-	yylineno = yy.Lineno
-	YYtext = string(yytext)
-
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
-  if collectText {
-    textBuilder.Write(yytext)
-  }
-
-
-//line lexer.l:268
+//line lexer.l:251
 {
   var err error
   yy.Context.lval.i64, err = strconv.ParseInt(YYtext, 0, 64)
@@ -1634,21 +1391,17 @@ case 55:
 
   return _NUMBER_;
 }
-case 56:
+case 55:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:283
+//line lexer.l:266
 {
   var err error
   s := strings.TrimLeft(YYtext, "0o")
@@ -1663,46 +1416,51 @@ case 56:
   }
   return _NUMBER_;
 }
+case 56:
+
+	yylineno = yy.Lineno
+	YYtext = string(yytext)
+
+  if collectText {
+    text = append(text, yytext...)
+  }
+
+
+//line lexer.l:282
+{     /* saw closing quote - all done */
+
+  // NOTE: text will end with `"` char
+  collectText = false
+  yy.Context.lval.s = strings.TrimSuffix(string(text), `"`)
+
+  yy.start = 1 + 2*  (yyInitial );
+
+  return _TEXT_STRING_;
+}
 case 57:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:299
-{     /* saw closing quote - all done */
-
-  // NOTE: textBuilder.String() will end with `"` char
-  collectText = false
-  yy.Context.lval.s = strings.TrimSuffix(textBuilder.String(), `"`)
-
-  yy.start = 1 + 2*  (yyInitial );
-
-  return _TEXT_STRING_;
+//line lexer.l:294
+{
 }
 case 58:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:311
+//line lexer.l:298
 {
 }
 case 59:
@@ -1710,16 +1468,12 @@ case 59:
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:315
+//line lexer.l:302
 {
 }
 case 60:
@@ -1727,16 +1481,12 @@ case 60:
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:319
+//line lexer.l:306
 {
 }
 case 61:
@@ -1744,16 +1494,12 @@ case 61:
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:323
+//line lexer.l:310
 {
 }
 case 62:
@@ -1761,91 +1507,58 @@ case 62:
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:327
-{
-}
+//line lexer.l:314
+{ }
 case 63:
+/* rule 63 can match eol */
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:331
-{ }
+//line lexer.l:317
+{
+  panic(gyperror.Error{ gyperror.UnterminatedStringError, "" })
+}
 case 64:
 /* rule 64 can match eol */
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:334
-{
-  panic(gyperror.Error{ gyperror.UnterminatedStringError, "" })
-}
-case 65:
-/* rule 65 can match eol */
-
-	yylineno = yy.Lineno
-	YYtext = string(yytext)
-
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
-  if collectText {
-    textBuilder.Write(yytext)
-  }
-
-
-//line lexer.l:339
+//line lexer.l:322
 {
   panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "" })
 }
-case 66:
+case 65:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:344
+//line lexer.l:327
 {
   collectText = false
 
-  txt := strings.TrimSuffix(textBuilder.String(), YYtext)
+  txt := strings.TrimSuffix(string(text), YYtext)
 
   var mods ast.StringModifiers
 
@@ -1879,21 +1592,30 @@ case 66:
   yy.start = 1 + 2*  (yyInitial );
   return _REGEXP_;
 }
+case 66:
+
+	yylineno = yy.Lineno
+	YYtext = string(yytext)
+
+  if collectText {
+    text = append(text, yytext...)
+  }
+
+
+//line lexer.l:366
+{
+}
 case 67:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:383
+//line lexer.l:370
 {
 }
 case 68:
@@ -1901,109 +1623,72 @@ case 68:
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:387
-{
-}
-case 69:
-
-	yylineno = yy.Lineno
-	YYtext = string(yytext)
-
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
-  if collectText {
-    textBuilder.Write(yytext)
-  }
-
-
-//line lexer.l:391
+//line lexer.l:374
 { }
-case 70:
-/* rule 70 can match eol */
+case 69:
+/* rule 69 can match eol */
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:394
+//line lexer.l:377
 {
   panic(gyperror.Error{ gyperror.UnterminatedRegexError, "" })
+}
+case 70:
+
+	yylineno = yy.Lineno
+	YYtext = string(yytext)
+
+  if collectText {
+    text = append(text, yytext...)
+  }
+
+
+//line lexer.l:382
+{
+  collectText = true
+  text = []byte{}
+  yy.start = 1 + 2*  (str);
 }
 case 71:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:399
+//line lexer.l:389
 {
   collectText = true
-  textBuilder.Reset()
-  yy.start = 1 + 2*  (str);
-}
-case 72:
-
-	yylineno = yy.Lineno
-	YYtext = string(yytext)
-
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
-  if collectText {
-    textBuilder.Write(yytext)
-  }
-
-
-//line lexer.l:406
-{
-  collectText = true
-  textBuilder.Reset()
+  text = []byte{}
   yy.start = 1 + 2*  (regexp);
 }
-case 73:
-/* rule 73 can match eol */
+case 72:
+/* rule 72 can match eol */
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:413
+//line lexer.l:396
 {
   // Match hex-digits with whitespace or comments. The latter are stripped
   // out by hex_lexer.l
@@ -2021,38 +1706,30 @@ case 73:
 
   return _HEX_STRING_;
 }
-case 74:
-/* rule 74 can match eol */
+case 73:
+/* rule 73 can match eol */
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:432
+//line lexer.l:415
 /* skip whitespace */
-case 75:
+case 74:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:434
+//line lexer.l:417
 {
 
   r := int(yytext[0])
@@ -2063,23 +1740,19 @@ case 75:
 
   panic(gyperror.Error{ gyperror.NonAsciiByteError, fmt.Sprintf(`"%d"`, r) })
 }
-case 76:
+case 75:
 
 	yylineno = yy.Lineno
 	YYtext = string(yytext)
 
-  if collectCondition {
-    conditionBuilder.Write(yytext)
-  }
-
   if collectText {
-    textBuilder.Write(yytext)
+    text = append(text, yytext...)
   }
 
 
-//line lexer.l:445
+//line lexer.l:428
 yyout.Write(yytext) 
-//line lexer.go:2083
+//line lexer.go:1756
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -2540,7 +2213,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line lexer.l:445
+//line lexer.l:428
 
 
 
