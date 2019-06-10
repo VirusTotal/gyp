@@ -1107,6 +1107,15 @@ func createAndExpression(terms... *ast.Expression) (and *ast.Expression) {
     return
 }
 
+// Strings in YARA rules may contain escaped chars, such as doublequotes (")
+// or new lines (\n).
+// The strings returned by the lexer contains the backslashes used to escape
+// those chars. However, the backslashes are not part of the string to match
+// and they should be removed.
+// Example:
+// -  YARA rule:                  $str = "First line\nSecond line"
+// -  decodeEscapedString input:  str  = "First line\\nSecond line"
+// -  decodeEscapedString output: out  = "First line\nSecond line"
 func decodeEscapedString(str string) (out string) {
   if _, err := fmt.Sscanf(fmt.Sprintf("\"%s\"", str), "%q", &out); err != nil {
     panic(err)
