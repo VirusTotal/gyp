@@ -331,7 +331,7 @@ func (ys *YaraSerializer) serializeString(str *ast.String) error {
 }
 
 func (ys *YaraSerializer) serializeTextString(t *ast.TextString) error {
-	if err := ys.writeString(fmt.Sprintf(`"%s"`, t.GetText())); err != nil {
+	if err := ys.writeString(fmt.Sprintf("%q", t.GetText())); err != nil {
 		return err
 	}
 

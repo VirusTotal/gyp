@@ -220,6 +220,14 @@ func createAndExpression(terms ...*ast.Expression) (and *ast.Expression) {
 	return
 }
 
+func decodeEscapedString(str string) (out string) {
+	if _, err := fmt.Sscanf(fmt.Sprintf("\"%s\"", str), "%q", &out); err != nil {
+		panic(err)
+	}
+
+	return out
+}
+
 //line yacctab:1
 var yrExca = [...]int{
 	-1, 1,
@@ -1035,7 +1043,7 @@ yrdefault:
 //line grammar.y:377
 		{
 			yrDollar[3].ys.Value = &ast.String_Text{&ast.TextString{
-				Text:      proto.String(yrDollar[4].s),
+				Text:      proto.String(decodeEscapedString(yrDollar[4].s)),
 				Modifiers: yrDollar[5].mod,
 			}}
 			yrVAL.ys = yrDollar[3].ys

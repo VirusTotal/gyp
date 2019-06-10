@@ -72,6 +72,13 @@ rule STRING2 {
     $s1 or $s2
 }
 
+rule STRING_ESCAPED_CHARS {
+  strings:
+    $s1 = "C:\\Foo\"\\Bar\n"
+  condition:
+    $s1
+}
+
 rule TAG : tag1 {
   condition:
     true

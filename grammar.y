@@ -376,7 +376,7 @@ string_declaration
       _TEXT_STRING_ string_modifiers
       {
           $<ys>3.Value = &ast.String_Text{&ast.TextString{
-            Text: proto.String($4),
+            Text: proto.String(decodeEscapedString($4)),
             Modifiers: $5 ,
           }}
           $$ = $<ys>3
@@ -1105,4 +1105,12 @@ func createAndExpression(terms... *ast.Expression) (and *ast.Expression) {
     }
 
     return
+}
+
+func decodeEscapedString(str string) (out string) {
+  if _, err := fmt.Sscanf(fmt.Sprintf("\"%s\"", str), "%q", &out); err != nil {
+    panic(err)
+  }
+
+  return out
 }
