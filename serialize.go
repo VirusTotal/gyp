@@ -307,12 +307,16 @@ func (ys *YaraSerializer) serializeStrings(strs []*ast.String) error {
 	return nil
 }
 
-// Serialize for String returns a String as a string
 func (ys *YaraSerializer) serializeString(str *ast.String) error {
 	if err := ys.writeString(fmt.Sprintf("%s = ", str.GetId())); err != nil {
 		return err
 	}
 
+	return ys.SerializeStringValue(str)
+}
+
+// Serializes the value of a string in a YARA rule.
+func (ys *YaraSerializer) SerializeStringValue(str *ast.String) error {
 	switch val := str.GetValue().(type) {
 	case *ast.String_Text:
 		return ys.serializeTextString(str.GetText())
