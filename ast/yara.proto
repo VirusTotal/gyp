@@ -223,7 +223,7 @@ message ForInExpression {
   // Identifier to use in the expression to match: "i". Required.
   repeated string identifiers = 2;
 
-  // Integer set: "(1..10)". Required.
+  // Iterator: "(1..10)", "(1,2,3)", "identifier" . Required.
   optional Iterator iterator = 5;
 
   // Expression to match: "@s1[i] != @s2[i]". Required.
