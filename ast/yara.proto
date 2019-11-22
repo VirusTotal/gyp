@@ -220,7 +220,7 @@ message ForInExpression {
   // FOR expression: "for any". Required.
   optional ForExpression for_expression = 1;
 
-  // Identifier to use in the expression to match: "i". Required.
+  // Identifiers that will hold the valies returned by the iterator. Required.
   repeated string identifiers = 2;
 
   // Iterator: "(1..10)", "(1,2,3)", "identifier" . Required.

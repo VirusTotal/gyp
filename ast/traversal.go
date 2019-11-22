@@ -82,12 +82,7 @@ func (e *Expression) DepthFirstSearch(v Visitor) {
 		postOrder(v, e)
 	case *Expression_Identifier:
 		preOrder(v, e)
-		for _, item := range e.GetIdentifier().GetItems() {
-			item.GetIndex().DepthFirstSearch(v)
-			for _, arg := range item.GetArguments().GetTerms() {
-				arg.DepthFirstSearch(v)
-			}
-		}
+		e.GetIdentifier().DepthFirstSearch(v)
 		postOrder(v, e)
 	case *Expression_Range:
 		preOrder(v, e)
@@ -104,6 +99,19 @@ func (e *Expression) DepthFirstSearch(v Visitor) {
 	default:
 		preOrder(v, e)
 		postOrder(v, e)
+	}
+}
+
+// DepthFirstSearch performs a depth-first traversal of the Idenfier's syntax
+// tree. An identifier may include Expressions for array indexes and function
+// arguments, so it can have childs in the syntax tree. It receives a Visitor
+// that must implement PreOrderVisitor, PostOrderVisitor or both.
+func (i *Identifier) DepthFirstSearch(v Visitor) {
+	for _, item := range i.GetItems() {
+		item.GetIndex().DepthFirstSearch(v)
+		for _, arg := range item.GetArguments().GetTerms() {
+			arg.DepthFirstSearch(v)
+		}
 	}
 }
 
@@ -152,5 +160,10 @@ func (i *Iterator) DepthFirstSearch(v Visitor) {
 	if i == nil {
 		return
 	}
-	i.GetIntegerSet().DepthFirstSearch(v)
+	switch i.GetIterator().(type) {
+	case *Iterator_IntegerSet:
+		i.GetIntegerSet().DepthFirstSearch(v)
+	case *Iterator_Identifier:
+		i.GetIdentifier().DepthFirstSearch(v)
+	}
 }

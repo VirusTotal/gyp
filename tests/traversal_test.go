@@ -72,6 +72,12 @@ func TestTraversal(t *testing.T) {
 		rule rule_7 {
 			condition: not true
 		}
+		rule rule_8 {
+			condition: my_function(1,2,3)
+		}
+		rule rule_9 {
+			condition: for all i in my_function("foo") : ( i > 0)
+		}
 		`)
 
 	assert.NoError(t, err)
@@ -120,6 +126,19 @@ func TestTraversal(t *testing.T) {
 		// rule_7
 		"not true",
 		"true",
+
+		// rule_8
+		"my_function(1, 2, 3)",
+		"1",
+		"2",
+		"3",
+
+		// rule_9
+		"for all i in my_function(\"foo\") : (i > 0)",
+		"\"foo\"",
+		"i > 0",
+		"i",
+		"0",
 	}, v.preOrderResults)
 
 	assert.Equal(t, []string{
@@ -160,6 +179,19 @@ func TestTraversal(t *testing.T) {
 		// rule_7
 		"true",
 		"not true",
+
+		// rule_8
+		"1",
+		"2",
+		"3",
+		"my_function(1, 2, 3)",
+
+		// rule_9
+		"\"foo\"",
+		"i",
+		"0",
+		"i > 0",
+		"for all i in my_function(\"foo\") : (i > 0)",
 	}, v.postOrderResults)
 
 }
