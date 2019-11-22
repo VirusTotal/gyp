@@ -1,11 +1,11 @@
 package tests
 
 import (
-	"log"
 	"strings"
 	"testing"
 
 	"github.com/VirusTotal/gyp"
+	"github.com/stretchr/testify/assert"
 )
 
 var testRules = `include "./true.yar"
@@ -72,6 +72,15 @@ rule STRING2 {
     $s1 or $s2
 }
 
+rule STRING_MODIFIERS {
+  strings:
+    $s1 = "foo" ascii wide nocase fullword private xor
+    $s2 = "bar" xor(1)
+    $s3 = "baz" xor(2-4)
+  condition:
+    all of them
+}
+
 rule STRING_ESCAPED_CHARS {
   strings:
     $s1 = "C:\\Foo\"\\Bar\n"
@@ -121,7 +130,6 @@ rule XOR {
   strings:
     $xor1 = "xor!" xor
     $xor2 = "xor?" nocase xor
-    $xor3 = /xor_/ xor
     $no_xor1 = "no xor :(" wide
     $no_xor2 = "no xor >:(" ascii nocase
   condition:
@@ -137,13 +145,22 @@ rule OCCURRENCES {
     #a == 20 and #b < 5 and #c >= 30
 }
 
-rule FOR_IN {
+rule FOR_IN1 {
   strings:
     $a = "str1"
     $b = "str2"
     $c = "str3"
   condition:
     for any i in (5, 10, 15) : (@a[i] % 6 == @c[i * 2])
+}
+
+rule FOR_IN2 {
+  strings:
+    $a = "str1"
+    $b = "str2"
+    $c = "str3"
+  condition:
+    for any k,v in some_dict : (k == "foo" and v == "bar")
 }
 
 rule FOR_OF {
@@ -239,19 +256,14 @@ rule MODULE {
 
 func TestRulesetParsing(t *testing.T) {
 	ruleset, err := gyp.ParseString(testRules)
-	if err != nil {
-		log.Fatalf(`Unable to parse test rules: %s`, err)
-	}
+	assert.NoError(t, err)
+
 	var b strings.Builder
 	serializer := gyp.NewSerializer(&b)
 	serializer.SetIndent("  ")
-	if err := serializer.Serialize(ruleset); err != nil {
-		log.Fatalf(`Unable to serialize ruleset to YARA: %s`, err)
-	}
+	err = serializer.Serialize(ruleset)
+	assert.NoError(t, err)
+
 	output := b.String()
-	if testRules != output {
-		log.Fatalf(
-			"Generated YARA ruleset does not match input file.\nOutput:\n%s",
-			output)
-	}
+	assert.Equal(t, testRules, output)
 }

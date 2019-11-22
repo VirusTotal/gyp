@@ -62,7 +62,16 @@ message StringModifiers {
 
   // Regexp single-line modifier.
   optional bool s = 7;
+
+  // String is private.
+  optional bool private = 8;
+
+  // Minimum and maximum values for the XOR key. These values are present
+  // only if the "xor" field is true.
+  optional int32 xor_min = 9;
+  optional int32 xor_max = 10;
 }
+
 
 // Text string.
 message TextString {
@@ -204,20 +213,28 @@ message IntegerFunction {
   optional Expression argument = 2;
 }
 
-// Expression for iterating over string occurrences.
-// Example: for any i in (1..10) : @s1[i] != @s2[i]
+// Expression for iterating over iterators.
+// Example: for <for_expression> k,v in iterator : ( expression )
+// Next id: 6
 message ForInExpression {
   // FOR expression: "for any". Required.
   optional ForExpression for_expression = 1;
 
   // Identifier to use in the expression to match: "i". Required.
-  optional string identifier = 2;
+  repeated string identifiers = 2;
 
   // Integer set: "(1..10)". Required.
-  optional IntegerSet integer_set = 3;
+  optional Iterator iterator = 5;
 
   // Expression to match: "@s1[i] != @s2[i]". Required.
   optional Expression expression = 4;
+}
+
+message Iterator {
+  oneof iterator {
+    IntegerSet integer_set = 1;
+    Identifier identifier = 2;
+  }
 }
 
 // Set of integer numbers, which can be either an enumeration of integer values
@@ -356,8 +373,8 @@ message StringOffset {
 // length of the i-th match). It is useful when combined with regular
 // expressions or hexadecimal strings, which may contain jumps.
 // Examples:
-// - !$s1 > 50
-// - !$s1[1] != 30
+// - !s1 > 50
+// - !s1[1] != 30
 message StringLength {
   // String Identifier. Required.
   optional string string_identifier = 1;
@@ -427,4 +444,3 @@ message RuleSet {
   // Set of rules.
   repeated Rule rules = 3;
 }
-

@@ -7,15 +7,14 @@ import (
 
 	"github.com/VirusTotal/gyp"
 	"github.com/VirusTotal/gyp/ast"
+	"github.com/stretchr/testify/assert"
 )
 
 // These are just utilities
 
 func openTestFile(t *testing.T, fname string) io.Reader {
 	f, err := os.Open(fname)
-	if err != nil {
-		t.Fatalf(`Couldn't open file "%s"`, fname)
-	}
+	assert.NoError(t, err, `Couldn't open file "%s"`, fname)
 	return f
 }
 

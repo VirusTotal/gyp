@@ -25,6 +25,7 @@ const (
 	InvalidCharInHexStringError
 	NumberConversionError
 	IntegerOverflowError
+	InvalidStringModifierError
 )
 
 type Error struct {
@@ -37,7 +38,6 @@ func (e Error) Error() string {
 		if e.Data == "" {
 			return msg
 		}
-
 		return fmt.Sprintf("%s: %s", msg, e.Data)
 	}
 
@@ -62,4 +62,5 @@ var errorMessages = map[Code]string{
 	InvalidCharInHexStringError:         "invalid char in hex string",
 	NumberConversionError:               "number conversion error",
 	IntegerOverflowError:                "integer overflow error",
+	InvalidStringModifierError:          "invalid string modifier",
 }

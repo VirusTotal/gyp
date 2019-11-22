@@ -5,7 +5,8 @@ import (
 
 	"github.com/VirusTotal/gyp"
 
-	"github.com/VirusTotal/gyp/error"
+	gyperror "github.com/VirusTotal/gyp/error"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDuplicateRules(t *testing.T) {
@@ -19,9 +20,7 @@ condition:
   false
 }`
 	_, err := gyp.ParseString(rs)
-	if err == nil {
-		t.Fatalf(`Parsing succeeded; should have failed`)
-	}
+	assert.Error(t, err, `Parsing succeeded; should have failed`)
 
 	yaraErr, ok := err.(gyperror.Error)
 	if !ok || yaraErr.Code != gyperror.DuplicateRuleError {
@@ -40,25 +39,18 @@ condition:
   true
 }`
 	ruleset, err := gyp.ParseString(rs)
-	if err != nil {
-		t.Fatalf(`Failed to parse ruleset w/ duplicate metas: %s`, err)
-	}
+	assert.NoError(t, err, `Failed to parse ruleset w/ duplicate metas: %s`, err)
 
 	const nrules = 1
-	if l := len(ruleset.Rules); l != nrules {
-		t.Fatalf(`Expected %d rules; found %d`, nrules, l)
-	}
+	assert.Len(t, ruleset.Rules, nrules)
 
 	var (
-		rule  = ruleset.Rules[0]
-		key   = "description"
-		nvals = len(rule.Meta)
+		rule = ruleset.Rules[0]
+		key  = "description"
 	)
-	const expectedVals = 4
 
-	if nvals != expectedVals {
-		t.Fatalf(`Expected %d metas; found %d`, expectedVals, nvals)
-	}
+	const expectedVals = 4
+	assert.Len(t, rule.Meta, expectedVals)
 
 	for _, meta := range rule.Meta {
 		if meta.GetKey() != key {
@@ -76,9 +68,8 @@ condition:
   any of them
 }`
 	_, err := gyp.ParseString(rs)
-	if err == nil {
-		t.Fatalf(`Parsing succeeded; should have failed`)
-	}
+	assert.Error(t, err, `Parsing succeeded; should have failed`)
+
 	yaraErr, ok := err.(gyperror.Error)
 	if !ok || yaraErr.Code != gyperror.DuplicateStringError {
 		t.Fatalf(`Unexpected error: "%s", expected DuplicateStringsError`, err)
@@ -94,9 +85,7 @@ condition:
   any of them
 }`
 	_, err := gyp.ParseString(rs)
-	if err != nil {
-		t.Fatalf(`Failed to parse: %s`, err.Error())
-	}
+	assert.NoError(t, err)
 }
 
 func TestDuplicateTags(t *testing.T) {
@@ -105,9 +94,7 @@ condition:
   true
 }`
 	_, err := gyp.ParseString(rs)
-	if err == nil {
-		t.Fatalf(`Parsing succeeded; should have failed`)
-	}
+	assert.Error(t, err, `Parsing succeeded; should have failed`)
 	yaraErr, ok := err.(gyperror.Error)
 	if !ok || yaraErr.Code != gyperror.DuplicateTagError {
 		t.Fatalf(`Unexpected error: "%s", expected DuplicateTagError`, err.Error())

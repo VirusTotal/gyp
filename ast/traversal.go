@@ -67,9 +67,7 @@ func (e *Expression) DepthFirstSearch(v Visitor) {
 		preOrder(v, e)
 		forInExpr := e.GetForInExpression()
 		forInExpr.GetForExpression().GetExpression().DepthFirstSearch(v)
-		integetSet := forInExpr.GetIntegerSet()
-		integetSet.GetRange().DepthFirstSearch(v)
-		integetSet.GetIntegerEnumeration().DepthFirstSearch(v)
+		forInExpr.GetIterator().DepthFirstSearch(v)
 		forInExpr.GetExpression().DepthFirstSearch(v)
 		postOrder(v, e)
 	case *Expression_ForOfExpression:
@@ -130,4 +128,29 @@ func (i *IntegerEnumeration) DepthFirstSearch(v Visitor) {
 	for _, e := range i.GetValues() {
 		e.DepthFirstSearch(v)
 	}
+}
+
+// DepthFirstSearch performs a depth-first traversal of the IntegerSet's
+// syntax tree, it receives a Visitor that must implement PreOrderVisitor,
+// PostOrderVisitor or both.
+func (i *IntegerSet) DepthFirstSearch(v Visitor) {
+	if i == nil {
+		return
+	}
+	switch i.GetSet().(type) {
+	case *IntegerSet_IntegerEnumeration:
+		i.GetIntegerEnumeration().DepthFirstSearch(v)
+	case *IntegerSet_Range:
+		i.GetRange().DepthFirstSearch(v)
+	}
+}
+
+// DepthFirstSearch performs a depth-first traversal of the Iterators's
+// syntax tree, it receives a Visitor that must implement PreOrderVisitor,
+// PostOrderVisitor or both.
+func (i *Iterator) DepthFirstSearch(v Visitor) {
+	if i == nil {
+		return
+	}
+	i.GetIntegerSet().DepthFirstSearch(v)
 }

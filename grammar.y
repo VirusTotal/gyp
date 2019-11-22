@@ -120,6 +120,10 @@ var ParsedRuleset ast.RuleSet
 %type <yss>       string_declarations
 %type <mod>       string_modifier
 %type <mod>       string_modifiers
+%type <mod>       regexp_modifier
+%type <mod>       regexp_modifiers
+%type <mod>       hex_modifier
+%type <mod>       hex_modifiers
 %type <rm>        rule_modifier
 %type <rm>        rule_modifiers
 %type <expr>      condition
@@ -131,12 +135,14 @@ var ParsedRuleset ast.RuleSet
 %type <exprs>     arguments
 %type <regp>      regexp
 %type <forexp>    for_expression
+%type <ss>        for_variables
 %type <intset>    integer_set
 %type <intenum>   integer_enumeration
 %type <rng>       range
 %type <strset>    string_set
 %type <strenum>   string_enumeration
 %type <strenumi>  string_enumeration_item
+%type <iterator>  iterator
 
 %union {
     i64           int64
@@ -157,6 +163,7 @@ var ParsedRuleset ast.RuleSet
     forexp        *ast.ForExpression
     intset        *ast.IntegerSet
     intenum       *ast.IntegerEnumeration
+    iterator      *ast.Iterator
     rng           *ast.Range
     strset        *ast.StringSet
     strenumi      *ast.StringEnumeration_StringEnumerationItem
@@ -387,7 +394,7 @@ string_declaration
               Id: proto.String($1),
           }
       }
-      _REGEXP_ string_modifiers
+      _REGEXP_ regexp_modifiers
       {
           $<ys>3.Value = &ast.String_Regexp{&ast.Regexp{
               Text: $4.Text,
@@ -400,7 +407,7 @@ string_declaration
 
           $$ = $<ys>3
       }
-    | _STRING_IDENTIFIER_ '=' _HEX_STRING_
+    | _STRING_IDENTIFIER_ '=' _HEX_STRING_ hex_modifiers
       {
           $$ = &ast.String{
               Id: proto.String($1),
@@ -411,16 +418,14 @@ string_declaration
 
 
 string_modifiers
-    : /* empty */                         { $$ = &ast.StringModifiers{} }
+    : /* empty */
+      {
+          $$ = &ast.StringModifiers{}
+      }
     | string_modifiers string_modifier
       {
-          $$ = &ast.StringModifiers {
-              Wide: proto.Bool($1.GetWide() || $2.GetWide()),
-              Ascii: proto.Bool($1.GetAscii() || $2.GetAscii()),
-              Nocase: proto.Bool($1.GetNocase() || $2.GetNocase()),
-              Fullword: proto.Bool($1.GetFullword() || $2.GetFullword()),
-              Xor: proto.Bool($1.GetXor() || $2.GetXor()),
-          }
+          proto.Merge($1, $2)
+          $$ = $1;
       }
     ;
 
@@ -430,9 +435,98 @@ string_modifier
     | _ASCII_       { $$ = &ast.StringModifiers{ Ascii: proto.Bool(true) } }
     | _NOCASE_      { $$ = &ast.StringModifiers{ Nocase: proto.Bool(true)} }
     | _FULLWORD_    { $$ = &ast.StringModifiers{ Fullword: proto.Bool(true) } }
-    | _XOR_         { $$ = &ast.StringModifiers{ Xor: proto.Bool(true) } }
+    | _PRIVATE_     { $$ = &ast.StringModifiers{ Private: proto.Bool(true) } }
+    | _XOR_
+      {
+          $$ = &ast.StringModifiers{
+             Xor: proto.Bool(true),
+             XorMin: proto.Int32(0),
+             XorMax: proto.Int32(255),
+          }
+      }
+    | _XOR_ '(' _NUMBER_ ')'
+      {
+          if $3 < 0 || $3 > 255 {
+            err := gyperror.Error{Code: gyperror.InvalidStringModifierError}
+            panic(err)
+          }
+
+          $$ = &ast.StringModifiers{
+              Xor: proto.Bool(true),
+              XorMin: proto.Int32(int32($3)),
+              XorMax: proto.Int32(int32($3)),
+          }
+      }
+    | _XOR_ '(' _NUMBER_ '-' _NUMBER_ ')'
+      {
+          if $3 < 0 {
+            err := gyperror.Error{
+                gyperror.InvalidStringModifierError,
+                "lower bound for xor range exceeded (min: 0)"}
+            panic(err)
+          }
+
+          if $5 > 255 {
+            err := gyperror.Error{
+                gyperror.InvalidStringModifierError,
+                "upper bound for xor range exceeded (max: 255)"}
+            panic(err)
+          }
+
+          if $3 > $5 {
+            err := gyperror.Error{
+                gyperror.InvalidStringModifierError,
+                "xor lower bound exceeds upper bound"}
+            panic(err)
+          }
+
+          $$ = &ast.StringModifiers{
+              Xor: proto.Bool(true),
+              XorMin: proto.Int32(int32($3)),
+              XorMax: proto.Int32(int32($5)),
+          }
+      }
     ;
 
+
+regexp_modifiers
+    : /* empty */
+      {
+          $$ = &ast.StringModifiers{}
+      }
+    | regexp_modifiers regexp_modifier
+      {
+          proto.Merge($1, $2)
+          $$ = $1;
+      }
+    ;
+
+
+regexp_modifier
+    : _WIDE_        { $$ = &ast.StringModifiers{Wide: proto.Bool(true)} }
+    | _ASCII_       { $$ = &ast.StringModifiers{Ascii: proto.Bool(true)} }
+    | _NOCASE_      { $$ = &ast.StringModifiers{Nocase: proto.Bool(true)} }
+    | _FULLWORD_    { $$ = &ast.StringModifiers{Fullword: proto.Bool(true)} }
+    | _PRIVATE_     { $$ = &ast.StringModifiers{Private: proto.Bool(true)} }
+    ;
+
+
+hex_modifiers
+    : /* empty */
+      {
+          $$ = &ast.StringModifiers{}
+      }
+    | hex_modifiers hex_modifier
+      {
+          proto.Merge($1, $2)
+          $$ = $1;
+      }
+    ;
+
+
+hex_modifier
+    : _PRIVATE_     { $$ = &ast.StringModifiers{Private: proto.Bool(true)} }
+    ;
 
 
 identifier
@@ -582,14 +676,14 @@ expression
           }
       }
     | _FOR_ for_expression error { }
-    | _FOR_ for_expression _IDENTIFIER_ _IN_ integer_set ':' '(' boolean_expression ')'
+    | _FOR_ for_expression for_variables _IN_ iterator ':' '(' boolean_expression ')'
       {
           $$ = &ast.Expression{
               Expression: &ast.Expression_ForInExpression{
                   ForInExpression: &ast.ForInExpression{
                       ForExpression: $2,
-                      Identifier: proto.String($3),
-                      IntegerSet: $5,
+                      Identifiers: $3,
+                      Iterator: $5,
                       Expression: $8,
                   },
               },
@@ -816,6 +910,33 @@ for_expression
       {
           $$ = &ast.ForExpression{
               For: &ast.ForExpression_Keyword{ast.ForKeyword_ANY},
+          }
+      }
+    ;
+
+
+for_variables
+    : _IDENTIFIER_
+      {
+        $$ = []string{$1}
+      }
+    | for_variables ',' _IDENTIFIER_
+      {
+         $$ = append($1, $3)
+      }
+    ;
+
+iterator
+    : identifier
+      {
+          $$ = &ast.Iterator{
+              Iterator: &ast.Iterator_Identifier{$1},
+          }
+      }
+    | integer_set
+      {
+          $$ = &ast.Iterator{
+              Iterator: &ast.Iterator_IntegerSet{$1},
           }
       }
     ;

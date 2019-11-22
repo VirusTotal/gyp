@@ -359,8 +359,21 @@ func (ys *YaraSerializer) serializeStringModifiers(m *ast.StringModifiers) error
 	if m.GetFullword() {
 		modifiers = append(modifiers, "fullword")
 	}
+	if m.GetPrivate() {
+		modifiers = append(modifiers, "private")
+	}
 	if m.GetXor() {
-		modifiers = append(modifiers, "xor")
+		modifier := "xor"
+		min := m.GetXorMin()
+		max := m.GetXorMax()
+		if min != 0 || max != 255 {
+			if min == max {
+				modifier = fmt.Sprintf("xor(%d)", min)
+			} else {
+				modifier = fmt.Sprintf("xor(%d-%d)", min, max)
+			}
+		}
+		modifiers = append(modifiers, modifier)
 	}
 
 	if len(modifiers) == 0 {
@@ -438,7 +451,7 @@ func (ys *YaraSerializer) serializeBytesSequence(b *ast.BytesSequence) error {
 				return err
 			}
 		default:
-			return fmt.Errorf(`Unsupported byte mask: "%s"`, mask)
+			return fmt.Errorf(`Unsupported byte mask: "%x"`, mask)
 		}
 	}
 
@@ -602,7 +615,7 @@ func (ys *YaraSerializer) serializeForInExpression(e *ast.ForInExpression) error
 		return err
 	}
 
-	if err := ys.writeString(" " + e.GetIdentifier()); err != nil {
+	if err := ys.writeString(" " + strings.Join(e.GetIdentifiers(), ",")); err != nil {
 		return err
 	}
 
@@ -610,7 +623,7 @@ func (ys *YaraSerializer) serializeForInExpression(e *ast.ForInExpression) error
 		return err
 	}
 
-	if err := ys.serializeIntegerSet(e.IntegerSet); err != nil {
+	if err := ys.serializeIterator(e.Iterator); err != nil {
 		return err
 	}
 
@@ -634,6 +647,17 @@ func (ys *YaraSerializer) serializeForExpression(e *ast.ForExpression) error {
 		return ys.serializeForKeyword(e.GetKeyword())
 	default:
 		return fmt.Errorf(`Unsupported ForExpression value type "%s"`, val)
+	}
+}
+
+func (ys *YaraSerializer) serializeIterator(e *ast.Iterator) error {
+	switch val := e.GetIterator().(type) {
+	case *ast.Iterator_IntegerSet:
+		return ys.serializeIntegerSet(e.GetIntegerSet())
+	case *ast.Iterator_Identifier:
+		return ys.serializeIdentifier(e.GetIdentifier())
+	default:
+		return fmt.Errorf(`Unsupported Iterator value type "%s"`, val)
 	}
 }
 
