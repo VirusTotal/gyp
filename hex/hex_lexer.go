@@ -564,6 +564,7 @@ case 14:
     gyperror.Error{
       gyperror.InvalidCharInHexStringError,
       string(yytext[0]),
+      0,
     },
   )
 }
@@ -573,14 +574,14 @@ case 15:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:159
+//line hex/hex_lexer.l:160
 // skip whitespaces
 case 16:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:161
+//line hex/hex_lexer.l:162
 {
   return _LPARENS_
 }
@@ -589,7 +590,7 @@ case 17:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:165
+//line hex/hex_lexer.l:166
 {
   return _RPARENS_
 }
@@ -598,7 +599,7 @@ case 18:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:169
+//line hex/hex_lexer.l:170
 {
   return _PIPE_
 }
@@ -607,12 +608,13 @@ case 19:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:173
+//line hex/hex_lexer.l:174
 {               // reject all other characters
   panic(
     gyperror.Error{
       gyperror.InvalidCharInHexStringError,
       string(yytext[0]),
+      0,
     },
   )
 }
@@ -621,9 +623,9 @@ case 20:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:182
+//line hex/hex_lexer.l:184
 yyout.Write(yytext) 
-//line hex/hex_lexer.go:627
+//line hex/hex_lexer.go:629
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -1084,7 +1086,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line hex/hex_lexer.l:182
+//line hex/hex_lexer.l:184
 
 
 

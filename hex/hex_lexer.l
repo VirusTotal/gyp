@@ -152,6 +152,7 @@ hexdigit      [a-fA-F0-9]
     gyperror.Error{
       gyperror.InvalidCharInHexStringError,
       string(yytext[0]),
+      0,
     },
   )
 }
@@ -175,6 +176,7 @@ hexdigit      [a-fA-F0-9]
     gyperror.Error{
       gyperror.InvalidCharInHexStringError,
       string(yytext[0]),
+      0,
     },
   )
 }

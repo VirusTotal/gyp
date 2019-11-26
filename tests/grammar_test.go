@@ -240,6 +240,11 @@ rule AND_OR_PRECEDENCE_PARENS {
     ($foo1 or $foo2 or $foo3) and $foo4
 }
 
+rule ASSOCIATIVIY1 {
+  condition:
+    5 - (2 + 3) == 0
+}
+
 rule STRING_LENGTH {
   strings:
     $foo1 = /foo(1)+/

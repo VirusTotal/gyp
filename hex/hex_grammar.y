@@ -34,13 +34,13 @@ import (
   "fmt"
   proto "github.com/golang/protobuf/proto"
 
-  "github.com/VirusTotal/gyp/ast"
+  "github.com/VirusTotal/gyp/pb"
   "github.com/VirusTotal/gyp/error"
 )
 
 const StringChainingThreshold int64 = 200
 
-var ParsedHexString ast.HexTokens
+var ParsedHexString pb.HexTokens
 
 var insideOr int
 
@@ -75,11 +75,11 @@ $token _PIPE_
 
 %union {
   integer int64
-  token   *ast.HexToken
-  tokens  *ast.HexTokens
+  token   *pb.HexToken
+  tokens  *pb.HexTokens
   bm      ByteWithMask
-  alt     *ast.HexAlternative
-  rng     *ast.Jump
+  alt     *pb.HexAlternative
+  rng     *pb.Jump
 }
 
 %%
@@ -95,18 +95,18 @@ hex_string
 tokens
     : token
       {
-        $$ = &ast.HexTokens{ Token: []*ast.HexToken{$1} }
+        $$ = &pb.HexTokens{ Token: []*pb.HexToken{$1} }
       }
     | token token
       {
-        $$ = &ast.HexTokens{ Token: mergeTokens($1, $2) }
+        $$ = &pb.HexTokens{ Token: mergeTokens($1, $2) }
       }
     | token token_sequence token
       {
-        tokens := append([]*ast.HexToken{$1}, $2.Token...)
+        tokens := append([]*pb.HexToken{$1}, $2.Token...)
         tokens = append(tokens, $3)
         tokens = mergeTokens(tokens...)
-        $$ = &ast.HexTokens{ Token: tokens }
+        $$ = &pb.HexTokens{ Token: tokens }
       }
     ;
 
@@ -114,7 +114,7 @@ tokens
 token_sequence
     : token_or_range
       {
-        $$ = &ast.HexTokens{ Token: []*ast.HexToken{$1} }
+        $$ = &pb.HexTokens{ Token: []*pb.HexToken{$1} }
       }
     | token_sequence token_or_range
       {
@@ -131,7 +131,7 @@ token_or_range
       }
     |  range
       {
-        $$ = &ast.HexToken{ Value: &ast.HexToken_Jump{$1} }
+        $$ = &pb.HexToken{ Value: &pb.HexToken_Jump{$1} }
       }
     ;
 
@@ -139,9 +139,9 @@ token_or_range
 token
     : byte
       {
-        $$ = &ast.HexToken{
-          Value: &ast.HexToken_Sequence{
-            &ast.BytesSequence{
+        $$ = &pb.HexToken{
+          Value: &pb.HexToken_Sequence{
+            &pb.BytesSequence{
               Mask: []byte{$1.Mask},
               Value: []byte{$1.Value},
             },
@@ -154,7 +154,7 @@ token
       }
        alternatives
       {
-        $$ = &ast.HexToken{ Value: &ast.HexToken_Alternative{ $3 } }
+        $$ = &pb.HexToken{ Value: &pb.HexToken_Alternative{ $3 } }
       }
       _RPARENS_
       {
@@ -171,6 +171,7 @@ range
           err := gyperror.Error{
             gyperror.InvalidJumpLengthError,
             fmt.Sprintf("%d", $2),
+            0,
           }
           panic(err)
         }
@@ -179,11 +180,12 @@ range
           err := gyperror.Error{
             gyperror.JumpTooLargeInsideAlternationError,
             fmt.Sprintf("%d", $2),
+            0,
           }
           panic(err)
         }
 
-        $$ = &ast.Jump{ Start: proto.Int64($2), End: proto.Int64($2) }
+        $$ = &pb.Jump{ Start: proto.Int64($2), End: proto.Int64($2) }
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _NUMBER_ _RBRACKET_
       {
@@ -192,6 +194,7 @@ range
           err := gyperror.Error{
             gyperror.JumpTooLargeInsideAlternationError,
             fmt.Sprintf("%d-%d", $2, $4),
+            0,
           }
           panic(err)
         }
@@ -200,6 +203,7 @@ range
           err := gyperror.Error{
             gyperror.NegativeJumpError,
             fmt.Sprintf("%d-$d", $2, $4),
+            0,
           }
           panic(err)
         }
@@ -208,11 +212,12 @@ range
           err := gyperror.Error{
             gyperror.InvalidJumpRangeError,
             fmt.Sprintf("%d-%d", $2, $4),
+            0,
           }
           panic(err)
         }
 
-        $$ = &ast.Jump{ Start: proto.Int64($2), End: proto.Int64($4) }
+        $$ = &pb.Jump{ Start: proto.Int64($2), End: proto.Int64($4) }
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _RBRACKET_
       {
@@ -220,6 +225,7 @@ range
           err := gyperror.Error{
             gyperror.UnboundedJumpInsideAlternationError,
             fmt.Sprintf("%d-", $2),
+            0,
           }
           panic(err)
         }
@@ -228,23 +234,25 @@ range
           err := gyperror.Error{
             gyperror.NegativeJumpError,
             fmt.Sprintf("%d-", $2),
+            0,
           }
           panic(err)
         }
 
-        $$ = &ast.Jump{ Start: proto.Int64($2) }
+        $$ = &pb.Jump{ Start: proto.Int64($2) }
       }
-    | _LBRACKET_ _HYPHEN_ _RBRACKET_ 
+    | _LBRACKET_ _HYPHEN_ _RBRACKET_
       {
         if insideOr > 0 {
           err := gyperror.Error{
             gyperror.UnboundedJumpInsideAlternationError,
             "-",
+            0,
           }
           panic(err)
         }
 
-        $$ = &ast.Jump{}
+        $$ = &pb.Jump{}
       }
     ;
 
@@ -252,7 +260,7 @@ range
 alternatives
     : tokens
       {
-          $$ = &ast.HexAlternative{ Tokens: []*ast.HexTokens{$1} }
+          $$ = &pb.HexAlternative{ Tokens: []*pb.HexTokens{$1} }
       }
     | alternatives _PIPE_ tokens
       {
@@ -274,9 +282,9 @@ byte
 
 %%
 
-func appendToken(tokens *ast.HexTokens, t *ast.HexToken) {
+func appendToken(tokens *pb.HexTokens, t *pb.HexToken) {
   if len(tokens.Token) == 0 {
-    tokens.Token = []*ast.HexToken{t}
+    tokens.Token = []*pb.HexToken{t}
     return
   }
 
@@ -285,7 +293,7 @@ func appendToken(tokens *ast.HexTokens, t *ast.HexToken) {
   tokens.Token = append(tokens.Token[:numTokens - 1], mergeTokens(lastToken, t)...)
 }
 
-func mergeTokens(tokens... *ast.HexToken) (out []*ast.HexToken) {
+func mergeTokens(tokens... *pb.HexToken) (out []*pb.HexToken) {
   if len(tokens) == 0 {
     return
   }
@@ -307,4 +315,3 @@ func mergeTokens(tokens... *ast.HexToken) (out []*ast.HexToken) {
 
   return
 }
-

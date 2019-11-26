@@ -40,9 +40,7 @@ import (
     "math"
     "strconv"
     "strings"
-    proto "github.com/golang/protobuf/proto"
 
-    "github.com/VirusTotal/gyp/ast"
     "github.com/VirusTotal/gyp/hex"
     "github.com/VirusTotal/gyp/error"
 )
@@ -148,9 +146,6 @@ octdigit      [0-7]
 "matches"               { return _MATCHES_;     }
 "contains"              { return _CONTAINS_;    }
 "import"                { return _IMPORT_;      }
-
-"{"                     { return _LBRACE_; }
-"}"                     { return _RBRACE_; }
 "include"               { return _INCLUDE_; }
 
 "/*"                    { BEGIN (comment);       }
@@ -214,6 +209,7 @@ u?int(8|16|32)(be)? {
       gyperror.Error{
         gyperror.NumberConversionError,
         fmt.Sprintf("%s", err),
+        0,
       },
     )
   }
@@ -224,6 +220,7 @@ u?int(8|16|32)(be)? {
           gyperror.Error{
             gyperror.IntegerOverflowError,
             fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64),
+            0,
           },
         )
       } else {
@@ -235,6 +232,7 @@ u?int(8|16|32)(be)? {
           gyperror.Error{
             gyperror.IntegerOverflowError,
             fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64),
+            0,
           },
         )
       } else {
@@ -256,6 +254,7 @@ u?int(8|16|32)(be)? {
       gyperror.Error{
         gyperror.NumberConversionError,
         fmt.Sprintf("%s", err),
+        0,
       },
     )
   }
@@ -272,6 +271,7 @@ u?int(8|16|32)(be)? {
       gyperror.Error{
         gyperror.NumberConversionError,
         fmt.Sprintf("%s", err),
+        0,
       },
     )
   }
@@ -315,48 +315,17 @@ u?int(8|16|32)(be)? {
 
 
 <str>\n  {
-  panic(gyperror.Error{ gyperror.UnterminatedStringError, "" })
+  panic(gyperror.Error{ gyperror.UnterminatedStringError, "",0 })
 }
 
 
 <str>\\(.|\n) {
-  panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "" })
+  panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "",0 })
 }
 
 
 <regexp>\/i?s?  {
-  collectText = false
 
-  txt := strings.TrimSuffix(string(text), YYtext)
-
-  var mods ast.StringModifiers
-
-  for _, c := range YYtext {
-      switch c {
-      case 'i':
-          mods.I = proto.Bool(true)
-
-      case 's':
-          mods.S = proto.Bool(true)
-
-      case '/':
-          // Ignore
-
-      default:
-          // Should be impossible
-          panic(
-            gyperror.Error{
-              gyperror.InvalidRegexModifierError,
-              fmt.Sprintf(`"%c"`, c),
-            },
-          )
-      }
-  }
-
-  yy.Context.lval.reg = ast.Regexp {
-      Text: &txt,
-      Modifiers: &mods,
-  }
 
   BEGIN (INITIAL);
   return _REGEXP_;
@@ -375,7 +344,7 @@ u?int(8|16|32)(be)? {
 
 
 <regexp>\n  {
-  panic(gyperror.Error{ gyperror.UnterminatedRegexError, "" })
+  panic(gyperror.Error{ gyperror.UnterminatedRegexError, "",0 })
 }
 
 
@@ -422,7 +391,7 @@ u?int(8|16|32)(be)? {
     return r
   }
 
-  panic(gyperror.Error{ gyperror.NonAsciiByteError, fmt.Sprintf(`"%d"`, r) })
+  panic(gyperror.Error{ gyperror.NonAsciiByteError, fmt.Sprintf(`"%d"`, r), 0 })
 }
 
 %%

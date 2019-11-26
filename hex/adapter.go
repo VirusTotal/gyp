@@ -8,7 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/VirusTotal/gyp/ast"
+	"github.com/VirusTotal/gyp/pb"
 	"github.com/VirusTotal/gyp/error"
 )
 
@@ -19,7 +19,7 @@ func init() {
 }
 
 // Parse parses an hex string in a YARA rule from the provided input source
-func Parse(input io.Reader) (hexstr ast.HexTokens, err error) {
+func Parse(input io.Reader) (hexstr pb.HexTokens, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if yaraError, ok := r.(gyperror.Error); ok {
@@ -27,14 +27,14 @@ func Parse(input io.Reader) (hexstr ast.HexTokens, err error) {
 			} else {
 				err = gyperror.Error{
 					Code: gyperror.UnknownError,
-					Data: fmt.Sprintf("%s", r),
+					Message: fmt.Sprintf("%s", r),
 				}
 			}
 		}
 	}()
 
 	// "Reset" the global ParsedHexString
-	ParsedHexString = ast.HexTokens{}
+	ParsedHexString = pb.HexTokens{}
 
 	lexer := Lexer{
 		lexer: *NewScanner(),
@@ -68,7 +68,8 @@ func (l *Lexer) Lex(lval *xxSymType) int {
 // Error satisfies the interface expected of the goyacc parser.
 func (l *Lexer) Error(e string) {
 	lexicalError = gyperror.Error{
-		gyperror.LexicalError,
-		fmt.Sprintf(`@%d - "%s"`, l.lexer.Lineno, e),
+		Code: gyperror.LexicalError,
+		Line: l.lexer.Lineno,
+		Message: e,
 	}
 }

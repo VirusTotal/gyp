@@ -22,7 +22,7 @@ func main() {
 	}
 	defer handleErr(jsonFile.Close)
 
-	var ruleset ast.RuleSet
+	var ruleset pb.RuleSet
 	unmarshaler := jsonpb.Unmarshaler{}
 	err = unmarshaler.Unmarshal(jsonFile, &ruleset)
 

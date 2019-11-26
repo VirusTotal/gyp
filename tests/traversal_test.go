@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"github.com/VirusTotal/gyp"
-
-	"github.com/VirusTotal/gyp/ast"
+	"github.com/VirusTotal/gyp/pb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,14 +22,14 @@ func newTestVisitor() *testVisitor {
 	}
 }
 
-func (t *testVisitor) PreOrderVisit(e *ast.Expression) {
+func (t *testVisitor) PreOrderVisit(e *pb.Expression) {
 	var b bytes.Buffer
 	s := gyp.NewSerializer(&b)
 	s.SerializeExpression(e)
 	t.preOrderResults = append(t.preOrderResults, b.String())
 }
 
-func (t *testVisitor) PostOrderVisit(e *ast.Expression) {
+func (t *testVisitor) PostOrderVisit(e *pb.Expression) {
 	var b bytes.Buffer
 	s := gyp.NewSerializer(&b)
 	s.SerializeExpression(e)

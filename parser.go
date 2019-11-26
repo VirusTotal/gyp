@@ -8,13 +8,15 @@ import __yyfmt__ "fmt"
 //line grammar.y:31
 import (
 	"fmt"
-	proto "github.com/golang/protobuf/proto"
-
 	"github.com/VirusTotal/gyp/ast"
 	"github.com/VirusTotal/gyp/error"
+	"github.com/VirusTotal/gyp/pb"
 )
 
-var ParsedRuleset ast.RuleSet
+type ruleModifiers struct {
+	Global  bool
+	Private bool
+}
 
 //line grammar.y:147
 type yrSymType struct {
@@ -24,27 +26,12 @@ type yrSymType struct {
 	s   string
 	ss  []string
 
-	rm        *ast.RuleModifiers
-	m         []*ast.Meta
-	mp        *ast.Meta
-	mod       *ast.StringModifiers
-	reg       ast.Regexp
-	regp      *ast.Regexp
-	ys        *ast.String
-	yss       []*ast.String
-	yr        *ast.Rule
-	id        *ast.Identifier
-	forexp    *ast.ForExpression
-	intset    *ast.IntegerSet
-	intenum   *ast.IntegerEnumeration
-	iterator  *ast.Iterator
-	rng       *ast.Range
-	strset    *ast.StringSet
-	strenumi  *ast.StringEnumeration_StringEnumerationItem
-	strenum   *ast.StringEnumeration
-	expr      *ast.Expression
-	exprs     *ast.Expressions
-	hextokens *ast.HexTokens
+	hextokens *pb.HexTokens
+	rm        *ruleModifiers
+	rule      *ast.Rule
+	meta      *ast.Meta
+	metas     []*ast.Meta
+	node      ast.Node
 }
 
 const _END_OF_INCLUDED_FILE_ = 57346
@@ -86,21 +73,19 @@ const _CONTAINS_ = 57381
 const _IMPORT_ = 57382
 const _TRUE_ = 57383
 const _FALSE_ = 57384
-const _LBRACE_ = 57385
-const _RBRACE_ = 57386
-const _INCLUDE_ = 57387
-const _OR_ = 57388
-const _AND_ = 57389
-const _EQ_ = 57390
-const _NEQ_ = 57391
-const _LT_ = 57392
-const _LE_ = 57393
-const _GT_ = 57394
-const _GE_ = 57395
-const _SHIFT_LEFT_ = 57396
-const _SHIFT_RIGHT_ = 57397
-const _NOT_ = 57398
-const UNARY_MINUS = 57399
+const _INCLUDE_ = 57385
+const _OR_ = 57386
+const _AND_ = 57387
+const _EQ_ = 57388
+const _NEQ_ = 57389
+const _LT_ = 57390
+const _LE_ = 57391
+const _GT_ = 57392
+const _GE_ = 57393
+const _SHIFT_LEFT_ = 57394
+const _SHIFT_RIGHT_ = 57395
+const _NOT_ = 57396
+const UNARY_MINUS = 57397
 
 var yrToknames = [...]string{
 	"$end",
@@ -145,8 +130,6 @@ var yrToknames = [...]string{
 	"_IMPORT_",
 	"_TRUE_",
 	"_FALSE_",
-	"_LBRACE_",
-	"_RBRACE_",
 	"_INCLUDE_",
 	"_OR_",
 	"_AND_",
@@ -169,6 +152,8 @@ var yrToknames = [...]string{
 	"_NOT_",
 	"'~'",
 	"UNARY_MINUS",
+	"'{'",
+	"'}'",
 	"':'",
 	"'='",
 	"'('",
@@ -184,40 +169,24 @@ const yrEofCode = 1
 const yrErrCode = 2
 const yrInitialStackSize = 16
 
-//line grammar.y:1195
+//line grammar.y:867
 
-func createOrExpression(terms ...*ast.Expression) (or *ast.Expression) {
-	expressions := []*ast.Expression{}
-	for _, term := range terms {
-		if term.GetOrExpression() == nil {
-			expressions = append(expressions, term)
-		} else {
-			expressions = append(expressions, term.GetOrExpression().GetTerms()...)
+// This function takes an operator and two operands and returns a node
+// representing the operation. If the left operand is an operation of the
+// the same kind than the specified by the operator, the right operand is
+// simply appended to that existing operation. This implies that the operator
+// must be left-associative in order to be used with this function.
+func operation(operator ast.OperatorType, left, right ast.Node) (n ast.Node) {
+	if operation, ok := left.(*ast.Operation); ok && operation.Operator == operator {
+		operation.Operands = append(operation.Operands, right)
+		n = operation
+	} else {
+		n = &ast.Operation{
+			Operator: operator,
+			Operands: []ast.Node{left, right},
 		}
 	}
-
-	or = &ast.Expression{
-		Expression: &ast.Expression_OrExpression{&ast.Expressions{Terms: expressions}},
-	}
-
-	return
-}
-
-func createAndExpression(terms ...*ast.Expression) (and *ast.Expression) {
-	expressions := []*ast.Expression{}
-	for _, term := range terms {
-		if term.GetAndExpression() == nil {
-			expressions = append(expressions, term)
-		} else {
-			expressions = append(expressions, term.GetAndExpression().GetTerms()...)
-		}
-	}
-
-	and = &ast.Expression{
-		Expression: &ast.Expression_AndExpression{&ast.Expressions{Terms: expressions}},
-	}
-
-	return
+	return n
 }
 
 // Strings in YARA rules may contain escaped chars, such as doublequotes (")
@@ -263,90 +232,91 @@ var yrExca = [...]int{
 
 const yrPrivate = 57344
 
-const yrLast = 393
+const yrLast = 406
 
 var yrAct = [...]int{
 
-	52, 170, 49, 141, 67, 148, 213, 178, 223, 111,
-	214, 73, 53, 64, 65, 66, 166, 61, 62, 60,
-	63, 108, 74, 70, 200, 110, 177, 151, 201, 58,
-	59, 71, 72, 80, 79, 54, 96, 94, 95, 212,
-	50, 51, 80, 79, 217, 97, 98, 89, 90, 91,
-	92, 93, 208, 42, 216, 102, 167, 222, 107, 68,
-	106, 176, 48, 56, 69, 38, 220, 203, 57, 115,
-	116, 114, 142, 112, 113, 150, 109, 73, 105, 205,
-	199, 40, 28, 123, 124, 125, 126, 127, 128, 129,
+	52, 170, 49, 141, 67, 148, 73, 53, 64, 65,
+	66, 166, 61, 62, 60, 63, 213, 74, 200, 178,
+	214, 108, 201, 70, 58, 59, 71, 72, 80, 79,
+	54, 111, 96, 94, 95, 50, 51, 114, 110, 112,
+	113, 97, 98, 89, 90, 91, 92, 93, 80, 79,
+	223, 167, 68, 217, 222, 102, 56, 69, 107, 176,
+	106, 73, 48, 57, 39, 216, 177, 151, 212, 115,
+	116, 150, 208, 42, 220, 203, 142, 109, 105, 38,
+	205, 199, 40, 123, 124, 125, 126, 127, 128, 129,
 	130, 131, 132, 133, 134, 135, 136, 137, 138, 139,
-	140, 120, 121, 26, 147, 122, 17, 149, 81, 82,
-	153, 154, 155, 79, 157, 80, 79, 160, 96, 94,
-	95, 87, 88, 83, 85, 84, 86, 97, 98, 89,
-	90, 91, 92, 93, 196, 96, 94, 95, 39, 55,
-	152, 18, 104, 165, 97, 98, 89, 90, 91, 92,
-	93, 168, 30, 74, 73, 118, 64, 65, 66, 5,
-	61, 62, 60, 63, 99, 74, 91, 92, 93, 100,
-	197, 194, 58, 59, 71, 72, 96, 94, 95, 35,
-	77, 202, 37, 117, 13, 97, 98, 89, 90, 91,
-	92, 93, 8, 204, 101, 7, 143, 207, 221, 210,
-	4, 175, 68, 209, 78, 36, 146, 69, 96, 94,
-	95, 103, 198, 156, 41, 219, 31, 97, 98, 89,
-	90, 91, 92, 93, 89, 90, 91, 92, 93, 145,
-	215, 33, 171, 174, 218, 73, 172, 64, 65, 66,
-	23, 61, 62, 60, 63, 20, 74, 96, 94, 95,
-	191, 14, 25, 58, 59, 22, 97, 98, 89, 90,
-	91, 92, 93, 96, 94, 95, 164, 188, 187, 211,
-	189, 190, 97, 98, 89, 90, 91, 92, 93, 9,
-	11, 12, 76, 68, 75, 173, 27, 15, 69, 96,
-	94, 95, 103, 192, 1, 193, 169, 206, 97, 98,
-	89, 90, 91, 92, 93, 81, 82, 195, 144, 158,
-	159, 152, 32, 6, 10, 96, 94, 95, 87, 88,
-	83, 85, 84, 86, 97, 98, 89, 90, 91, 92,
-	93, 44, 119, 163, 43, 162, 96, 94, 95, 186,
-	161, 179, 34, 24, 29, 97, 98, 89, 90, 91,
-	92, 93, 94, 95, 46, 47, 21, 19, 16, 2,
-	97, 98, 89, 90, 91, 92, 93, 95, 3, 0,
-	0, 184, 0, 45, 97, 98, 89, 90, 91, 92,
-	93, 97, 98, 89, 90, 91, 92, 93, 181, 180,
-	185, 182, 183,
+	140, 120, 121, 149, 147, 122, 28, 26, 17, 18,
+	153, 154, 155, 79, 157, 81, 82, 160, 196, 91,
+	92, 93, 104, 96, 94, 95, 87, 88, 83, 85,
+	84, 86, 97, 98, 89, 90, 91, 92, 93, 55,
+	80, 79, 74, 165, 5, 44, 30, 152, 43, 143,
+	99, 168, 118, 117, 73, 100, 64, 65, 66, 146,
+	61, 62, 60, 63, 35, 74, 77, 13, 46, 47,
+	197, 194, 58, 59, 71, 72, 37, 96, 94, 95,
+	7, 202, 145, 4, 8, 45, 97, 98, 89, 90,
+	91, 92, 93, 204, 101, 221, 210, 207, 171, 41,
+	68, 78, 172, 209, 175, 69, 36, 198, 96, 94,
+	95, 103, 156, 31, 33, 219, 23, 97, 98, 89,
+	90, 91, 92, 93, 89, 90, 91, 92, 93, 20,
+	215, 14, 25, 164, 218, 174, 73, 22, 64, 65,
+	66, 76, 61, 62, 60, 63, 75, 74, 96, 94,
+	95, 9, 11, 12, 58, 59, 27, 97, 98, 89,
+	90, 91, 92, 93, 96, 94, 95, 15, 1, 193,
+	169, 206, 211, 97, 98, 89, 90, 91, 92, 93,
+	195, 144, 68, 158, 159, 32, 6, 69, 173, 96,
+	94, 95, 192, 103, 10, 119, 163, 162, 97, 98,
+	89, 90, 91, 92, 93, 186, 81, 82, 161, 179,
+	34, 24, 21, 152, 96, 94, 95, 87, 88, 83,
+	85, 84, 86, 97, 98, 89, 90, 91, 92, 93,
+	29, 19, 16, 96, 94, 95, 184, 2, 3, 0,
+	0, 0, 97, 98, 89, 90, 91, 92, 93, 96,
+	94, 95, 0, 181, 180, 185, 182, 183, 97, 98,
+	89, 90, 91, 92, 93, 94, 95, 0, 0, 0,
+	0, 0, 0, 97, 98, 89, 90, 91, 92, 93,
+	95, 0, 0, 0, 191, 0, 0, 97, 98, 89,
+	90, 91, 92, 93, 97, 98, 89, 90, 91, 92,
+	93, 188, 187, 0, 189, 190,
 }
 var yrPact = [...]int{
 
-	-1000, 155, -1000, -1000, 171, -1000, 273, 163, -1000, 239,
-	-1000, -1000, -1000, -1000, -1000, 39, 98, 233, 246, 228,
-	-1000, 242, 36, -1000, -1000, 15, 204, 220, 192, 204,
-	-1000, -3, 94, 14, 192, -1000, -15, -1000, 313, -1000,
-	-1, -1000, 158, -1000, -1000, 186, -1000, -1000, 69, -1000,
-	-1000, -1000, 267, 135, 142, 107, -1, -1, -1000, -1000,
-	7, -1000, -1000, -1000, -1000, -47, -63, 2, 223, 223,
-	-1000, -1000, -1000, -1000, -1000, 162, 132, -1000, -1000, -1,
-	-1, 130, 223, 223, 223, 223, 223, 223, 223, 223,
-	223, 223, 223, 223, 223, 223, 223, 223, 223, 223,
-	3, 194, 87, 223, 38, -1000, -43, 70, 69, 223,
-	223, 223, 201, 223, -1, -1000, -1000, -1000, -1000, 259,
-	-1000, 66, -1000, 87, 87, 87, 87, 87, 87, 87,
-	105, 105, -1000, -1000, -1000, 317, 324, 303, 165, 165,
-	87, -1000, 223, -1000, -18, 38, -1000, 241, -1000, 219,
-	-1000, -1000, -1000, 215, 160, 128, -1000, -12, -44, -67,
-	-1000, 364, 243, -1000, -1000, 288, 65, 200, 13, -46,
-	-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1, -1000,
-	-1000, -1000, -1000, -1000, -1000, -2, -1000, -1000, -1000, -1000,
-	-1000, -1000, 223, 12, 2, -1000, 223, -1000, -1000, -17,
-	-1000, 219, -1000, 181, 199, -30, -64, 288, -1, -1000,
-	-16, -1000, -1, -1000, 223, -4, -1000, 180, -13, 87,
-	-1000, -62, -1000, -1000,
+	-1000, 140, -1000, -1000, 163, -1000, 245, 146, -1000, 219,
+	-1000, -1000, -1000, -1000, -1000, 41, 44, 217, 228, 204,
+	-1000, 222, 40, -1000, -1000, 39, 201, 203, 193, 201,
+	-1000, 11, -2, 15, 193, -1000, 5, -1000, 127, -1000,
+	-6, -1000, 144, -1000, -1000, 183, -1000, -1000, 96, -1000,
+	-1000, -1000, 268, 121, 142, 87, -6, -6, -1000, -1000,
+	8, -1000, -1000, -1000, -1000, -34, -41, -32, 224, 224,
+	-1000, -1000, -1000, -1000, -1000, 132, 129, -1000, -1000, -6,
+	-6, 119, 224, 224, 224, 224, 224, 224, 224, 224,
+	224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+	7, 147, 303, 224, 34, -1000, -3, 77, 96, 224,
+	224, 224, 200, 224, -6, -1000, -1000, -1000, -1000, 226,
+	-1000, 68, -1000, 303, 303, 303, 303, 303, 303, 303,
+	60, 60, -1000, -1000, -1000, 332, 339, 318, 167, 167,
+	303, -1000, 224, -1000, -23, 34, -1000, 243, -1000, 185,
+	-1000, -1000, -1000, 218, 162, 131, -1000, -14, -4, -55,
+	-1000, 329, 377, -1000, -1000, 287, 49, 195, 14, -52,
+	-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -6, -1000,
+	-1000, -1000, -1000, -1000, -1000, 6, -1000, -1000, -1000, -1000,
+	-1000, -1000, 224, 13, -32, -1000, 224, -1000, -1000, 3,
+	-1000, 185, -1000, 178, 202, -1, -54, 287, -6, -1000,
+	-5, -1000, -6, -1000, 224, 4, -1000, 177, -16, 303,
+	-1000, -20, -1000, -1000,
 }
 var yrPgo = [...]int{
 
-	0, 368, 359, 358, 357, 356, 152, 344, 343, 179,
-	342, 341, 340, 339, 335, 333, 332, 314, 313, 312,
-	21, 2, 0, 4, 310, 309, 23, 139, 308, 307,
-	297, 3, 5, 296, 1, 295, 294, 287, 286, 284,
-	282,
+	0, 338, 337, 332, 331, 146, 330, 312, 311, 164,
+	310, 309, 308, 305, 297, 296, 295, 294, 286, 285,
+	21, 2, 0, 4, 284, 283, 23, 139, 281, 280,
+	271, 3, 5, 270, 1, 269, 268, 267, 256, 246,
+	241,
 }
 var yrR1 = [...]int{
 
 	0, 36, 36, 36, 36, 36, 1, 37, 38, 2,
-	5, 5, 8, 8, 19, 18, 18, 17, 17, 3,
-	3, 4, 4, 7, 7, 6, 6, 6, 6, 6,
+	7, 7, 8, 8, 19, 18, 18, 17, 17, 3,
+	3, 4, 4, 6, 6, 5, 5, 5, 5, 5,
 	10, 10, 39, 9, 40, 9, 9, 12, 12, 11,
 	11, 11, 11, 11, 11, 11, 11, 14, 14, 13,
 	13, 13, 13, 13, 16, 16, 15, 23, 23, 23,
@@ -378,16 +348,16 @@ var yrR2 = [...]int{
 }
 var yrChk = [...]int{
 
-	-1000, -36, -2, -1, 45, 4, -18, 40, 21, 6,
-	-17, 7, 8, 21, 12, -37, -3, 67, 43, -4,
-	12, -5, 9, 12, -8, 10, 67, -38, 67, -7,
-	-6, 12, -19, 11, -10, -9, 13, -6, 68, 44,
-	67, -9, 68, 21, 18, 60, 41, 42, -20, -21,
-	41, 42, -22, 13, 36, -27, 64, 69, 30, 31,
-	20, 18, 19, 21, 14, 15, 16, -23, 60, 65,
-	-26, 32, 33, 12, 23, -39, -40, 22, 18, 47,
-	46, 38, 39, 53, 55, 54, 56, 51, 52, 59,
-	60, 61, 62, 63, 49, 50, 48, 57, 58, 29,
+	-1000, -36, -2, -1, 43, 4, -18, 40, 21, 6,
+	-17, 7, 8, 21, 12, -37, -3, 67, 65, -4,
+	12, -7, 9, 12, -8, 10, 67, -38, 67, -6,
+	-5, 12, -19, 11, -10, -9, 13, -5, 68, 66,
+	67, -9, 68, 21, 18, 58, 41, 42, -20, -21,
+	41, 42, -22, 13, 36, -27, 62, 69, 30, 31,
+	20, 18, 19, 21, 14, 15, 16, -23, 58, 63,
+	-26, 32, 33, 12, 23, -39, -40, 22, 18, 45,
+	44, 38, 39, 51, 53, 52, 54, 49, 50, 57,
+	58, 59, 60, 61, 47, 48, 46, 55, 56, 29,
 	34, -27, -22, 69, 35, -20, -21, -22, -20, 69,
 	72, 72, 71, 72, 69, -22, -22, 21, 23, -16,
 	-20, -20, -26, -22, -22, -22, -22, -22, -22, -22,
@@ -399,7 +369,7 @@ var yrChk = [...]int{
 	25, 24, 27, 28, 7, 26, -13, 25, 24, 27,
 	28, 7, 5, -35, -23, -29, 69, -31, 12, 67,
 	70, 74, -21, 69, -22, 67, -30, -22, 69, -34,
-	18, 70, 69, 70, 74, -20, 70, 60, -20, -22,
+	18, 70, 69, 70, 74, -20, 70, 58, -20, -22,
 	70, 18, 70, 70,
 }
 var yrDef = [...]int{
@@ -433,16 +403,16 @@ var yrTok1 = [...]int{
 	1, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 63, 50, 3,
-	69, 70, 61, 59, 74, 60, 71, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 61, 48, 3,
+	69, 70, 59, 57, 74, 58, 71, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 67, 3,
 	3, 68, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 72, 62, 73, 49, 3, 3, 3, 3, 3,
+	3, 72, 60, 73, 47, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 48, 3, 65,
+	3, 3, 3, 65, 46, 66, 63,
 }
 var yrTok2 = [...]int{
 
@@ -450,8 +420,8 @@ var yrTok2 = [...]int{
 	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
 	22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
 	32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
-	42, 43, 44, 45, 46, 47, 51, 52, 53, 54,
-	55, 56, 57, 58, 64, 66,
+	42, 43, 44, 45, 49, 50, 51, 52, 53, 54,
+	55, 56, 62, 64,
 }
 var yrTok3 = [...]int{
 	0,
@@ -796,1236 +766,849 @@ yrdefault:
 
 	case 2:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:181
+//line grammar.y:167
 		{
-			ParsedRuleset.Rules = append(ParsedRuleset.Rules, yrDollar[2].yr)
+			ruleSet := asLexer(yrlex).ruleSet
+			ruleSet.Rules = append(ruleSet.Rules, yrDollar[2].rule)
 		}
 	case 3:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:184
+//line grammar.y:172
 		{
-			ParsedRuleset.Imports = append(ParsedRuleset.Imports, yrDollar[2].s)
+			ruleSet := asLexer(yrlex).ruleSet
+			ruleSet.Imports = append(ruleSet.Imports, yrDollar[2].s)
 		}
 	case 4:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:187
+//line grammar.y:177
 		{
-			ParsedRuleset.Includes = append(ParsedRuleset.Includes, yrDollar[3].s)
 		}
 	case 5:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:190
+//line grammar.y:180
 		{
+
 		}
 	case 6:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:196
+//line grammar.y:188
 		{
 			yrVAL.s = yrDollar[2].s
 		}
 	case 7:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:204
+//line grammar.y:196
 		{
-			yrVAL.yr = &ast.Rule{
-				Modifiers:  yrDollar[1].rm,
-				Identifier: proto.String(yrDollar[3].s),
-			}
+			lexer := asLexer(yrlex)
 
 			// Forbid duplicate rules
-			for _, r := range ParsedRuleset.Rules {
-				if yrDollar[3].s == *r.Identifier {
-					err := gyperror.Error{gyperror.DuplicateRuleError, yrDollar[3].s}
-					panic(err)
+			for _, r := range lexer.ruleSet.Rules {
+				if yrDollar[3].s == r.Identifier {
+					return lexer.SetError(
+						gyperror.DuplicateRuleError, `duplicate rule "%s"`, yrDollar[3].s)
 				}
+			}
+
+			yrVAL.rule = &ast.Rule{
+				Global:     yrDollar[1].rm.Global,
+				Private:    yrDollar[1].rm.Private,
+				Identifier: yrDollar[3].s,
 			}
 		}
 	case 8:
 		yrDollar = yrS[yrpt-8 : yrpt+1]
-//line grammar.y:219
+//line grammar.y:214
 		{
-			// $4 is the rule created in above action
-			yrDollar[4].yr.Tags = yrDollar[5].ss
-
-			// Forbid duplicate tags
-			idx := make(map[string]struct{})
-			for _, t := range yrDollar[5].ss {
-				if _, had := idx[t]; had {
-					err := gyperror.Error{
-						gyperror.DuplicateTagError,
-						fmt.Sprintf(
-							`"%s" at rule "%s"`,
-							yrDollar[4].yr.GetIdentifier(),
-							t),
-					}
-					panic(err)
-				}
-				idx[t] = struct{}{}
-			}
-
-			yrDollar[4].yr.Meta = yrDollar[7].m
-
-			yrDollar[4].yr.Strings = yrDollar[8].yss
-
-			// Forbid duplicate string IDs, except `$` (anonymous)
-			idx = make(map[string]struct{})
-			for _, s := range yrDollar[8].yss {
-				if s.GetId() == "$" {
-					continue
-				}
-				if _, had := idx[*s.Id]; had {
-					err := gyperror.Error{
-						gyperror.DuplicateStringError,
-						fmt.Sprintf(
-							`"%s" at rule "%s"`,
-							yrDollar[4].yr.GetIdentifier(),
-							s.GetId(),
-						),
-					}
-					panic(err)
-				}
-				idx[*s.Id] = struct{}{}
-			}
+			yrDollar[4].rule.Tags = yrDollar[5].ss
+			yrDollar[4].rule.Meta = yrDollar[7].metas
 		}
 	case 9:
 		yrDollar = yrS[yrpt-11 : yrpt+1]
-//line grammar.y:264
+//line grammar.y:219
 		{
-			condition := yrDollar[10].expr
-			yrDollar[4].yr.Condition = condition
-			yrVAL.yr = yrDollar[4].yr
+			yrDollar[4].rule.Condition = yrDollar[10].node
+			yrVAL.rule = yrDollar[4].rule
 		}
 	case 10:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line grammar.y:273
+//line grammar.y:228
 		{
-			yrVAL.m = []*ast.Meta{}
+			yrVAL.metas = []*ast.Meta{}
 		}
 	case 11:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:275
+//line grammar.y:232
 		{
-			yrVAL.m = make([]*ast.Meta, 0, len(yrDollar[3].m))
-			for _, mpair := range yrDollar[3].m {
-				// YARA is ok with duplicate keys; we follow suit
-				yrVAL.m = append(yrVAL.m, mpair)
-			}
+			yrVAL.metas = yrDollar[3].metas
 		}
 	case 12:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line grammar.y:286
+//line grammar.y:240
 		{
-			yrVAL.yss = []*ast.String{}
+
 		}
 	case 13:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:287
+//line grammar.y:244
 		{
-			yrVAL.yss = yrDollar[3].yss
+
 		}
 	case 14:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:292
+//line grammar.y:252
 		{
-			yrVAL.expr = yrDollar[3].expr
+			yrVAL.node = yrDollar[3].node
 		}
 	case 15:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line grammar.y:297
+//line grammar.y:260
 		{
-			yrVAL.rm = &ast.RuleModifiers{}
+			yrVAL.rm = &ruleModifiers{}
 		}
 	case 16:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:298
+//line grammar.y:264
 		{
-			yrVAL.rm = &ast.RuleModifiers{
-				Private: proto.Bool(yrDollar[1].rm.GetPrivate() || yrDollar[2].rm.GetPrivate()),
-				Global:  proto.Bool(yrDollar[1].rm.GetGlobal() || yrDollar[2].rm.GetGlobal()),
-			}
+			yrDollar[1].rm.Global = yrDollar[1].rm.Global || yrDollar[2].rm.Global
+			yrDollar[1].rm.Private = yrDollar[1].rm.Private || yrDollar[2].rm.Private
+			yrVAL.rm = yrDollar[1].rm
 		}
 	case 17:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:308
+//line grammar.y:274
 		{
-			yrVAL.rm = &ast.RuleModifiers{Private: proto.Bool(true)}
+			yrVAL.rm = &ruleModifiers{Private: true}
 		}
 	case 18:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:309
+//line grammar.y:278
 		{
-			yrVAL.rm = &ast.RuleModifiers{Global: proto.Bool(true)}
+			yrVAL.rm = &ruleModifiers{Global: true}
 		}
 	case 19:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line grammar.y:314
+//line grammar.y:286
 		{
 			yrVAL.ss = []string{}
 		}
 	case 20:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:315
+//line grammar.y:290
 		{
 			yrVAL.ss = yrDollar[2].ss
 		}
 	case 21:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:320
+//line grammar.y:298
 		{
 			yrVAL.ss = []string{yrDollar[1].s}
 		}
 	case 22:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:321
+//line grammar.y:302
 		{
+			lexer := asLexer(yrlex)
+
+			for _, tag := range yrDollar[1].ss {
+				if tag == yrDollar[2].s {
+					return lexer.SetError(
+						gyperror.DuplicateTagError, `duplicate tag "%s"`, yrDollar[2].s)
+				}
+			}
+
 			yrVAL.ss = append(yrDollar[1].ss, yrDollar[2].s)
 		}
 	case 23:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:326
+//line grammar.y:319
 		{
-			yrVAL.m = []*ast.Meta{yrDollar[1].mp}
+			yrVAL.metas = []*ast.Meta{yrDollar[1].meta}
 		}
 	case 24:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:327
+//line grammar.y:323
 		{
-			yrVAL.m = append(yrVAL.m, yrDollar[2].mp)
+			yrVAL.metas = append(yrDollar[1].metas, yrDollar[2].meta)
 		}
 	case 25:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:333
+//line grammar.y:331
 		{
-			yrVAL.mp = &ast.Meta{
-				Key:   proto.String(yrDollar[1].s),
-				Value: &ast.Meta_Text{yrDollar[3].s},
+			yrVAL.meta = &ast.Meta{
+				Key:   yrDollar[1].s,
+				Value: yrDollar[3].s,
 			}
 		}
 	case 26:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:340
+//line grammar.y:338
 		{
-			yrVAL.mp = &ast.Meta{
-				Key:   proto.String(yrDollar[1].s),
-				Value: &ast.Meta_Number{yrDollar[3].i64},
+			yrVAL.meta = &ast.Meta{
+				Key:   yrDollar[1].s,
+				Value: yrDollar[3].i64,
 			}
 		}
 	case 27:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line grammar.y:347
+//line grammar.y:345
 		{
-			yrVAL.mp = &ast.Meta{
-				Key:   proto.String(yrDollar[1].s),
-				Value: &ast.Meta_Number{-yrDollar[4].i64},
+			yrVAL.meta = &ast.Meta{
+				Key:   yrDollar[1].s,
+				Value: -yrDollar[4].i64,
 			}
 		}
 	case 28:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:354
+//line grammar.y:352
 		{
-			yrVAL.mp = &ast.Meta{
-				Key:   proto.String(yrDollar[1].s),
-				Value: &ast.Meta_Boolean{true},
+			yrVAL.meta = &ast.Meta{
+				Key:   yrDollar[1].s,
+				Value: true,
 			}
 		}
 	case 29:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:361
+//line grammar.y:359
 		{
-			yrVAL.mp = &ast.Meta{
-				Key:   proto.String(yrDollar[1].s),
-				Value: &ast.Meta_Boolean{false},
+			yrVAL.meta = &ast.Meta{
+				Key:   yrDollar[1].s,
+				Value: false,
 			}
 		}
 	case 30:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:371
+//line grammar.y:370
 		{
-			yrVAL.yss = []*ast.String{yrDollar[1].ys}
 		}
 	case 31:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:372
+//line grammar.y:373
 		{
-			yrVAL.yss = append(yrDollar[1].yss, yrDollar[2].ys)
+
 		}
 	case 32:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:378
+//line grammar.y:381
 		{
-			yrVAL.ys = &ast.String{
-				Id: proto.String(yrDollar[1].s),
-			}
 		}
 	case 33:
 		yrDollar = yrS[yrpt-5 : yrpt+1]
 //line grammar.y:384
 		{
-			yrDollar[3].ys.Value = &ast.String_Text{&ast.TextString{
-				Text:      proto.String(decodeEscapedString(yrDollar[4].s)),
-				Modifiers: yrDollar[5].mod,
-			}}
-			yrVAL.ys = yrDollar[3].ys
+
 		}
 	case 34:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:392
+//line grammar.y:388
 		{
-			yrVAL.ys = &ast.String{
-				Id: proto.String(yrDollar[1].s),
-			}
+
 		}
 	case 35:
 		yrDollar = yrS[yrpt-5 : yrpt+1]
-//line grammar.y:398
+//line grammar.y:392
 		{
-			yrDollar[3].ys.Value = &ast.String_Regexp{&ast.Regexp{
-				Text: yrDollar[4].reg.Text,
-			}}
 
-			yrDollar[5].mod.I = yrDollar[4].reg.Modifiers.I
-			yrDollar[5].mod.S = yrDollar[4].reg.Modifiers.S
-
-			yrDollar[3].ys.GetRegexp().Modifiers = yrDollar[5].mod
-
-			yrVAL.ys = yrDollar[3].ys
 		}
 	case 36:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line grammar.y:411
+//line grammar.y:396
 		{
-			yrVAL.ys = &ast.String{
-				Id:    proto.String(yrDollar[1].s),
-				Value: &ast.String_Hex{yrDollar[3].hextokens},
-			}
+
 		}
 	case 37:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line grammar.y:422
+//line grammar.y:404
 		{
-			yrVAL.mod = &ast.StringModifiers{}
 		}
 	case 38:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:426
+//line grammar.y:407
 		{
-			proto.Merge(yrDollar[1].mod, yrDollar[2].mod)
-			yrVAL.mod = yrDollar[1].mod
 		}
 	case 39:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:434
+//line grammar.y:413
 		{
-			yrVAL.mod = &ast.StringModifiers{Wide: proto.Bool(true)}
 		}
 	case 40:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:435
+//line grammar.y:414
 		{
-			yrVAL.mod = &ast.StringModifiers{Ascii: proto.Bool(true)}
 		}
 	case 41:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:436
+//line grammar.y:415
 		{
-			yrVAL.mod = &ast.StringModifiers{Nocase: proto.Bool(true)}
 		}
 	case 42:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:437
+//line grammar.y:416
 		{
-			yrVAL.mod = &ast.StringModifiers{Fullword: proto.Bool(true)}
 		}
 	case 43:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:438
+//line grammar.y:417
 		{
-			yrVAL.mod = &ast.StringModifiers{Private: proto.Bool(true)}
 		}
 	case 44:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:440
+//line grammar.y:419
 		{
-			yrVAL.mod = &ast.StringModifiers{
-				Xor:    proto.Bool(true),
-				XorMin: proto.Int32(0),
-				XorMax: proto.Int32(255),
-			}
+
 		}
 	case 45:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line grammar.y:448
+//line grammar.y:423
 		{
-			if yrDollar[3].i64 < 0 || yrDollar[3].i64 > 255 {
-				err := gyperror.Error{Code: gyperror.InvalidStringModifierError}
-				panic(err)
-			}
 
-			yrVAL.mod = &ast.StringModifiers{
-				Xor:    proto.Bool(true),
-				XorMin: proto.Int32(int32(yrDollar[3].i64)),
-				XorMax: proto.Int32(int32(yrDollar[3].i64)),
-			}
 		}
 	case 46:
 		yrDollar = yrS[yrpt-6 : yrpt+1]
-//line grammar.y:461
+//line grammar.y:427
 		{
+			lexer := asLexer(yrlex)
+
 			if yrDollar[3].i64 < 0 {
-				err := gyperror.Error{
+				return lexer.SetError(
 					gyperror.InvalidStringModifierError,
-					"lower bound for xor range exceeded (min: 0)"}
-				panic(err)
+					"lower bound for xor range exceeded (min: 0)")
 			}
 
 			if yrDollar[5].i64 > 255 {
-				err := gyperror.Error{
+				return lexer.SetError(
 					gyperror.InvalidStringModifierError,
-					"upper bound for xor range exceeded (max: 255)"}
-				panic(err)
+					"upper bound for xor range exceeded (max: 255)")
 			}
 
 			if yrDollar[3].i64 > yrDollar[5].i64 {
-				err := gyperror.Error{
+				return lexer.SetError(
 					gyperror.InvalidStringModifierError,
-					"xor lower bound exceeds upper bound"}
-				panic(err)
-			}
-
-			yrVAL.mod = &ast.StringModifiers{
-				Xor:    proto.Bool(true),
-				XorMin: proto.Int32(int32(yrDollar[3].i64)),
-				XorMax: proto.Int32(int32(yrDollar[5].i64)),
+					"xor lower bound exceeds upper bound")
 			}
 		}
 	case 47:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line grammar.y:494
+//line grammar.y:453
 		{
-			yrVAL.mod = &ast.StringModifiers{}
+
 		}
 	case 48:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:498
+//line grammar.y:457
 		{
-			proto.Merge(yrDollar[1].mod, yrDollar[2].mod)
-			yrVAL.mod = yrDollar[1].mod
+
 		}
 	case 49:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:506
+//line grammar.y:464
 		{
-			yrVAL.mod = &ast.StringModifiers{Wide: proto.Bool(true)}
 		}
 	case 50:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:507
+//line grammar.y:465
 		{
-			yrVAL.mod = &ast.StringModifiers{Ascii: proto.Bool(true)}
 		}
 	case 51:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:508
+//line grammar.y:466
 		{
-			yrVAL.mod = &ast.StringModifiers{Nocase: proto.Bool(true)}
 		}
 	case 52:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:509
+//line grammar.y:467
 		{
-			yrVAL.mod = &ast.StringModifiers{Fullword: proto.Bool(true)}
 		}
 	case 53:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:510
+//line grammar.y:468
 		{
-			yrVAL.mod = &ast.StringModifiers{Private: proto.Bool(true)}
 		}
 	case 54:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line grammar.y:516
+//line grammar.y:474
 		{
-			yrVAL.mod = &ast.StringModifiers{}
+
 		}
 	case 55:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:520
+//line grammar.y:478
 		{
-			proto.Merge(yrDollar[1].mod, yrDollar[2].mod)
-			yrVAL.mod = yrDollar[1].mod
+
 		}
 	case 56:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:528
+//line grammar.y:486
 		{
-			yrVAL.mod = &ast.StringModifiers{Private: proto.Bool(true)}
+
 		}
 	case 57:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:534
+//line grammar.y:494
 		{
-			yrVAL.id = &ast.Identifier{
-				Items: []*ast.Identifier_IdentifierItem{
-					{Item: &ast.Identifier_IdentifierItem_Identifier{yrDollar[1].s}},
-				},
-			}
+
 		}
 	case 58:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:542
+//line grammar.y:498
 		{
-			yrVAL.id.Items = append(
-				yrDollar[1].id.Items,
-				&ast.Identifier_IdentifierItem{
-					Item: &ast.Identifier_IdentifierItem_Identifier{yrDollar[3].s},
-				},
-			)
+
 		}
 	case 59:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line grammar.y:551
+//line grammar.y:502
 		{
-			yrVAL.id.Items = append(
-				yrDollar[1].id.Items,
-				&ast.Identifier_IdentifierItem{
-					Item: &ast.Identifier_IdentifierItem_Index{yrDollar[3].expr},
-				},
-			)
+
 		}
 	case 60:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line grammar.y:560
+//line grammar.y:506
 		{
-			yrVAL.id.Items = append(
-				yrDollar[1].id.Items,
-				&ast.Identifier_IdentifierItem{
-					Item: &ast.Identifier_IdentifierItem_Arguments{yrDollar[3].exprs},
-				},
-			)
+
 		}
 	case 61:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line grammar.y:572
+//line grammar.y:514
 		{
-			yrVAL.exprs = &ast.Expressions{}
+
 		}
 	case 62:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:573
+//line grammar.y:518
 		{
-			yrVAL.exprs = yrDollar[1].exprs
+
 		}
 	case 63:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:578
+//line grammar.y:525
 		{
-			yrVAL.exprs = &ast.Expressions{
-				Terms: []*ast.Expression{yrDollar[1].expr},
-			}
+
 		}
 	case 64:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:584
+//line grammar.y:529
 		{
-			yrVAL.exprs.Terms = append(yrDollar[1].exprs.Terms, yrDollar[3].expr)
 		}
 	case 65:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:592
+//line grammar.y:536
 		{
-			regexp := yrDollar[1].reg
-			yrVAL.regp = &regexp
+
 		}
 	case 66:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:600
+//line grammar.y:544
 		{
-			yrVAL.expr = yrDollar[1].expr
+			yrVAL.node = yrDollar[1].node
 		}
 	case 67:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:605
+//line grammar.y:551
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BoolValue{true},
-			}
+			yrVAL.node = ast.KeywordTrue
 		}
 	case 68:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:611
+//line grammar.y:555
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BoolValue{false},
-			}
+			yrVAL.node = ast.KeywordFalse
 		}
 	case 69:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:617
+//line grammar.y:559
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_MATCHES.Enum(),
-						Left:     yrDollar[1].expr,
-						Right: &ast.Expression{
-							Expression: &ast.Expression_Regexp{yrDollar[3].regp},
-						},
-					},
-				},
-			}
+
 		}
 	case 70:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:631
+//line grammar.y:563
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_CONTAINS.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+
 		}
 	case 71:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:643
+//line grammar.y:567
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_StringIdentifier{yrDollar[1].s},
-			}
+
 		}
 	case 72:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:649
+//line grammar.y:571
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_AT.Enum(),
-						Left: &ast.Expression{
-							Expression: &ast.Expression_StringIdentifier{yrDollar[1].s},
-						},
-						Right: yrDollar[3].expr,
-					},
-				},
-			}
+
 		}
 	case 73:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:663
+//line grammar.y:575
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_IN.Enum(),
-						Left: &ast.Expression{
-							Expression: &ast.Expression_StringIdentifier{yrDollar[1].s},
-						},
-						Right: &ast.Expression{
-							Expression: &ast.Expression_Range{yrDollar[3].rng},
-						},
-					},
-				},
-			}
+
 		}
 	case 74:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:678
+//line grammar.y:578
 		{
 		}
 	case 75:
 		yrDollar = yrS[yrpt-9 : yrpt+1]
-//line grammar.y:680
+//line grammar.y:580
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_ForInExpression{
-					ForInExpression: &ast.ForInExpression{
-						ForExpression: yrDollar[2].forexp,
-						Identifiers:   yrDollar[3].ss,
-						Iterator:      yrDollar[5].iterator,
-						Expression:    yrDollar[8].expr,
-					},
-				},
-			}
+
 		}
 	case 76:
 		yrDollar = yrS[yrpt-8 : yrpt+1]
-//line grammar.y:693
+//line grammar.y:584
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_ForOfExpression{
-					ForOfExpression: &ast.ForOfExpression{
-						ForExpression: yrDollar[2].forexp,
-						StringSet:     yrDollar[4].strset,
-						Expression:    yrDollar[7].expr,
-					},
-				},
-			}
+
 		}
 	case 77:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:705
+//line grammar.y:588
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_ForOfExpression{
-					ForOfExpression: &ast.ForOfExpression{
-						ForExpression: yrDollar[1].forexp,
-						StringSet:     yrDollar[3].strset,
-					},
-				},
-			}
+
 		}
 	case 78:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:716
+//line grammar.y:592
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_NotExpression{yrDollar[2].expr},
-			}
+			yrVAL.node = &ast.Not{yrDollar[2].node}
 		}
 	case 79:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:722
+//line grammar.y:596
 		{
-			yrVAL.expr = createAndExpression(yrDollar[1].expr, yrDollar[3].expr)
+			yrVAL.node = operation(ast.OpAnd, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 80:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:726
+//line grammar.y:600
 		{
-			yrVAL.expr = createOrExpression(yrDollar[1].expr, yrDollar[3].expr)
+			yrVAL.node = operation(ast.OpOr, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 81:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:730
+//line grammar.y:604
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_LT.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
+			yrVAL.node = &ast.Operation{
+				Operator: ast.OpLessThan,
+				Operands: []ast.Node{yrDollar[1].node, yrDollar[3].node},
 			}
 		}
 	case 82:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:742
+//line grammar.y:611
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_GT.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
+			yrVAL.node = &ast.Operation{
+				Operator: ast.OpGreaterThan,
+				Operands: []ast.Node{yrDollar[1].node, yrDollar[3].node},
 			}
 		}
 	case 83:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:754
+//line grammar.y:618
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_LE.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
+			yrVAL.node = &ast.Operation{
+				Operator: ast.OpLessOrEqual,
+				Operands: []ast.Node{yrDollar[1].node, yrDollar[3].node},
 			}
 		}
 	case 84:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:766
+//line grammar.y:625
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_GE.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
+			yrVAL.node = &ast.Operation{
+				Operator: ast.OpGreaterOrEqual,
+				Operands: []ast.Node{yrDollar[1].node, yrDollar[3].node},
 			}
 		}
 	case 85:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:778
+//line grammar.y:632
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_EQ.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
+			yrVAL.node = &ast.Operation{
+				Operator: ast.OpEqual,
+				Operands: []ast.Node{yrDollar[1].node, yrDollar[3].node},
 			}
 		}
 	case 86:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:790
+//line grammar.y:639
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_NEQ.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
+			yrVAL.node = &ast.Operation{
+				Operator: ast.OpNotEqual,
+				Operands: []ast.Node{yrDollar[1].node, yrDollar[3].node},
 			}
 		}
 	case 87:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:802
+//line grammar.y:646
 		{
-			yrVAL.expr = yrDollar[1].expr
+			yrVAL.node = yrDollar[1].node
 		}
 	case 88:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:806
+//line grammar.y:650
 		{
-			yrVAL.expr = yrDollar[2].expr
+			yrVAL.node = &ast.Group{yrDollar[2].node}
 		}
 	case 89:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:814
+//line grammar.y:658
 		{
-			yrVAL.intset = &ast.IntegerSet{
-				Set: &ast.IntegerSet_IntegerEnumeration{yrDollar[2].intenum},
-			}
+
 		}
 	case 90:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:820
+//line grammar.y:662
 		{
-			yrVAL.intset = &ast.IntegerSet{
-				Set: &ast.IntegerSet_Range{yrDollar[1].rng},
-			}
+
 		}
 	case 91:
 		yrDollar = yrS[yrpt-5 : yrpt+1]
-//line grammar.y:830
+//line grammar.y:670
 		{
-			yrVAL.rng = &ast.Range{
-				Start: yrDollar[2].expr,
-				End:   yrDollar[4].expr,
-			}
+
 		}
 	case 92:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:841
+//line grammar.y:678
 		{
-			yrVAL.intenum = &ast.IntegerEnumeration{
-				Values: []*ast.Expression{yrDollar[1].expr},
-			}
+
 		}
 	case 93:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:846
+//line grammar.y:682
 		{
-			yrVAL.intenum.Values = append(yrVAL.intenum.Values, yrDollar[3].expr)
 		}
 	case 94:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:854
+//line grammar.y:689
 		{
-			yrVAL.strset = &ast.StringSet{Set: &ast.StringSet_Strings{yrDollar[2].strenum}}
 		}
 	case 95:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:858
+//line grammar.y:692
 		{
-			yrVAL.strset = &ast.StringSet{Set: &ast.StringSet_Keyword{ast.StringSetKeyword_THEM}}
+			yrVAL.node = ast.KeywordThem
 		}
 	case 96:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:866
+//line grammar.y:700
 		{
-			yrVAL.strenum = &ast.StringEnumeration{
-				Items: []*ast.StringEnumeration_StringEnumerationItem{yrDollar[1].strenumi},
-			}
+
 		}
 	case 97:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:872
+//line grammar.y:704
 		{
-			yrVAL.strenum.Items = append(yrDollar[1].strenum.Items, yrDollar[3].strenumi)
 		}
 	case 98:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:880
+//line grammar.y:711
 		{
-			yrVAL.strenumi = &ast.StringEnumeration_StringEnumerationItem{
-				StringIdentifier: proto.String(yrDollar[1].s),
-				HasWildcard:      proto.Bool(false),
-			}
+
 		}
 	case 99:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:887
+//line grammar.y:715
 		{
-			yrVAL.strenumi = &ast.StringEnumeration_StringEnumerationItem{
-				StringIdentifier: proto.String(yrDollar[1].s),
-				HasWildcard:      proto.Bool(true),
-			}
+
 		}
 	case 100:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:898
+//line grammar.y:723
 		{
-			yrVAL.forexp = &ast.ForExpression{
-				For: &ast.ForExpression_Expression{yrDollar[1].expr},
-			}
+			yrVAL.node = yrDollar[1].node
 		}
 	case 101:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:904
+//line grammar.y:727
 		{
-			yrVAL.forexp = &ast.ForExpression{
-				For: &ast.ForExpression_Keyword{ast.ForKeyword_ALL},
-			}
+			yrVAL.node = ast.KeywordAll
 		}
 	case 102:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:910
+//line grammar.y:731
 		{
-			yrVAL.forexp = &ast.ForExpression{
-				For: &ast.ForExpression_Keyword{ast.ForKeyword_ANY},
-			}
+			yrVAL.node = ast.KeywordAny
 		}
 	case 103:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:920
+//line grammar.y:739
 		{
-			yrVAL.ss = []string{yrDollar[1].s}
+
 		}
 	case 104:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:924
+//line grammar.y:743
 		{
-			yrVAL.ss = append(yrDollar[1].ss, yrDollar[3].s)
+
 		}
 	case 105:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:931
+//line grammar.y:750
 		{
-			yrVAL.iterator = &ast.Iterator{
-				Iterator: &ast.Iterator_Identifier{yrDollar[1].id},
-			}
+
 		}
 	case 106:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:937
+//line grammar.y:754
 		{
-			yrVAL.iterator = &ast.Iterator{
-				Iterator: &ast.Iterator_IntegerSet{yrDollar[1].intset},
-			}
+
 		}
 	case 107:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:947
+//line grammar.y:762
 		{
-			yrVAL.expr = yrDollar[2].expr
+			yrVAL.node = &ast.Group{yrDollar[2].node}
 		}
 	case 108:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:951
+//line grammar.y:766
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_Keyword{ast.Keyword_FILESIZE},
-			}
+			yrVAL.node = ast.KeywordFilesize
 		}
 	case 109:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:957
+//line grammar.y:770
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_Keyword{ast.Keyword_ENTRYPOINT},
-			}
+			yrVAL.node = ast.KeywordEntrypoint
 		}
 	case 110:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line grammar.y:963
+//line grammar.y:774
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_IntegerFunction{
-					&ast.IntegerFunction{
-						Function: proto.String(yrDollar[1].s),
-						Argument: yrDollar[3].expr,
-					},
-				},
-			}
+
 		}
 	case 111:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:974
+//line grammar.y:778
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_NumberValue{yrDollar[1].i64},
-			}
+			yrVAL.node = &ast.LiteralInteger{yrDollar[1].i64}
 		}
 	case 112:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:980
+//line grammar.y:782
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_DoubleValue{yrDollar[1].f64},
-			}
+			yrVAL.node = &ast.LiteralFloat{yrDollar[1].f64}
 		}
 	case 113:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:986
+//line grammar.y:786
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_Text{yrDollar[1].s},
-			}
+			yrVAL.node = &ast.LiteralString{yrDollar[1].s}
 		}
 	case 114:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:992
+//line grammar.y:790
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_StringCount{yrDollar[1].s},
-			}
+
 		}
 	case 115:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line grammar.y:998
+//line grammar.y:794
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_StringOffset{
-					&ast.StringOffset{
-						StringIdentifier: proto.String(yrDollar[1].s),
-						Index:            yrDollar[3].expr,
-					},
-				},
-			}
+
 		}
 	case 116:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:1009
+//line grammar.y:798
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_StringOffset{
-					&ast.StringOffset{
-						StringIdentifier: proto.String(yrDollar[1].s),
-					},
-				},
-			}
+
 		}
 	case 117:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line grammar.y:1019
+//line grammar.y:802
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_StringLength{
-					&ast.StringLength{
-						StringIdentifier: proto.String(yrDollar[1].s),
-						Index:            yrDollar[3].expr,
-					},
-				},
-			}
+
 		}
 	case 118:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:1030
+//line grammar.y:806
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_StringLength{
-					&ast.StringLength{
-						StringIdentifier: proto.String(yrDollar[1].s),
-					},
-				},
-			}
+
 		}
 	case 119:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:1040
+//line grammar.y:810
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_Identifier{yrDollar[1].id},
-			}
+
 		}
 	case 120:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:1046
+//line grammar.y:814
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_UnaryExpression{
-					&ast.UnaryExpression{
-						Operator:   ast.UnaryExpression_UNARY_MINUS.Enum(),
-						Expression: yrDollar[2].expr,
-					},
-				},
-			}
+			yrVAL.node = &ast.Minus{yrDollar[2].node}
 		}
 	case 121:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1057
+//line grammar.y:818
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_PLUS.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpAdd, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 122:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1069
+//line grammar.y:822
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_MINUS.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpSub, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 123:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1081
+//line grammar.y:826
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_TIMES.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpMul, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 124:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1093
+//line grammar.y:830
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_DIV.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpDiv, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 125:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1105
+//line grammar.y:834
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_MOD.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpMod, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 126:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1117
+//line grammar.y:838
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_XOR.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpBitXor, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 127:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1129
+//line grammar.y:842
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_BITWISE_AND.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpBitAnd, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 128:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1141
+//line grammar.y:846
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_BITWISE_OR.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpBitOr, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 129:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line grammar.y:1153
+//line grammar.y:850
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_UnaryExpression{
-					UnaryExpression: &ast.UnaryExpression{
-						Operator:   ast.UnaryExpression_BITWISE_NOT.Enum(),
-						Expression: yrDollar[2].expr,
-					},
-				},
-			}
+			yrVAL.node = &ast.BitwiseNot{yrDollar[2].node}
 		}
 	case 130:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1164
+//line grammar.y:854
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_SHIFT_LEFT.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpShiftLeft, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 131:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line grammar.y:1176
+//line grammar.y:858
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_BinaryExpression{
-					BinaryExpression: &ast.BinaryExpression{
-						Operator: ast.BinaryExpression_SHIFT_RIGHT.Enum(),
-						Left:     yrDollar[1].expr,
-						Right:    yrDollar[3].expr,
-					},
-				},
-			}
+			yrVAL.node = operation(ast.OpShiftRight, yrDollar[1].node, yrDollar[3].node)
 		}
 	case 132:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line grammar.y:1188
+//line grammar.y:862
 		{
-			yrVAL.expr = &ast.Expression{
-				Expression: &ast.Expression_Regexp{yrDollar[1].regp},
-			}
+
 		}
 	}
 	goto yrstack /* stack new state and value */

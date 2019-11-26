@@ -6,18 +6,17 @@ package hex
 import __yyfmt__ "fmt"
 
 //line hex/hex_grammar.y:31
-
 import (
 	"fmt"
 	proto "github.com/golang/protobuf/proto"
 
-	"github.com/VirusTotal/gyp/ast"
 	"github.com/VirusTotal/gyp/error"
+	"github.com/VirusTotal/gyp/pb"
 )
 
 const StringChainingThreshold int64 = 200
 
-var ParsedHexString ast.HexTokens
+var ParsedHexString pb.HexTokens
 
 var insideOr int
 
@@ -30,11 +29,11 @@ type ByteWithMask struct {
 type xxSymType struct {
 	yys     int
 	integer int64
-	token   *ast.HexToken
-	tokens  *ast.HexTokens
+	token   *pb.HexToken
+	tokens  *pb.HexTokens
 	bm      ByteWithMask
-	alt     *ast.HexAlternative
-	rng     *ast.Jump
+	alt     *pb.HexAlternative
+	rng     *pb.Jump
 }
 
 const _BYTE_ = 57346
@@ -72,11 +71,11 @@ const xxEofCode = 1
 const xxErrCode = 2
 const xxInitialStackSize = 16
 
-//line hex/hex_grammar.y:275
+//line hex/hex_grammar.y:283
 
-func appendToken(tokens *ast.HexTokens, t *ast.HexToken) {
+func appendToken(tokens *pb.HexTokens, t *pb.HexToken) {
 	if len(tokens.Token) == 0 {
-		tokens.Token = []*ast.HexToken{t}
+		tokens.Token = []*pb.HexToken{t}
 		return
 	}
 
@@ -85,7 +84,7 @@ func appendToken(tokens *ast.HexTokens, t *ast.HexToken) {
 	tokens.Token = append(tokens.Token[:numTokens-1], mergeTokens(lastToken, t)...)
 }
 
-func mergeTokens(tokens ...*ast.HexToken) (out []*ast.HexToken) {
+func mergeTokens(tokens ...*pb.HexToken) (out []*pb.HexToken) {
 	if len(tokens) == 0 {
 		return
 	}
@@ -534,28 +533,28 @@ xxdefault:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
 //line hex/hex_grammar.y:97
 		{
-			xxVAL.tokens = &ast.HexTokens{Token: []*ast.HexToken{xxDollar[1].token}}
+			xxVAL.tokens = &pb.HexTokens{Token: []*pb.HexToken{xxDollar[1].token}}
 		}
 	case 3:
 		xxDollar = xxS[xxpt-2 : xxpt+1]
 //line hex/hex_grammar.y:101
 		{
-			xxVAL.tokens = &ast.HexTokens{Token: mergeTokens(xxDollar[1].token, xxDollar[2].token)}
+			xxVAL.tokens = &pb.HexTokens{Token: mergeTokens(xxDollar[1].token, xxDollar[2].token)}
 		}
 	case 4:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
 //line hex/hex_grammar.y:105
 		{
-			tokens := append([]*ast.HexToken{xxDollar[1].token}, xxDollar[2].tokens.Token...)
+			tokens := append([]*pb.HexToken{xxDollar[1].token}, xxDollar[2].tokens.Token...)
 			tokens = append(tokens, xxDollar[3].token)
 			tokens = mergeTokens(tokens...)
-			xxVAL.tokens = &ast.HexTokens{Token: tokens}
+			xxVAL.tokens = &pb.HexTokens{Token: tokens}
 		}
 	case 5:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
 //line hex/hex_grammar.y:116
 		{
-			xxVAL.tokens = &ast.HexTokens{Token: []*ast.HexToken{xxDollar[1].token}}
+			xxVAL.tokens = &pb.HexTokens{Token: []*pb.HexToken{xxDollar[1].token}}
 		}
 	case 6:
 		xxDollar = xxS[xxpt-2 : xxpt+1]
@@ -574,15 +573,15 @@ xxdefault:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
 //line hex/hex_grammar.y:133
 		{
-			xxVAL.token = &ast.HexToken{Value: &ast.HexToken_Jump{xxDollar[1].rng}}
+			xxVAL.token = &pb.HexToken{Value: &pb.HexToken_Jump{xxDollar[1].rng}}
 		}
 	case 9:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
 //line hex/hex_grammar.y:141
 		{
-			xxVAL.token = &ast.HexToken{
-				Value: &ast.HexToken_Sequence{
-					&ast.BytesSequence{
+			xxVAL.token = &pb.HexToken{
+				Value: &pb.HexToken_Sequence{
+					&pb.BytesSequence{
 						Mask:  []byte{xxDollar[1].bm.Mask},
 						Value: []byte{xxDollar[1].bm.Value},
 					},
@@ -599,7 +598,7 @@ xxdefault:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
 //line hex/hex_grammar.y:156
 		{
-			xxVAL.token = &ast.HexToken{Value: &ast.HexToken_Alternative{xxDollar[3].alt}}
+			xxVAL.token = &pb.HexToken{Value: &pb.HexToken_Alternative{xxDollar[3].alt}}
 		}
 	case 12:
 		xxDollar = xxS[xxpt-5 : xxpt+1]
@@ -616,6 +615,7 @@ xxdefault:
 				err := gyperror.Error{
 					gyperror.InvalidJumpLengthError,
 					fmt.Sprintf("%d", xxDollar[2].integer),
+					0,
 				}
 				panic(err)
 			}
@@ -624,21 +624,23 @@ xxdefault:
 				err := gyperror.Error{
 					gyperror.JumpTooLargeInsideAlternationError,
 					fmt.Sprintf("%d", xxDollar[2].integer),
+					0,
 				}
 				panic(err)
 			}
 
-			xxVAL.rng = &ast.Jump{Start: proto.Int64(xxDollar[2].integer), End: proto.Int64(xxDollar[2].integer)}
+			xxVAL.rng = &pb.Jump{Start: proto.Int64(xxDollar[2].integer), End: proto.Int64(xxDollar[2].integer)}
 		}
 	case 14:
 		xxDollar = xxS[xxpt-5 : xxpt+1]
-//line hex/hex_grammar.y:189
+//line hex/hex_grammar.y:191
 		{
 			if insideOr > 0 &&
 				(xxDollar[2].integer > StringChainingThreshold || xxDollar[4].integer > StringChainingThreshold) {
 				err := gyperror.Error{
 					gyperror.JumpTooLargeInsideAlternationError,
 					fmt.Sprintf("%d-%d", xxDollar[2].integer, xxDollar[4].integer),
+					0,
 				}
 				panic(err)
 			}
@@ -647,6 +649,7 @@ xxdefault:
 				err := gyperror.Error{
 					gyperror.NegativeJumpError,
 					fmt.Sprintf("%d-$d", xxDollar[2].integer, xxDollar[4].integer),
+					0,
 				}
 				panic(err)
 			}
@@ -655,20 +658,22 @@ xxdefault:
 				err := gyperror.Error{
 					gyperror.InvalidJumpRangeError,
 					fmt.Sprintf("%d-%d", xxDollar[2].integer, xxDollar[4].integer),
+					0,
 				}
 				panic(err)
 			}
 
-			xxVAL.rng = &ast.Jump{Start: proto.Int64(xxDollar[2].integer), End: proto.Int64(xxDollar[4].integer)}
+			xxVAL.rng = &pb.Jump{Start: proto.Int64(xxDollar[2].integer), End: proto.Int64(xxDollar[4].integer)}
 		}
 	case 15:
 		xxDollar = xxS[xxpt-4 : xxpt+1]
-//line hex/hex_grammar.y:218
+//line hex/hex_grammar.y:223
 		{
 			if insideOr > 0 {
 				err := gyperror.Error{
 					gyperror.UnboundedJumpInsideAlternationError,
 					fmt.Sprintf("%d-", xxDollar[2].integer),
+					0,
 				}
 				panic(err)
 			}
@@ -677,48 +682,50 @@ xxdefault:
 				err := gyperror.Error{
 					gyperror.NegativeJumpError,
 					fmt.Sprintf("%d-", xxDollar[2].integer),
+					0,
 				}
 				panic(err)
 			}
 
-			xxVAL.rng = &ast.Jump{Start: proto.Int64(xxDollar[2].integer)}
+			xxVAL.rng = &pb.Jump{Start: proto.Int64(xxDollar[2].integer)}
 		}
 	case 16:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line hex/hex_grammar.y:238
+//line hex/hex_grammar.y:245
 		{
 			if insideOr > 0 {
 				err := gyperror.Error{
 					gyperror.UnboundedJumpInsideAlternationError,
 					"-",
+					0,
 				}
 				panic(err)
 			}
 
-			xxVAL.rng = &ast.Jump{}
+			xxVAL.rng = &pb.Jump{}
 		}
 	case 17:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line hex/hex_grammar.y:254
+//line hex/hex_grammar.y:262
 		{
-			xxVAL.alt = &ast.HexAlternative{Tokens: []*ast.HexTokens{xxDollar[1].tokens}}
+			xxVAL.alt = &pb.HexAlternative{Tokens: []*pb.HexTokens{xxDollar[1].tokens}}
 		}
 	case 18:
 		xxDollar = xxS[xxpt-3 : xxpt+1]
-//line hex/hex_grammar.y:258
+//line hex/hex_grammar.y:266
 		{
 			xxDollar[1].alt.Tokens = append(xxDollar[1].alt.Tokens, xxDollar[3].tokens)
 			xxVAL.alt = xxDollar[1].alt
 		}
 	case 19:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line hex/hex_grammar.y:266
+//line hex/hex_grammar.y:274
 		{
 			xxVAL.bm = xxDollar[1].bm
 		}
 	case 20:
 		xxDollar = xxS[xxpt-1 : xxpt+1]
-//line hex/hex_grammar.y:270
+//line hex/hex_grammar.y:278
 		{
 			xxVAL.bm = xxDollar[1].bm
 		}
