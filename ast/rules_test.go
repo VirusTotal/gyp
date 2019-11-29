@@ -94,6 +94,31 @@ rule foo {
     true
 }`,
 	},
+	{
+		Rule: &Rule{
+			Identifier: "foo",
+			Strings: []String{
+				&TextString{
+					Identifier: "$a",
+					ASCII:      true,
+					Wide:       true,
+					Nocase:     true,
+					Xor:        true,
+					XorMin:     0,
+					XorMax:     255,
+					Value:      "bar",
+				},
+			},
+			Condition: KeywordTrue,
+		},
+		ExpectedSource: `
+rule foo {
+  strings:
+    $a = "bar" ascii wide nocase xor
+  condition:
+    true
+}`,
+	},
 }
 
 func TestRuleWriteSource(t *testing.T) {

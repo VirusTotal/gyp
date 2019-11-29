@@ -16,8 +16,8 @@ type Rule struct {
 	Identifier string
 	Tags       []string
 	Meta       []*Meta
-	Strings    []*String
-	Condition  Node
+	Strings    []String
+	Condition  Expression
 }
 
 // RuleSet describes a set of YARA rules.
@@ -82,11 +82,15 @@ func (r *Rule) Children() []Node {
 	return []Node{r.Condition}
 }
 
-// AsRuleProto returns the rule serialized as a the Rule protobuf message.
-func (r *Rule) AsRuleProto() *pb.Rule {
+// AsProto returns the rule serialized as a the Rule protobuf message.
+func (r *Rule) AsProto() *pb.Rule {
 	meta := make([]*pb.Meta, len(r.Meta))
 	for i, m := range r.Meta {
-		meta[i] = m.AsMetaProto()
+		meta[i] = m.AsProto()
+	}
+	strings := make([]*pb.String, len(r.Strings))
+	for i, s := range r.Strings {
+		strings[i] = s.AsProto()
 	}
 	return &pb.Rule{
 		Modifiers: &pb.RuleModifiers{
@@ -96,28 +100,19 @@ func (r *Rule) AsRuleProto() *pb.Rule {
 		Identifier: proto.String(r.Identifier),
 		Tags:       r.Tags,
 		Meta:       meta,
-		Condition:  r.Condition.AsProto().(*pb.Expression),
+		Strings:    strings,
+		Condition:  r.Condition.AsProto(),
 	}
 }
 
-// AsRuleSetProto returns the rule set serialized as the RuleSet protobuf message.
-func (r *RuleSet) AsRuleSetProto() *pb.RuleSet {
+// AsProto returns the rule set serialized as the RuleSet protobuf message.
+func (r *RuleSet) AsProto() *pb.RuleSet {
 	rules := make([]*pb.Rule, len(r.Rules))
 	for i, rule := range r.Rules {
-		rules[i] = rule.AsRuleProto()
+		rules[i] = rule.AsProto()
 	}
 	return &pb.RuleSet{
 		Imports: r.Imports,
 		Rules:   rules,
 	}
-}
-
-// AsProto returns the rule serialized as a Protocol Buffer.
-func (r *Rule) AsProto() proto.Message {
-	return r.AsRuleProto()
-}
-
-// AsProto returns the rule set serialized as a Protocol Buffer.
-func (r *RuleSet) AsProto() proto.Message {
-	return r.AsRuleSetProto()
 }

@@ -12,6 +12,7 @@ const (
 	DuplicateRuleError
 	DuplicateTagError
 	DuplicateStringError
+	DuplicateModifierError
 	UnterminatedStringError
 	IllegalEscapeSequenceError
 	InvalidRegexModifierError

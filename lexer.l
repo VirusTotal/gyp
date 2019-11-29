@@ -41,6 +41,7 @@ import (
     "strconv"
     "strings"
 
+    "github.com/VirusTotal/gyp/ast"
     "github.com/VirusTotal/gyp/hex"
     "github.com/VirusTotal/gyp/error"
 )
@@ -315,17 +316,48 @@ u?int(8|16|32)(be)? {
 
 
 <str>\n  {
-  panic(gyperror.Error{ gyperror.UnterminatedStringError, "",0 })
+  panic(gyperror.Error{
+    gyperror.UnterminatedStringError, "unterminate string",0 })
 }
 
 
 <str>\\(.|\n) {
-  panic(gyperror.Error{ gyperror.IllegalEscapeSequenceError, "",0 })
+  panic(gyperror.Error{
+    gyperror.IllegalEscapeSequenceError, "illegal escape sequence", 0 })
 }
 
 
 <regexp>\/i?s?  {
 
+  collectText = false
+
+  txt := strings.TrimSuffix(string(text), YYtext)
+
+  var mods ast.RegexpModifiers
+  for _, c := range YYtext {
+      switch c {
+      case 'i':
+          mods = mods | ast.RegexpCaseInsensitive
+      case 's':
+          mods = mods | ast.RegexpDotAll
+      case '/':
+          // Ignore
+      default:
+          // Should be impossible
+          panic(
+            gyperror.Error{
+              gyperror.InvalidRegexModifierError,
+              fmt.Sprintf(`"%c"`, c),
+              0,
+            },
+          )
+      }
+  }
+
+  yy.Context.lval.reg = &ast.LiteralRegexp {
+      Value: txt,
+      Modifiers: mods,
+  }
 
   BEGIN (INITIAL);
   return _REGEXP_;
@@ -344,7 +376,8 @@ u?int(8|16|32)(be)? {
 
 
 <regexp>\n  {
-  panic(gyperror.Error{ gyperror.UnterminatedRegexError, "",0 })
+  panic(gyperror.Error{
+    gyperror.UnterminatedRegexError, "unterminated regexp",0 })
 }
 
 

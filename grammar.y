@@ -31,17 +31,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package gyp
 
 import (
-    "fmt"
     "github.com/VirusTotal/gyp/pb"
     "github.com/VirusTotal/gyp/ast"
     "github.com/VirusTotal/gyp/error"
 )
 
+type modifiers uint64
 
-type ruleModifiers struct {
-  Global bool
-  Private bool
+const (
+	_           = iota // ignore first value by assigning to blank identifier
+	ModGlobal modifiers = 1 << iota
+	ModPrivate
+  ModASCII
+  ModWide
+  ModXor
+  ModFullword
+  ModNocase
+)
+
+type stringModifiers struct {
+  modifiers
+  XorMin int32
+  XorMax int32
 }
+
 
 %}
 
@@ -118,44 +131,55 @@ type ruleModifiers struct {
 %type <yss>       strings
 %type <ys>        string_declaration
 %type <yss>       string_declarations
-%type <mod>       string_modifier
-%type <mod>       string_modifiers
+%type <smod>      string_modifier
+%type <smod>      string_modifiers
 %type <mod>       regexp_modifier
 %type <mod>       regexp_modifiers
 %type <mod>       hex_modifier
 %type <mod>       hex_modifiers
-%type <rm>        rule_modifier
-%type <rm>        rule_modifiers
-%type <node>      condition
-%type <node>      boolean_expression
-%type <node>      expression
-%type <node>      primary_expression
-%type <id>        identifier
+%type <mod>       rule_modifier
+%type <mod>       rule_modifiers
+%type <expr>      condition
+%type <expr>      expression
+%type <expr>      boolean_expression
+%type <expr>      primary_expression
+%type <expr>      identifier
 %type <exprs>     arguments_list
 %type <exprs>     arguments
-%type <regp>      regexp
-%type <node>      for_expression
-%type <ss>        for_variables
+%type <quantifier> for_expression
+%type <exprs>     integer_enumeration
+%type <node>      iterator
 %type <node>      integer_set
-%type <intenum>   integer_enumeration
-%type <rng>       range
 %type <node>      string_set
-%type <strenum>   string_enumeration
-%type <strenumi>  string_enumeration_item
-%type <iterator>  iterator
+%type <reg>       regexp
+%type <rng>       range
+%type <ss>        for_variables
+%type <exprs>     string_enumeration
+%type <si>        string_enumeration_item
+
 
 %union {
     i64           int64
     f64           float64
     s             string
     ss            []string
-
+    reg           *ast.LiteralRegexp
     hextokens     *pb.HexTokens
-    rm            *ruleModifiers
+    mod           modifiers
+    smod          stringModifiers
     rule          *ast.Rule
     meta          *ast.Meta
     metas         []*ast.Meta
+    ys            ast.String
+    yss           []ast.String
     node          ast.Node
+    nodes         []ast.Node
+    rng           *ast.Range
+    expr          ast.Expression
+    exprs         []ast.Expression
+    si            *ast.StringIdentifier
+    sis           []*ast.StringIdentifier
+    quantifier    *ast.Quantifier
 }
 
 
@@ -197,7 +221,7 @@ rule
         lexer := asLexer(yrlex)
 
         // Forbid duplicate rules
-        for _, r := range  lexer.ruleSet.Rules {
+        for _, r := range lexer.ruleSet.Rules {
             if $3 == r.Identifier {
               return lexer.SetError(
                 gyperror.DuplicateRuleError, `duplicate rule "%s"`, $3)
@@ -205,8 +229,8 @@ rule
         }
 
         $$ = &ast.Rule{
-            Global: $1.Global,
-            Private: $1.Private,
+            Global: $1 & ModGlobal == ModGlobal,
+            Private: $1 & ModPrivate == ModPrivate,
             Identifier: $3,
         }
       }
@@ -214,6 +238,7 @@ rule
       {
         $<rule>4.Tags = $5
         $<rule>4.Meta = $7
+        $<rule>4.Strings = $8
       }
       condition '}'
       {
@@ -238,11 +263,11 @@ meta
 strings
     : /* empty */
       {
-
+        $$ = []ast.String{}
       }
     | _STRINGS_ ':' string_declarations
       {
-
+        $$ = $3
       }
     ;
 
@@ -258,13 +283,11 @@ condition
 rule_modifiers
     : /* empty */
       {
-        $$ = &ruleModifiers{}
+        $$ = 0
       }
     | rule_modifiers rule_modifier
       {
-        $1.Global = $1.Global || $2.Global
-        $1.Private = $1.Private || $2.Private
-        $$ = $1
+        $$ = $1 | $2
       }
     ;
 
@@ -272,11 +295,11 @@ rule_modifiers
 rule_modifier
     : _PRIVATE_
       {
-        $$ = &ruleModifiers{Private: true}
+        $$ = ModPrivate
       }
     | _GLOBAL_
       {
-        $$ = &ruleModifiers{Global: true}
+        $$ = ModGlobal
       }
     ;
 
@@ -368,29 +391,42 @@ meta_declaration
 string_declarations
     : string_declaration
       {
+        $$ = []ast.String{$1}
       }
     | string_declarations string_declaration
       {
-
+        $$ = append($1, $2)
       }
     ;
 
 
 string_declaration
-    : _STRING_IDENTIFIER_ '='
+    : _STRING_IDENTIFIER_ '=' _TEXT_STRING_ string_modifiers
       {
+        $$ = &ast.TextString{
+          Identifier: $1,
+          ASCII: $4.modifiers & ModASCII != 0,
+          Wide: $4.modifiers & ModWide != 0,
+          Nocase: $4.modifiers & ModNocase != 0,
+          Fullword: $4.modifiers & ModFullword != 0,
+          Private: $4.modifiers & ModPrivate != 0,
+          Xor: $4.modifiers & ModXor != 0,
+          XorMin: $4.XorMin,
+          XorMax: $4.XorMax,
+          Value: $3,
+        }
       }
-      _TEXT_STRING_ string_modifiers
+    | _STRING_IDENTIFIER_ '=' _REGEXP_ regexp_modifiers
       {
-
-      }
-    | _STRING_IDENTIFIER_ '='
-      {
-
-      }
-      _REGEXP_ regexp_modifiers
-      {
-
+        $$ = &ast.RegexpString{
+          Identifier: $1,
+          ASCII: $4 & ModASCII != 0,
+          Wide: $4 & ModWide != 0,
+          Nocase: $4 & ModNocase != 0,
+          Fullword: $4 & ModFullword != 0,
+          Private: $4 & ModPrivate != 0,
+          Regexp: $3,
+        }
       }
     | _STRING_IDENTIFIER_ '=' _HEX_STRING_ hex_modifiers
       {
@@ -402,26 +438,48 @@ string_declaration
 string_modifiers
     : /* empty */
       {
+        $$ = stringModifiers{}
       }
     | string_modifiers string_modifier
       {
+        if $1.modifiers & $2.modifiers != 0 {
+          return asLexer(yrlex).SetError(
+            gyperror.DuplicateModifierError, `duplicate modifier`)
+        }
+
+        $1.modifiers |= $2.modifiers
+
+        if $2.modifiers | ModXor != 0 {
+          $1.XorMin = $2.XorMin
+          $1.XorMax = $2.XorMax
+        }
+
+        $$ = $1
       }
     ;
 
 
 string_modifier
-    : _WIDE_        { }
-    | _ASCII_       { }
-    | _NOCASE_      { }
-    | _FULLWORD_    { }
-    | _PRIVATE_     { }
+    : _WIDE_        { $$ = stringModifiers{modifiers: ModWide} }
+    | _ASCII_       { $$ = stringModifiers{modifiers: ModASCII} }
+    | _NOCASE_      { $$ = stringModifiers{modifiers: ModNocase} }
+    | _FULLWORD_    { $$ = stringModifiers{modifiers: ModFullword} }
+    | _PRIVATE_     { $$ = stringModifiers{modifiers: ModPrivate} }
     | _XOR_
       {
-
+        $$ = stringModifiers{
+          modifiers: ModXor,
+          XorMin: 0,
+          XorMax: 255,
+        }
       }
     | _XOR_ '(' _NUMBER_ ')'
       {
-
+        $$ = stringModifiers{
+          modifiers: ModXor,
+          XorMin: int32($3),
+          XorMax: int32($3),
+        }
       }
     | _XOR_ '(' _NUMBER_ '-' _NUMBER_ ')'
       {
@@ -444,6 +502,12 @@ string_modifier
             gyperror.InvalidStringModifierError,
             "xor lower bound exceeds upper bound")
         }
+
+        $$ = stringModifiers{
+          modifiers: ModXor,
+          XorMin: int32($3),
+          XorMax: int32($5),
+        }
       }
     ;
 
@@ -451,60 +515,66 @@ string_modifier
 regexp_modifiers
     : /* empty */
       {
-
+        $$ = 0
       }
     | regexp_modifiers regexp_modifier
       {
-
+        $$ = $1 | $2
       }
     ;
 
 
 regexp_modifier
-    : _WIDE_        { }
-    | _ASCII_       { }
-    | _NOCASE_      {  }
-    | _FULLWORD_    {  }
-    | _PRIVATE_     {  }
+    : _WIDE_        { $$ = ModWide }
+    | _ASCII_       { $$ = ModASCII }
+    | _NOCASE_      { $$ = ModNocase }
+    | _FULLWORD_    { $$ = ModFullword }
+    | _PRIVATE_     { $$ = ModPrivate }
     ;
 
 
 hex_modifiers
     : /* empty */
       {
-
+        $$ = 0
       }
     | hex_modifiers hex_modifier
       {
-
+        $$ = $1 | $2
       }
     ;
 
 
 hex_modifier
-    : _PRIVATE_
-      {
-
-      }
+    : _PRIVATE_     { $$ = ModPrivate }
     ;
 
 
 identifier
     : _IDENTIFIER_
       {
-
+        $$ = &ast.Identifier{Identifier: $1}
       }
     | identifier '.' _IDENTIFIER_
       {
-
+        $$ = &ast.MemberAccess{
+          Container: $1,
+          Member: $3,
+        }
       }
     | identifier '[' primary_expression ']'
       {
-
+        $$ = &ast.Subscripting{
+          Array: $1,
+          Index: $3,
+        }
       }
     | identifier '(' arguments ')'
       {
-
+        $$ = &ast.FunctionCall{
+          Callable: $1,
+          Arguments: $3,
+        }
       }
     ;
 
@@ -512,30 +582,31 @@ identifier
 arguments
     : /* empty */
       {
-
+        $$ = []ast.Expression{}
       }
     | arguments_list
      {
-
+        $$ = $1
      }
 
 
 arguments_list
     : expression
       {
-
+        $$ = []ast.Expression{$1}
       }
     | arguments_list ',' expression
       {
+        $$ = append($1, $3)
       }
     ;
 
 
 regexp
     : _REGEXP_
-    {
-
-    }
+      {
+        $$ = $1
+      }
     ;
 
 
@@ -545,6 +616,7 @@ boolean_expression
         $$ = $1
       }
     ;
+
 
 expression
     : _TRUE_
@@ -557,36 +629,54 @@ expression
       }
     | primary_expression _MATCHES_ regexp
       {
-
+        $$ = &ast.Operation{
+          Operator: ast.OpMatches,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | primary_expression _CONTAINS_ primary_expression
       {
-
+        $$ = &ast.Operation{
+          Operator: ast.OpContains,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | _STRING_IDENTIFIER_
       {
-
+        $$ = &ast.StringIdentifier{Identifier: $1}
       }
     | _STRING_IDENTIFIER_ _AT_ primary_expression
       {
-
+        $$ = &ast.StringIdentifier{Identifier: $1, At: $3}
       }
     | _STRING_IDENTIFIER_ _IN_ range
       {
-
+        $$ = &ast.StringIdentifier{Identifier: $1, In: $3}
       }
     | _FOR_ for_expression error { }
     | _FOR_ for_expression for_variables _IN_ iterator ':' '(' boolean_expression ')'
       {
-
+        $$ = &ast.ForIn{
+          Quantifier: $2,
+          Variables: $3,
+          Iterator: $5,
+          Condition: $8,
+        }
       }
     | _FOR_ for_expression _OF_ string_set ':' '(' boolean_expression ')'
       {
-
+        $$ = &ast.ForOf{
+          Quantifier: $2,
+          Strings: $4,
+          Condition:  $7,
+        }
       }
     | for_expression _OF_ string_set
       {
-
+        $$ = &ast.Of{
+          Quantifier: $1,
+          Strings: $3,
+        }
       }
     | _NOT_ boolean_expression
       {
@@ -604,42 +694,42 @@ expression
       {
         $$ = &ast.Operation{
           Operator: ast.OpLessThan,
-          Operands: []ast.Node{$1, $3},
+          Operands: []ast.Expression{$1, $3},
         }
       }
     | primary_expression _GT_ primary_expression
       {
         $$ = &ast.Operation{
           Operator: ast.OpGreaterThan,
-          Operands: []ast.Node{$1, $3},
+          Operands: []ast.Expression{$1, $3},
         }
       }
     | primary_expression _LE_ primary_expression
       {
         $$ = &ast.Operation{
           Operator: ast.OpLessOrEqual,
-          Operands: []ast.Node{$1, $3},
+          Operands: []ast.Expression{$1, $3},
         }
       }
     | primary_expression _GE_ primary_expression
       {
         $$ = &ast.Operation{
           Operator: ast.OpGreaterOrEqual,
-          Operands: []ast.Node{$1, $3},
+          Operands: []ast.Expression{$1, $3},
         }
       }
     | primary_expression _EQ_ primary_expression
       {
         $$ = &ast.Operation{
           Operator: ast.OpEqual,
-          Operands: []ast.Node{$1, $3},
+          Operands: []ast.Expression{$1, $3},
         }
       }
     | primary_expression _NEQ_ primary_expression
       {
         $$ = &ast.Operation{
           Operator: ast.OpNotEqual,
-          Operands: []ast.Node{$1, $3},
+          Operands: []ast.Expression{$1, $3},
         }
       }
     | primary_expression
@@ -656,11 +746,11 @@ expression
 integer_set
     : '(' integer_enumeration ')'
       {
-
+        $$ = &ast.Enum{Values: $2}
       }
     | range
       {
-
+        $$ = $1
       }
     ;
 
@@ -668,7 +758,10 @@ integer_set
 range
     : '(' primary_expression _DOT_DOT_  primary_expression ')'
       {
-
+        $$ = &ast.Range{
+          Start: $2,
+          End: $4,
+        }
       }
     ;
 
@@ -676,10 +769,11 @@ range
 integer_enumeration
     : primary_expression
       {
-
+        $$ = []ast.Expression{$1}
       }
     | integer_enumeration ',' primary_expression
       {
+        $$ = append($1, $3)
       }
    ;
 
@@ -687,6 +781,7 @@ integer_enumeration
 string_set
     : '(' string_enumeration ')'
       {
+        $$ = &ast.Enum{Values: $2}
       }
     | _THEM_
       {
@@ -698,10 +793,11 @@ string_set
 string_enumeration
     : string_enumeration_item
       {
-
+        $$ = []ast.Expression{$1}
       }
     | string_enumeration ',' string_enumeration_item
       {
+        $$ = append($1, $3)
       }
     ;
 
@@ -709,11 +805,11 @@ string_enumeration
 string_enumeration_item
     : _STRING_IDENTIFIER_
       {
-
+        $$ = &ast.StringIdentifier{Identifier: $1}
       }
     | _STRING_IDENTIFIER_WITH_WILDCARD_
       {
-
+        $$ = &ast.StringIdentifier{Identifier: $1}
       }
     ;
 
@@ -721,15 +817,15 @@ string_enumeration_item
 for_expression
     : primary_expression
       {
-        $$ = $1
+        $$ = &ast.Quantifier{$1}
       }
     | _ALL_
       {
-        $$ = ast.KeywordAll
+        $$ = &ast.Quantifier{ast.KeywordAll}
       }
     | _ANY_
       {
-        $$ = ast.KeywordAny
+        $$ = &ast.Quantifier{ast.KeywordAny}
       }
     ;
 
@@ -737,22 +833,22 @@ for_expression
 for_variables
     : _IDENTIFIER_
       {
-
+        $$ = []string{$1}
       }
     | for_variables ',' _IDENTIFIER_
       {
-
+        $$ = append($1, $3)
       }
     ;
 
 iterator
     : identifier
       {
-
+        $$ = $1
       }
     | integer_set
       {
-
+        $$ = $1
       }
     ;
 
@@ -772,7 +868,10 @@ primary_expression
       }
     | _INTEGER_FUNCTION_ '(' primary_expression ')'
       {
-
+        $$ = &ast.FunctionCall{
+          Callable: &ast.Identifier{Identifier: $1},
+          Arguments: []ast.Expression{$3},
+        }
       }
     | _NUMBER_
       {
@@ -788,27 +887,37 @@ primary_expression
       }
     | _STRING_COUNT_
       {
-
+        $$ = &ast.StringCount{Identifier: $1}
       }
     | _STRING_OFFSET_ '[' primary_expression ']'
       {
-
+        $$ = &ast.StringOffset{
+          Identifier: $1,
+          Index: $3,
+        }
       }
     | _STRING_OFFSET_
       {
-
+        $$ = &ast.StringOffset{
+          Identifier: $1,
+        }
       }
     | _STRING_LENGTH_ '[' primary_expression ']'
       {
-
+        $$ = &ast.StringLength{
+          Identifier: $1,
+          Index: $3,
+        }
       }
     | _STRING_LENGTH_
       {
-
+        $$ = &ast.StringLength{
+          Identifier: $1,
+        }
       }
     | identifier
       {
-
+        $$ = $1
       }
     | '-' primary_expression %prec UNARY_MINUS
       {
@@ -860,45 +969,27 @@ primary_expression
       }
     | regexp
       {
-
+        $$ = $1
       }
     ;
 
 %%
 
 
-// This function takes an operator and two operands and returns a node
+// This function takes an operator and two operands and returns a Expression
 // representing the operation. If the left operand is an operation of the
 // the same kind than the specified by the operator, the right operand is
 // simply appended to that existing operation. This implies that the operator
 // must be left-associative in order to be used with this function.
-func operation(operator ast.OperatorType, left, right ast.Node) (n ast.Node) {
+func operation(operator ast.OperatorType, left, right ast.Expression) (n ast.Expression) {
   if operation, ok := left.(*ast.Operation); ok && operation.Operator == operator {
     operation.Operands = append(operation.Operands, right)
     n = operation
   } else {
     n = &ast.Operation{
       Operator: operator,
-      Operands: []ast.Node{left, right},
+      Operands: []ast.Expression{left, right},
     }
   }
   return n
-}
-
-
-// Strings in YARA rules may contain escaped chars, such as doublequotes (")
-// or new lines (\n).
-// The strings returned by the lexer contains the backslashes used to escape
-// those chars. However, the backslashes are not part of the string to match
-// and they should be removed.
-// Example:
-// -  YARA rule:                  $str = "First line\nSecond line"
-// -  decodeEscapedString input:  str  = "First line\\nSecond line"
-// -  decodeEscapedString output: out  = "First line\nSecond line"
-func decodeEscapedString(str string) (out string) {
-  if _, err := fmt.Sscanf(fmt.Sprintf("\"%s\"", str), "%q", &out); err != nil {
-    panic(err)
-  }
-
-  return out
 }

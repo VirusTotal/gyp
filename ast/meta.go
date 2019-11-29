@@ -22,8 +22,8 @@ func (m *Meta) String() string {
 	return fmt.Sprintf("%s = %#v", m.Key, m.Value)
 }
 
-// AsMetaProto returns the meta serialized as a the Meta protobuf.
-func (m *Meta) AsMetaProto() *pb.Meta {
+// AsProto returns the meta serialized as a the Meta protobuf.
+func (m *Meta) AsProto() *pb.Meta {
 	meta := &pb.Meta{Key: proto.String(m.Key)}
 	switch v := m.Value.(type) {
 	case int64:
@@ -36,9 +36,4 @@ func (m *Meta) AsMetaProto() *pb.Meta {
 		panic(fmt.Sprintf(`unexpected meta type: "%T"`, v))
 	}
 	return meta
-}
-
-// AsProto returns the meta serialized as a Protocol Buffer.
-func (m *Meta) AsProto() proto.Message {
-	return m.AsMetaProto()
 }
