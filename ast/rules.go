@@ -22,8 +22,9 @@ type Rule struct {
 
 // RuleSet describes a set of YARA rules.
 type RuleSet struct {
-	Imports []string
-	Rules   []*Rule
+	Imports  []string
+	Includes []string
+	Rules    []*Rule
 }
 
 var ruleTmpl = template.Must(template.New("rule").Parse(`

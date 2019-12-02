@@ -116,7 +116,8 @@ type Identifier struct {
 // the condition, like "$a". The "At" field is non-nil if the identifier comes
 // accompanied by an "at" condition, like "$a at 100". Similarly, "In" is
 // non-nil if the identifier is accompanied by an "in" condition, like
-// "$a in (0..100)".
+// "$a in (0..100)". Notice that the Identifier field doesn't contain the $
+// prefix.
 type StringIdentifier struct {
 	Identifier string
 	At         Expression
@@ -124,14 +125,14 @@ type StringIdentifier struct {
 }
 
 // StringCount is an Expression that represents a string count operation, like
-// "#a".
+// "#a". Notice that the Identifier field doesn't contain the # prefix.
 type StringCount struct {
 	Identifier string
 }
 
 // StringOffset is an Expression that represents a string offset operation, like
 // "@a". The "Index" field is non-nil if the count operation is indexed, like
-// in "@a[1]".
+// in "@a[1]". Notice that the Identifier field doesn't contain the @ prefix.
 type StringOffset struct {
 	Identifier string
 	Index      Expression
@@ -139,7 +140,7 @@ type StringOffset struct {
 
 // StringLength is an Expression that represents a string length operation, like
 // "!a". The "Index" field is non-nil if the count operation is indexed, like
-// in "!a[1]".
+// in "!a[1]". Notice that the Identifier field doesn't contain the ! prefix.
 type StringLength struct {
 	Identifier string
 	Index      Expression
@@ -336,7 +337,7 @@ func (i *Identifier) WriteSource(w io.Writer) error {
 
 // WriteSource writes the node's source into the writer w.
 func (s *StringIdentifier) WriteSource(w io.Writer) error {
-	_, err := io.WriteString(w, s.Identifier)
+	_, err := io.WriteString(w, fmt.Sprintf("$%s", s.Identifier))
 	if err == nil && s.At != nil {
 		_, err = io.WriteString(w, " at ")
 		if err == nil {
@@ -354,13 +355,13 @@ func (s *StringIdentifier) WriteSource(w io.Writer) error {
 
 // WriteSource writes the node's source into the writer w.
 func (s *StringCount) WriteSource(w io.Writer) error {
-	_, err := io.WriteString(w, s.Identifier)
+	_, err := io.WriteString(w, fmt.Sprintf("#%s", s.Identifier))
 	return err
 }
 
 // WriteSource writes the node's source into the writer w.
 func (s *StringOffset) WriteSource(w io.Writer) error {
-	_, err := io.WriteString(w, s.Identifier)
+	_, err := io.WriteString(w, fmt.Sprintf("@%s", s.Identifier))
 	if err == nil && s.Index != nil {
 		_, err = io.WriteString(w, "[")
 	}
@@ -375,7 +376,7 @@ func (s *StringOffset) WriteSource(w io.Writer) error {
 
 // WriteSource writes the node's source into the writer w.
 func (s *StringLength) WriteSource(w io.Writer) error {
-	_, err := io.WriteString(w, s.Identifier)
+	_, err := io.WriteString(w, fmt.Sprintf("!%s", s.Identifier))
 	if err == nil && s.Index != nil {
 		_, err = io.WriteString(w, "[")
 	}
@@ -757,7 +758,7 @@ func (i *Identifier) AsProto() *pb.Expression {
 func (s *StringIdentifier) AsProto() *pb.Expression {
 	expr := &pb.Expression{
 		Expression: &pb.Expression_StringIdentifier{
-			StringIdentifier: s.Identifier,
+			StringIdentifier: fmt.Sprintf("$%s", s.Identifier),
 		},
 	}
 	if s.At != nil {
@@ -793,7 +794,7 @@ func (s *StringIdentifier) AsProto() *pb.Expression {
 func (s *StringCount) AsProto() *pb.Expression {
 	return &pb.Expression{
 		Expression: &pb.Expression_StringCount{
-			StringCount: s.Identifier,
+			StringCount: fmt.Sprintf("#%s", s.Identifier),
 		},
 	}
 }
@@ -807,7 +808,7 @@ func (s *StringOffset) AsProto() *pb.Expression {
 	return &pb.Expression{
 		Expression: &pb.Expression_StringOffset{
 			StringOffset: &pb.StringOffset{
-				StringIdentifier: proto.String(s.Identifier),
+				StringIdentifier: proto.String(fmt.Sprintf("@%s", s.Identifier)),
 				Index:            index,
 			},
 		},
@@ -823,7 +824,7 @@ func (s *StringLength) AsProto() *pb.Expression {
 	return &pb.Expression{
 		Expression: &pb.Expression_StringLength{
 			StringLength: &pb.StringLength{
-				StringIdentifier: proto.String(s.Identifier),
+				StringIdentifier: proto.String(fmt.Sprintf("!%s", s.Identifier)),
 				Index:            index,
 			},
 		},
@@ -965,7 +966,7 @@ func (f *ForOf) AsProto() *pb.Expression {
 		for i, item := range v.Values {
 			identifier := item.(*StringIdentifier).Identifier
 			items[i] = &pb.StringEnumeration_StringEnumerationItem{
-				StringIdentifier: proto.String(identifier),
+				StringIdentifier: proto.String(fmt.Sprintf("$%s", identifier)),
 				HasWildcard:      proto.Bool(strings.HasSuffix(identifier, "*")),
 			}
 		}
@@ -1006,7 +1007,7 @@ func (o *Of) AsProto() *pb.Expression {
 		for i, item := range v.Values {
 			identifier := item.(*StringIdentifier).Identifier
 			items[i] = &pb.StringEnumeration_StringEnumerationItem{
-				StringIdentifier: proto.String(identifier),
+				StringIdentifier: proto.String(fmt.Sprintf("$%s", identifier)),
 				HasWildcard:      proto.Bool(strings.HasSuffix(identifier, "*")),
 			}
 		}

@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package gyp
 
 import (
+    "strings"
     "github.com/VirusTotal/gyp/ast"
     gyperror "github.com/VirusTotal/gyp/error"
 )
@@ -646,15 +647,23 @@ expression
       }
     | _STRING_IDENTIFIER_
       {
-        $$ = &ast.StringIdentifier{Identifier: $1}
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
+        }
       }
     | _STRING_IDENTIFIER_ _AT_ primary_expression
       {
-        $$ = &ast.StringIdentifier{Identifier: $1, At: $3}
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
+          At: $3,
+        }
       }
     | _STRING_IDENTIFIER_ _IN_ range
       {
-        $$ = &ast.StringIdentifier{Identifier: $1, In: $3}
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
+          In: $3,
+        }
       }
     | _FOR_ for_expression error { }
     | _FOR_ for_expression for_variables _IN_ iterator ':' '(' boolean_expression ')'
@@ -808,11 +817,15 @@ string_enumeration
 string_enumeration_item
     : _STRING_IDENTIFIER_
       {
-        $$ = &ast.StringIdentifier{Identifier: $1}
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
+        }
       }
     | _STRING_IDENTIFIER_WITH_WILDCARD_
       {
-        $$ = &ast.StringIdentifier{Identifier: $1}
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
+        }
       }
     ;
 
@@ -890,32 +903,34 @@ primary_expression
       }
     | _STRING_COUNT_
       {
-        $$ = &ast.StringCount{Identifier: $1}
+        $$ = &ast.StringCount{
+          Identifier: strings.TrimPrefix($1, "#"),
+        }
       }
     | _STRING_OFFSET_ '[' primary_expression ']'
       {
         $$ = &ast.StringOffset{
-          Identifier: $1,
+          Identifier: strings.TrimPrefix($1, "@"),
           Index: $3,
         }
       }
     | _STRING_OFFSET_
       {
         $$ = &ast.StringOffset{
-          Identifier: $1,
+          Identifier: strings.TrimPrefix($1, "@"),
         }
       }
     | _STRING_LENGTH_ '[' primary_expression ']'
       {
         $$ = &ast.StringLength{
-          Identifier: $1,
+          Identifier: strings.TrimPrefix($1, "!"),
           Index: $3,
         }
       }
     | _STRING_LENGTH_
       {
         $$ = &ast.StringLength{
-          Identifier: $1,
+          Identifier: strings.TrimPrefix($1, "!"),
         }
       }
     | identifier
