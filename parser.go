@@ -993,7 +993,7 @@ yrdefault:
 //line grammar.y:405
 		{
 			yrVAL.ys = &ast.TextString{
-				Identifier: yrDollar[1].s,
+				Identifier: strings.TrimPrefix(yrDollar[1].s, "$"),
 				ASCII:      yrDollar[4].smod.modifiers&ModASCII != 0,
 				Wide:       yrDollar[4].smod.modifiers&ModWide != 0,
 				Nocase:     yrDollar[4].smod.modifiers&ModNocase != 0,
@@ -1010,7 +1010,7 @@ yrdefault:
 //line grammar.y:420
 		{
 			yrVAL.ys = &ast.RegexpString{
-				Identifier: yrDollar[1].s,
+				Identifier: strings.TrimPrefix(yrDollar[1].s, "$"),
 				ASCII:      yrDollar[4].mod&ModASCII != 0,
 				Wide:       yrDollar[4].mod&ModWide != 0,
 				Nocase:     yrDollar[4].mod&ModNocase != 0,
@@ -1024,7 +1024,7 @@ yrdefault:
 //line grammar.y:432
 		{
 			yrVAL.ys = &ast.HexString{
-				Identifier: yrDollar[1].s,
+				Identifier: strings.TrimPrefix(yrDollar[1].s, "$"),
 				Private:    yrDollar[4].mod&ModPrivate != 0,
 				Tokens:     yrDollar[3].hexTokens,
 			}

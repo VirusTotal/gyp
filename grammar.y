@@ -404,7 +404,7 @@ string_declaration
     : _STRING_IDENTIFIER_ '=' _TEXT_STRING_ string_modifiers
       {
         $$ = &ast.TextString{
-          Identifier: $1,
+          Identifier: strings.TrimPrefix($1, "$"),
           ASCII: $4.modifiers & ModASCII != 0,
           Wide: $4.modifiers & ModWide != 0,
           Nocase: $4.modifiers & ModNocase != 0,
@@ -419,7 +419,7 @@ string_declaration
     | _STRING_IDENTIFIER_ '=' _REGEXP_ regexp_modifiers
       {
         $$ = &ast.RegexpString{
-          Identifier: $1,
+          Identifier: strings.TrimPrefix($1, "$"),
           ASCII: $4 & ModASCII != 0,
           Wide: $4 & ModWide != 0,
           Nocase: $4 & ModNocase != 0,
@@ -431,7 +431,7 @@ string_declaration
     | _STRING_IDENTIFIER_ '=' _HEX_STRING_ hex_modifiers
       {
         $$ = &ast.HexString{
-          Identifier: $1,
+          Identifier: strings.TrimPrefix($1, "$"),
           Private: $4 & ModPrivate != 0,
           Tokens: $3,
         }

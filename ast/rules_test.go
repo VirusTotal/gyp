@@ -99,7 +99,7 @@ rule foo {
 			Identifier: "foo",
 			Strings: []String{
 				&TextString{
-					Identifier: "$a",
+					Identifier: "a",
 					ASCII:      true,
 					Wide:       true,
 					Nocase:     true,

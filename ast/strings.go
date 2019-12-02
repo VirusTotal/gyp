@@ -151,7 +151,7 @@ func (h *HexString) String() string {
 
 // WriteSource writes the node's source into the writer w.
 func (t *TextString) WriteSource(w io.Writer) error {
-	_, err := io.WriteString(w, t.Identifier)
+	_, err := io.WriteString(w, fmt.Sprintf("$%s", t.Identifier))
 	if err == nil {
 		_, err = io.WriteString(w, " = ")
 	}
@@ -187,7 +187,7 @@ func (t *TextString) WriteSource(w io.Writer) error {
 
 // WriteSource writes the node's source into the writer w.
 func (r *RegexpString) WriteSource(w io.Writer) (err error) {
-	if _, err = io.WriteString(w, r.Identifier); err != nil {
+	if _, err = io.WriteString(w, fmt.Sprintf("$%s", r.Identifier)); err != nil {
 		return err
 	}
 	if _, err = io.WriteString(w, " = "); err != nil {
@@ -224,7 +224,7 @@ func (r *RegexpString) WriteSource(w io.Writer) (err error) {
 
 // WriteSource writes the node's source into the writer w.
 func (h *HexString) WriteSource(w io.Writer) (err error) {
-	if _, err = io.WriteString(w, h.Identifier); err != nil {
+	if _, err = io.WriteString(w, fmt.Sprintf("$%s", h.Identifier)); err != nil {
 		return err
 	}
 	if _, err = io.WriteString(w, " = { "); err != nil {
@@ -240,46 +240,6 @@ func (h *HexString) WriteSource(w io.Writer) (err error) {
 		_, err = io.WriteString(w, " private")
 	}
 	return err
-}
-
-// AsProto returns the string serialized as pb.String.
-func (t *TextString) AsProto() *pb.String {
-	modifiers := &pb.StringModifiers{
-		Ascii:    proto.Bool(t.ASCII),
-		Wide:     proto.Bool(t.Wide),
-		Fullword: proto.Bool(t.Fullword),
-		Nocase:   proto.Bool(t.Nocase),
-		Private:  proto.Bool(t.Private),
-		Xor:      proto.Bool(t.Xor),
-		XorMin:   proto.Int32(t.XorMin),
-		XorMax:   proto.Int32(t.XorMax),
-	}
-	return &pb.String{
-		Id: proto.String(t.Identifier),
-		Value: &pb.String_Text{
-			Text: &pb.TextString{
-				Text:      proto.String(t.UnescapedValue()),
-				Modifiers: modifiers,
-			},
-		},
-	}
-}
-
-// AsProto returns the string serialized as pb.String.
-func (r *RegexpString) AsProto() *pb.String {
-	regexp := r.Regexp.AsProto().GetRegexp()
-	m := regexp.GetModifiers()
-	m.Ascii = proto.Bool(r.ASCII)
-	m.Wide = proto.Bool(r.Wide)
-	m.Fullword = proto.Bool(r.Fullword)
-	m.Nocase = proto.Bool(r.Nocase)
-	m.Private = proto.Bool(r.Private)
-	return &pb.String{
-		Id: proto.String(r.Identifier),
-		Value: &pb.String_Regexp{
-			Regexp: regexp,
-		},
-	}
 }
 
 // WriteSource writes the node's source into the writer w.
@@ -353,9 +313,49 @@ func (h *HexOr) WriteSource(w io.Writer) error {
 }
 
 // AsProto returns the string serialized as pb.String.
+func (t *TextString) AsProto() *pb.String {
+	modifiers := &pb.StringModifiers{
+		Ascii:    proto.Bool(t.ASCII),
+		Wide:     proto.Bool(t.Wide),
+		Fullword: proto.Bool(t.Fullword),
+		Nocase:   proto.Bool(t.Nocase),
+		Private:  proto.Bool(t.Private),
+		Xor:      proto.Bool(t.Xor),
+		XorMin:   proto.Int32(t.XorMin),
+		XorMax:   proto.Int32(t.XorMax),
+	}
+	return &pb.String{
+		Id: proto.String(fmt.Sprintf("$%s", t.Identifier)),
+		Value: &pb.String_Text{
+			Text: &pb.TextString{
+				Text:      proto.String(t.UnescapedValue()),
+				Modifiers: modifiers,
+			},
+		},
+	}
+}
+
+// AsProto returns the string serialized as pb.String.
+func (r *RegexpString) AsProto() *pb.String {
+	regexp := r.Regexp.AsProto().GetRegexp()
+	m := regexp.GetModifiers()
+	m.Ascii = proto.Bool(r.ASCII)
+	m.Wide = proto.Bool(r.Wide)
+	m.Fullword = proto.Bool(r.Fullword)
+	m.Nocase = proto.Bool(r.Nocase)
+	m.Private = proto.Bool(r.Private)
+	return &pb.String{
+		Id: proto.String(fmt.Sprintf("$%s", r.Identifier)),
+		Value: &pb.String_Regexp{
+			Regexp: regexp,
+		},
+	}
+}
+
+// AsProto returns the string serialized as pb.String.
 func (h *HexString) AsProto() *pb.String {
 	return &pb.String{
-		Id: proto.String(h.Identifier),
+		Id: proto.String(fmt.Sprintf("$%s", h.Identifier)),
 		Value: &pb.String_Hex{
 			Hex: h.Tokens.AsProto(),
 		},

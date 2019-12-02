@@ -162,7 +162,7 @@ func stringFromProto(s *pb.String) String {
 	case *pb.String_Text:
 		modifiers := v.Text.GetModifiers()
 		return &TextString{
-			Identifier: s.GetId(),
+			Identifier: strings.TrimPrefix(s.GetId(), "$"),
 			ASCII:      modifiers.GetAscii(),
 			Wide:       modifiers.GetWide(),
 			Nocase:     modifiers.GetNocase(),
@@ -175,7 +175,7 @@ func stringFromProto(s *pb.String) String {
 		}
 	case *pb.String_Hex:
 		return &HexString{
-			Identifier: s.GetId(),
+			Identifier: strings.TrimPrefix(s.GetId(), "$"),
 			Tokens:     hexTokensFromProto(v.Hex),
 		}
 	case *pb.String_Regexp:
@@ -188,7 +188,7 @@ func stringFromProto(s *pb.String) String {
 			regexpm |= RegexpDotAll
 		}
 		return &RegexpString{
-			Identifier: s.GetId(),
+			Identifier: strings.TrimPrefix(s.GetId(), "$"),
 			ASCII:      modifiers.GetAscii(),
 			Wide:       modifiers.GetWide(),
 			Nocase:     modifiers.GetNocase(),
@@ -309,7 +309,7 @@ func forInExpressionFromProto(expr *pb.ForInExpression) *ForIn {
 }
 
 func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
-	var strings Node
+	var strs Node
 	switch v := expr.GetStringSet().GetSet().(type) {
 	case *pb.StringSet_Strings:
 		items := v.Strings.GetItems()
@@ -318,15 +318,15 @@ func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
 		}
 		for i, item := range items {
 			enum.Values[i] = &StringIdentifier{
-				Identifier: item.GetStringIdentifier(),
+				Identifier: strings.TrimPrefix(item.GetStringIdentifier(), "$"),
 			}
 		}
-		strings = enum
+		strs = enum
 	case *pb.StringSet_Keyword:
 		if v.Keyword != pb.StringSetKeyword_THEM {
 			panic(fmt.Sprintf(`unexpected keyword "%T"`, v))
 		}
-		strings = KeywordThem
+		strs = KeywordThem
 	}
 	condition := expr.GetExpression()
 	// A "<quantifier> of <string_set>" expression is serialized to protobuf
@@ -336,12 +336,12 @@ func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
 	if condition == nil {
 		return &Of{
 			Quantifier: quantifierFromProto(expr.GetForExpression()),
-			Strings:    strings,
+			Strings:    strs,
 		}
 	}
 	return &ForOf{
 		Quantifier: quantifierFromProto(expr.GetForExpression()),
-		Strings:    strings,
+		Strings:    strs,
 		Condition:  expressionFromProto(expr.GetExpression()),
 	}
 }
@@ -353,12 +353,12 @@ func binaryExpressionFromProto(expr *pb.BinaryExpression) Expression {
 	// StringIdentifier expression.
 	case opAt:
 		return &StringIdentifier{
-			Identifier: expr.GetLeft().GetStringIdentifier(),
+			Identifier: strings.TrimPrefix(expr.GetLeft().GetStringIdentifier(), "$"),
 			At:         expressionFromProto(expr.GetRight()),
 		}
 	case opIn:
 		return &StringIdentifier{
-			Identifier: expr.GetLeft().GetStringIdentifier(),
+			Identifier: strings.TrimPrefix(expr.GetLeft().GetStringIdentifier(), "$"),
 			In:         rangeFromProto(expr.GetRight().GetRange()),
 		}
 	default:
@@ -411,20 +411,20 @@ func expressionFromProto(e *pb.Expression) Expression {
 		}
 	case *pb.Expression_StringIdentifier:
 		return &StringIdentifier{
-			Identifier: v.StringIdentifier,
+			Identifier: strings.TrimPrefix(v.StringIdentifier, "$"),
 		}
 	case *pb.Expression_StringCount:
 		return &StringCount{
-			Identifier: v.StringCount,
+			Identifier: strings.TrimPrefix(v.StringCount, "#"),
 		}
 	case *pb.Expression_StringLength:
 		return &StringLength{
-			Identifier: v.StringLength.GetStringIdentifier(),
+			Identifier: strings.TrimPrefix(v.StringLength.GetStringIdentifier(), "!"),
 			Index:      expressionFromProto(v.StringLength.GetIndex()),
 		}
 	case *pb.Expression_StringOffset:
 		return &StringOffset{
-			Identifier: v.StringOffset.GetStringIdentifier(),
+			Identifier: strings.TrimPrefix(v.StringOffset.GetStringIdentifier(), "@"),
 			Index:      expressionFromProto(v.StringOffset.GetIndex()),
 		}
 	case *pb.Expression_Identifier:
