@@ -1,12 +1,13 @@
 package main
 
 import (
-	jsonpb "github.com/golang/protobuf/jsonpb"
 	"io"
 	"os"
 
-	"github.com/VirusTotal/gyp"
+	jsonpb "github.com/golang/protobuf/jsonpb"
+
 	"github.com/VirusTotal/gyp/ast"
+	"github.com/VirusTotal/gyp/pb"
 )
 
 // global options
@@ -22,9 +23,9 @@ func main() {
 	}
 	defer handleErr(jsonFile.Close)
 
-	var ruleset pb.RuleSet
+	var pbRuleset pb.RuleSet
 	unmarshaler := jsonpb.Unmarshaler{}
-	err = unmarshaler.Unmarshal(jsonFile, &ruleset)
+	err = unmarshaler.Unmarshal(jsonFile, &pbRuleset)
 
 	if err != nil {
 		perror(`Couldn't JSON decode file: %s`, err)
@@ -45,10 +46,10 @@ func main() {
 		out = f
 	}
 
-	serializer := gyp.NewSerializer(out)
-	serializer.SetIndent(opts.Indent)
-	if err := serializer.Serialize(&ruleset); err != nil {
-		perror(`Couldn't serialize ruleset: %s`, err)
+	ruleset := ast.RuleSetFromProto(&pbRuleset)
+
+	if err := ruleset.WriteSource(out); err != nil {
+		perror(`Couldn't write ruleset: %s`, err)
 		os.Exit(6)
 	}
 }
