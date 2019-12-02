@@ -8,7 +8,7 @@ import __yyfmt__ "fmt"
 //line hex/hex_grammar.y:31
 import (
 	"github.com/VirusTotal/gyp/ast"
-	"github.com/VirusTotal/gyp/error"
+	gyperror "github.com/VirusTotal/gyp/error"
 )
 
 const StringChainingThreshold int = 200

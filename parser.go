@@ -8,7 +8,7 @@ import __yyfmt__ "fmt"
 //line grammar.y:31
 import (
 	"github.com/VirusTotal/gyp/ast"
-	"github.com/VirusTotal/gyp/error"
+	gyperror "github.com/VirusTotal/gyp/error"
 )
 
 type modifiers uint64

@@ -41,6 +41,13 @@ rule foo  {
 	assert.EqualError(t, err, `line 4: duplicate modifier`)
 }
 
+
+func TestNonAscii(t *testing.T) {
+  _, err := ParseString("rule \x12 foo { condition: false }")
+  assert.EqualError(t, err, `line 1: non-ascii character "\x12"`)
+}
+
+
 // All tests in this list must have conditions without of unnecessary parenthesis
 // that enforce left-associativity. This is because once the rules are serialized
 // to a Protocol Buffer the parenthesis originally in the source are lost, and

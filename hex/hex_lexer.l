@@ -39,13 +39,30 @@ import (
     "os"
     "strconv"
 
-    "github.com/VirusTotal/gyp/error"
+    gyperror "github.com/VirusTotal/gyp/error"
 )
 
-// Necessary types for flexgo
-type YYtype interface{}
-type YYcontext interface{}
+
+// YYtype is the structure returned by the lexer every time the scanner asks
+// for the next token. If the lexer wants to return an error to the scanner it
+// sets the Error field and leaves the Token empty.
+type YYtype struct {
+  Token int
+  Error gyperror.Error
 }
+
+type YYcontext interface{}
+
+func Token(t int) YYtype {
+  return YYtype{Token: t}
+}
+
+func Error(c gyperror.Code, msg string) YYtype {
+  return YYtype{Error: gyperror.Error{c, msg, 0,}}
+}
+
+}
+
 
 %{
 
@@ -78,48 +95,51 @@ hexdigit      [a-fA-F0-9]
 
 %%
 
-"{"                     { return _LBRACE_; }
-"}"                     { return _RBRACE_; }
+"{"                     { return Token(_LBRACE_); }
+"}"                     { return Token(_RBRACE_); }
 
-<<EOF>> { return eof }
+<<EOF>> { return Token(eof) }
 
 <INITIAL>{hexdigit}{2}  {
   val, err := strconv.ParseInt(string(yytext), 16, 16)
   if err != nil {
-    fmt.Printf("Error parsing byte: %s\n", err)
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
   yylval.bm = byteWithMask{ Mask: byte(0xFF), Value: byte(val) }
-  return _BYTE_;
+  return Token(_BYTE_);
 }
 
 <INITIAL>{hexdigit}\?  {
   yytext[1] = '0'  // Replace ? with 0
   val, err := strconv.ParseInt(string(yytext), 16, 16)
   if err != nil {
-    fmt.Printf("Error parsing byte: %s\n", err)
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
   yylval.bm = byteWithMask{ Mask: byte(0xF0), Value: byte(val) }
-  return _MASKED_BYTE_;
+  return Token(_MASKED_BYTE_);
 }
 
 \?{hexdigit}  {
   yytext[0] = '0'
   val, err := strconv.ParseInt(string(yytext), 16, 16)
   if err != nil {
-    fmt.Printf("Error parsing byte: %s\n", err)
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
   yylval.bm = byteWithMask{ Mask: byte(0x0F), Value: byte(val) }
-  return _MASKED_BYTE_;
+  return Token(_MASKED_BYTE_);
 }
 
 \?\? {
   yylval.bm = byteWithMask{ Mask: byte(0x00) }
-  return _MASKED_BYTE_;
+  return Token(_MASKED_BYTE_);
 }
 
 \[ {
   BEGIN (yrange);
-  return _LBRACKET_;
+  return Token(_LBRACKET_);
 }
 
 "/*"(.|\n)*"*/"    // skip comments
@@ -127,57 +147,50 @@ hexdigit      [a-fA-F0-9]
 "//".*             // skip single-line comments
 
 <yrange>\- {
-  return _HYPHEN_;
+  return Token(_HYPHEN_);
 }
 
 <yrange>{digit}+ {
   val, err := strconv.ParseInt(string(yytext), 10, 32)
   if err != nil {
-    fmt.Printf("Error parsing jump limit: %s\n", err)
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing jump limit: %s\n", err))
   }
   yylval.integer = int(val)
-  return _NUMBER_;
+  return Token(_NUMBER_);
 }
 
 <yrange>\] {
   BEGIN (INITIAL);
-  return _RBRACKET_;
+  return Token(_RBRACKET_);
 }
 
 <yrange>[ \t\r\n]   // skip whitespaces
 
 <yrange>. {
-  panic(
-    gyperror.Error{
-      gyperror.InvalidCharInHexStringError,
-      string(yytext[0]),
-      0,
-    },
-  )
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf(`invalid character in hex string: %02x`, yytext[0]))
 }
 
 [ \t\r\n]         // skip whitespaces
 
 "(" {
-  return _LPARENS_
+  return Token(_LPARENS_)
 }
 
 ")" {
-  return _RPARENS_
+  return Token(_RPARENS_)
 }
 
 "|" {
-  return _PIPE_
+  return Token(_PIPE_)
 }
 
 . {               // reject all other characters
-  panic(
-    gyperror.Error{
-      gyperror.InvalidCharInHexStringError,
-      string(yytext[0]),
-      0,
-    },
-  )
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf(`invalid character in hex string: %02x`, yytext[0]))
 }
 
 %%

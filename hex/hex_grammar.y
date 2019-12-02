@@ -32,7 +32,7 @@ package hex
 
 import (
   "github.com/VirusTotal/gyp/ast"
-  "github.com/VirusTotal/gyp/error"
+  gyperror "github.com/VirusTotal/gyp/error"
 )
 
 const StringChainingThreshold int = 200

@@ -1,4 +1,4 @@
-package gyperror
+package error
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 type Code int
 
 const (
+	_                 = iota
 	UnknownError Code = iota
 	LexicalError
 	DuplicateRuleError

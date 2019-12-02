@@ -59,7 +59,12 @@ type lexer struct {
 // can make use of it.
 func (l *lexer) Lex(lval *xxSymType) int {
 	yylval = lval
-	return l.scanner.Lex().(int)
+	r := l.scanner.Lex()
+	if r.Error.Code != 0 {
+		r.Error.Line = l.scanner.Lineno
+		panic(r.Error)
+	}
+	return r.Token
 }
 
 // Error satisfies the interface expected of the goyacc parser.

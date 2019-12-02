@@ -43,11 +43,24 @@ import (
 
     "github.com/VirusTotal/gyp/ast"
     "github.com/VirusTotal/gyp/hex"
-    "github.com/VirusTotal/gyp/error"
+    gyperror "github.com/VirusTotal/gyp/error"
 )
 
-// Necessary types for flexgo
-type YYtype interface{}
+// YYtype is the structure returned by the lexer every time the scanner asks
+// for the next token. If the lexer wants to return an error to the scanner it
+// sets the Error field and leaves the Token empty.
+type YYtype struct {
+  Token int
+  Error gyperror.Error
+}
+
+func Token(t int) YYtype {
+  return YYtype{Token: t}
+}
+
+func Error(c gyperror.Code, msg string) YYtype {
+  return YYtype{Error: gyperror.Error{c, msg, 0,}}
+}
 
 // Note that the parser is generated with the yr prefix to avoid name
 // collisions with the hex and regexp parsers.
@@ -110,44 +123,44 @@ octdigit      [0-7]
 
 %%
 
-".."                    { return _DOT_DOT_;     }
-"<"                     { return _LT_;          }
-">"                     { return _GT_;          }
-"<="                    { return _LE_;          }
-">="                    { return _GE_;          }
-"=="                    { return _EQ_;          }
-"!="                    { return _NEQ_;         }
-"<<"                    { return _SHIFT_LEFT_;  }
-">>"                    { return _SHIFT_RIGHT_; }
-"private"               { return _PRIVATE_;     }
-"global"                { return _GLOBAL_;      }
-"rule"                  { return _RULE_;        }
-"meta"                  { return _META_;        }
-"strings"               { return _STRINGS_;     }
-"ascii"                 { return _ASCII_;       }
-"wide"                  { return _WIDE_;        }
-"xor"                   { return _XOR_;         }
-"fullword"              { return _FULLWORD_;    }
-"nocase"                { return _NOCASE_;      }
-"condition"             { return _CONDITION_;   }
-"true"                  { return _TRUE_;        }
-"false"                 { return _FALSE_;       }
-"not"                   { return _NOT_;         }
-"and"                   { return _AND_;         }
-"or"                    { return _OR_;          }
-"at"                    { return _AT_;          }
-"in"                    { return _IN_;          }
-"of"                    { return _OF_;          }
-"them"                  { return _THEM_;        }
-"for"                   { return _FOR_;         }
-"all"                   { return _ALL_;         }
-"any"                   { return _ANY_;         }
-"entrypoint"            { return _ENTRYPOINT_;  }
-"filesize"              { return _FILESIZE_;    }
-"matches"               { return _MATCHES_;     }
-"contains"              { return _CONTAINS_;    }
-"import"                { return _IMPORT_;      }
-"include"               { return _INCLUDE_; }
+".."                    { return Token(_DOT_DOT_);     }
+"<"                     { return Token(_LT_);          }
+">"                     { return Token(_GT_);          }
+"<="                    { return Token(_LE_);          }
+">="                    { return Token(_GE_);          }
+"=="                    { return Token(_EQ_);          }
+"!="                    { return Token(_NEQ_);         }
+"<<"                    { return Token(_SHIFT_LEFT_);  }
+">>"                    { return Token(_SHIFT_RIGHT_); }
+"private"               { return Token(_PRIVATE_);     }
+"global"                { return Token(_GLOBAL_);      }
+"rule"                  { return Token(_RULE_);        }
+"meta"                  { return Token(_META_);        }
+"strings"               { return Token(_STRINGS_);     }
+"ascii"                 { return Token(_ASCII_);       }
+"wide"                  { return Token(_WIDE_);        }
+"xor"                   { return Token(_XOR_);         }
+"fullword"              { return Token(_FULLWORD_);    }
+"nocase"                { return Token(_NOCASE_);      }
+"condition"             { return Token(_CONDITION_);   }
+"true"                  { return Token(_TRUE_);        }
+"false"                 { return Token(_FALSE_);       }
+"not"                   { return Token(_NOT_);         }
+"and"                   { return Token(_AND_);         }
+"or"                    { return Token(_OR_);          }
+"at"                    { return Token(_AT_);          }
+"in"                    { return Token(_IN_);          }
+"of"                    { return Token(_OF_);          }
+"them"                  { return Token(_THEM_);        }
+"for"                   { return Token(_FOR_);         }
+"all"                   { return Token(_ALL_);         }
+"any"                   { return Token(_ANY_);         }
+"entrypoint"            { return Token(_ENTRYPOINT_);  }
+"filesize"              { return Token(_FILESIZE_);    }
+"matches"               { return Token(_MATCHES_);     }
+"contains"              { return Token(_CONTAINS_);    }
+"import"                { return Token(_IMPORT_);      }
+"include"               { return Token(_INCLUDE_);     }
 
 "/*"                    { BEGIN (comment);       }
 <comment>"*/"           { BEGIN (INITIAL);       }
@@ -156,48 +169,48 @@ octdigit      [0-7]
 
 "//"[^\n]*              { /* skip single-line comments */ }
 
-<<EOF>> { return eof }
+<<EOF>> { return Token(eof) }
 
 
 $({letter}|{digit}|_)*"*"  {
   yy.Context.lval.s = string(yytext)
-  return _STRING_IDENTIFIER_WITH_WILDCARD_;
+  return Token(_STRING_IDENTIFIER_WITH_WILDCARD_);
 }
 
 
 $({letter}|{digit}|_)*  {
   yy.Context.lval.s = string(yytext)
-  return _STRING_IDENTIFIER_;
+  return Token(_STRING_IDENTIFIER_);
 }
 
 
 #({letter}|{digit}|_)*  {
   yy.Context.lval.s = string(yytext)
-  return _STRING_COUNT_;
+  return Token(_STRING_COUNT_);
 }
 
 
 @({letter}|{digit}|_)*  {
   yy.Context.lval.s = string(yytext)
-  return _STRING_OFFSET_;
+  return Token(_STRING_OFFSET_);
 }
 
 
 !({letter}|{digit}|_)*  {
   yy.Context.lval.s = string(yytext)
-  return _STRING_LENGTH_;
+  return Token(_STRING_LENGTH_);
 }
 
 
 u?int(8|16|32)(be)? {
   yy.Context.lval.s = string(yytext)
-  return _INTEGER_FUNCTION_;
+  return Token(_INTEGER_FUNCTION_);
 }
 
 
 ({letter}|_)({letter}|{digit}|_)*  {
   yy.Context.lval.s = string(yytext)
-  return _IDENTIFIER_;
+  return Token(_IDENTIFIER_);
 }
 
 
@@ -206,61 +219,45 @@ u?int(8|16|32)(be)? {
   s := strings.TrimRight(YYtext, "MKB")
   yy.Context.lval.i64, err = strconv.ParseInt(s, 10, 64)
   if err != nil {
-    panic(
-      gyperror.Error{
-        gyperror.NumberConversionError,
-        fmt.Sprintf("%s", err),
-        0,
-      },
-    )
+    return Error(
+      gyperror.NumberConversionError,
+      fmt.Sprintf("%s", err))
   }
 
   if strings.HasSuffix(YYtext, "KB") {
       if yy.Context.lval.i64 > math.MaxInt64 / 1024 {
-        panic(
-          gyperror.Error{
-            gyperror.IntegerOverflowError,
-            fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64),
-            0,
-          },
-        )
+        return Error(
+          gyperror.IntegerOverflowError,
+          fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64))
       } else {
         yy.Context.lval.i64 *= 1024
       }
   } else if strings.HasSuffix(YYtext, "MB") {
       if yy.Context.lval.i64 > math.MaxInt64 / 1048576 {
-        panic(
-          gyperror.Error{
-            gyperror.IntegerOverflowError,
-            fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64),
-            0,
-          },
-        )
+        return Error(
+          gyperror.IntegerOverflowError,
+          fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64))
       } else {
           yy.Context.lval.i64 *= 1048576
       }
   }
-  return _NUMBER_;
+  return Token(_NUMBER_);
 }
 
 {digit}+"."{digit}+  {
-  return _DOUBLE_;
+  return Token(_DOUBLE_);
 }
 
 0x{hexdigit}+  {
   var err error
   yy.Context.lval.i64, err = strconv.ParseInt(YYtext, 0, 64)
   if err != nil {
-    panic(
-      gyperror.Error{
-        gyperror.NumberConversionError,
-        fmt.Sprintf("%s", err),
-        0,
-      },
-    )
+    return Error(
+      gyperror.NumberConversionError,
+      fmt.Sprintf("%s", err))
   }
 
-  return _NUMBER_;
+  return Token(_NUMBER_);
 }
 
 0o{octdigit}+  {
@@ -268,15 +265,11 @@ u?int(8|16|32)(be)? {
   s := strings.TrimLeft(YYtext, "0o")
   yy.Context.lval.i64, err = strconv.ParseInt(s, 8, 64)
   if err != nil {
-    panic(
-      gyperror.Error{
-        gyperror.NumberConversionError,
-        fmt.Sprintf("%s", err),
-        0,
-      },
-    )
+    return Error(
+      gyperror.NumberConversionError,
+      fmt.Sprintf("%s", err))
   }
-  return _NUMBER_;
+  return Token(_NUMBER_);
 }
 
 
@@ -288,7 +281,7 @@ u?int(8|16|32)(be)? {
 
   BEGIN (INITIAL);
 
-  return _TEXT_STRING_;
+  return Token(_TEXT_STRING_);
 }
 
 
@@ -316,14 +309,16 @@ u?int(8|16|32)(be)? {
 
 
 <str>\n  {
-  panic(gyperror.Error{
-    gyperror.UnterminatedStringError, "unterminate string",0 })
+  return Error(
+    gyperror.UnterminatedStringError,
+    "unterminate string")
 }
 
 
 <str>\\(.|\n) {
-  panic(gyperror.Error{
-    gyperror.IllegalEscapeSequenceError, "illegal escape sequence", 0 })
+  return Error(
+    gyperror.IllegalEscapeSequenceError,
+    "illegal escape sequence")
 }
 
 
@@ -344,13 +339,9 @@ u?int(8|16|32)(be)? {
           // Ignore
       default:
           // Should be impossible
-          panic(
-            gyperror.Error{
-              gyperror.InvalidRegexModifierError,
-              fmt.Sprintf(`"%c"`, c),
-              0,
-            },
-          )
+          return Error(
+            gyperror.InvalidRegexModifierError,
+            fmt.Sprintf(`invalid regexp modifier "%c"`, c))
       }
   }
 
@@ -360,7 +351,7 @@ u?int(8|16|32)(be)? {
   }
 
   BEGIN (INITIAL);
-  return _REGEXP_;
+  return Token(_REGEXP_);
 }
 
 
@@ -376,8 +367,9 @@ u?int(8|16|32)(be)? {
 
 
 <regexp>\n  {
-  panic(gyperror.Error{
-    gyperror.UnterminatedRegexError, "unterminated regexp",0 })
+  return Error(
+    gyperror.UnterminatedRegexError,
+    "unterminated regexp")
 }
 
 
@@ -406,11 +398,11 @@ u?int(8|16|32)(be)? {
 
   hexTokens, err := hex.Parse(hexReader)
   if err != nil {
-    panic(err)
+    return YYtype{Error: err.(gyperror.Error)}
   }
   yy.Context.lval.hexTokens = hexTokens
 
-  return _HEX_STRING_;
+  return Token(_HEX_STRING_);
 }
 
 
@@ -421,10 +413,12 @@ u?int(8|16|32)(be)? {
   r := int(yytext[0])
 
   if r >= 32 && r < 127 {
-    return r
+    return Token(r)
   }
 
-  panic(gyperror.Error{ gyperror.NonAsciiByteError, fmt.Sprintf(`"%d"`, r), 0 })
+  return Error(
+    gyperror.NonAsciiByteError,
+    fmt.Sprintf(`non-ascii character "\x%02x"`, r))
 }
 
 %%
