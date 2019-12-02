@@ -565,7 +565,14 @@ func (e *Enum) Children() []Node {
 
 // Children returns the Nodes's children.
 func (s *StringIdentifier) Children() []Node {
-	return []Node{}
+	children := make([]Node, 0)
+	if s.At != nil {
+		children = append(children, s.At)
+	}
+	if s.In != nil {
+		children = append(children, s.In)
+	}
+	return children
 }
 
 // Children returns the Nodes's children.
@@ -585,9 +592,9 @@ func (s *StringLength) Children() []Node {
 
 // Children returns the Nodes's children.
 func (f *FunctionCall) Children() []Node {
-	expresions := append([]Expression{f.Callable}, f.Arguments...)
-	nodes := make([]Node, len(expresions))
-	for i, e := range expresions {
+	expressions := append([]Expression{f.Callable}, f.Arguments...)
+	nodes := make([]Node, len(expressions))
+	for i, e := range expressions {
 		nodes[i] = e
 	}
 	return nodes

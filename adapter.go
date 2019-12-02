@@ -86,7 +86,7 @@ func (l *lexer) Error(msg string) {
 
 // SetError sets the lexer error. The error message can be built by passing
 // a format string and arguments as fmt.Sprintf. This function returns 1 as
-// it's intended to by used in grammar.py as:
+// it's intended to by used in grammar.y as:
 //   return lexer.SetError(...)
 // By returning 1 from the parser the parsing is aborted.
 func (l *lexer) SetError(code gyperror.Code, format string, a ...interface{}) int {
@@ -98,8 +98,8 @@ func (l *lexer) SetError(code gyperror.Code, format string, a ...interface{}) in
 	return 1
 }
 
-// Helper function that cast a yrLexer interface to a lexer struct. This
-// function is used in in grammar.y.
+// Helper function that casts a yrLexer interface to a lexer struct. This
+// function is used in grammar.y.
 func asLexer(l yrLexer) *lexer {
 	return l.(*lexer)
 }

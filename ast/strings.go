@@ -98,7 +98,7 @@ type HexOr struct {
 }
 
 // UnescapedValue retuns the string's Value with any escape sequence replaced
-// by the actual character that it representt.
+// by the actual character that it represents.
 func (t *TextString) UnescapedValue() string {
 	unescaped, err := strconv.Unquote(fmt.Sprintf(`"%s"`, t.Value))
 	if err != nil {
@@ -217,7 +217,7 @@ func (r *RegexpString) WriteSource(w io.Writer) (err error) {
 		}
 	}
 	if r.Private {
-		_, err = io.WriteString(w, " fullword")
+		_, err = io.WriteString(w, " private")
 	}
 	return err
 }

@@ -41,12 +41,10 @@ rule foo  {
 	assert.EqualError(t, err, `line 4: duplicate modifier`)
 }
 
-
 func TestNonAscii(t *testing.T) {
-  _, err := ParseString("rule \x12 foo { condition: false }")
-  assert.EqualError(t, err, `line 1: non-ascii character "\x12"`)
+	_, err := ParseString("rule \x12 foo { condition: false }")
+	assert.EqualError(t, err, `line 1: non-ascii character "\x12"`)
 }
-
 
 // All tests in this list must have conditions without of unnecessary parenthesis
 // that enforce left-associativity. This is because once the rules are serialized
@@ -285,7 +283,7 @@ rule foo {
 	`
 rule foo {
   strings:
-    $a = /a\.bc/is
+    $a = /a\.bc/is private
   condition:
     $a
 }`,
@@ -378,9 +376,6 @@ func TestProtos(t *testing.T) {
 		}
 		rspb := rs.AsProto()
 		rs = ast.RuleSetFromProto(rspb)
-		if !assert.NoError(t, err) {
-			break
-		}
 		var b strings.Builder
 		err = rs.WriteSource(&b)
 		if !assert.NoError(t, err) {
