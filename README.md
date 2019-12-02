@@ -1,200 +1,32 @@
+[![GoDoc](https://godoc.org/github.com/VirusTotal/gyp?status.svg)](https://godoc.org/github.com/VirusTotal/gyp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/VirusTotal/gyp)](https://goreportcard.com/report/github.com/VirusTotal/gyp)
+
 # gyp (go-yara-parser)
 
-`gyp` is a Go library for manipulating YARA rulesets.
-It uses the same grammar and lexer files as the original libyara to ensure that lexing and parsing work exactly like YARA.
-The grammar and lexer files have been modified to fill protocol buffers (PB) messages for ruleset manipulation instead of compiling rulesets for data matching.
-
-Using `gyp`, one will be able to read YARA rulesets to programatically change metadata, rule names, rule modifiers, tags, strings, conditions and more.
-
-Encoding rulesets as PB messages enable their manipulation in other languages.
-Additionally, the `y2j` tool is provided for serializing rulesets to JSON.
-Similarly, `j2y` provides JSON-to-YARA conversion, but do see __Limitations__ below.
-
-## `y2j` Usage
-
-Command line usage for `y2j` looks like the following:
-
-```
-$ y2j --help            
-Usage of y2j: y2j [options] file.yar
-
-options:
-  -indent int
-        Set number of indent spaces (default 2)
-  -o string               
-        JSON output file
-```
-
-In action, `y2j` would convert the following ruleset:
-
-```yara
-import "pe"
-import "cuckoo"
-
-include "other.yar"
-
-global rule demo : tag1 {
-meta:
-    description = "This is a demo rule"
-    version = 1
-    production = false
-    description = "because we can"
-strings:
-    $string = "this is a string" nocase wide
-    $regex = /this is a regex/i ascii fullword
-    $hex = { 01 23 45 67 89 ab cd ef [0-5] ?1 ?2 ?3 }
-condition:
-    $string or $regex or $hex
-}
-```
-
-to this JSON output:
-
-```json
-{
-  "imports": [
-    "pe",
-    "cuckoo"
-  ],
-  "includes": [
-    "other.yar"
-  ],
-  "rules": [
-    {
-      "modifiers": {
-        "global": true,
-        "private": false
-      },
-      "identifier": "demo",
-      "tags": [
-        "tag1"
-      ],
-      "meta": [
-        {
-          "key": "description",
-          "text": "This is a demo rule"
-        },
-        {
-          "key": "version",
-          "number": "1"
-        },
-        {
-          "key": "production",
-          "boolean": false
-        },
-        {
-          "key": "description",
-          "text": "because we can"
-        }
-      ],
-      "strings": [
-        {
-          "id": "$string",
-          "text": {
-            "text": "this is a string",
-            "modifiers": {
-              "nocase": true,
-              "ascii": false,
-              "wide": true,
-              "fullword": false,
-              "xor": false
-            }
-          }
-        },
-        {
-          "id": "$regex",
-          "regexp": {
-            "text": "this is a regex",
-            "modifiers": {
-              "nocase": false,
-              "ascii": true,
-              "wide": false,
-              "fullword": true,
-              "xor": false,
-              "i": true
-            }
-          }
-        },
-        {
-          "id": "$hex",
-          "hex": {
-            "token": [
-              {
-                "sequence": {
-                  "value": "ASNFZ4mrze8=",
-                  "mask": "//////////8="
-                }
-              },
-              {
-                "jump": {
-                  "start": "0",
-                  "end": "5"
-                }
-              },
-              {
-                "sequence": {
-                  "value": "AQID",
-                  "mask": "Dw8P"
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "condition": {
-        "orExpression": {
-          "terms": [
-            {
-              "stringIdentifier": "$string"
-            },
-            {
-              "stringIdentifier": "$regex"
-            },
-            {
-              "stringIdentifier": "$hex"
-            }
-          ]
-        }
-      }
-    }
-  ]
-}
-```
+`gyp` is a Go library for parsing YARA rules. It uses the same grammar and lexer files as the original libyara to ensure that lexing and parsing work exactly like YARA. This library produces an Abstract Syntax Tree (AST) for the parsed YARA rules. Additionally, the AST can be serialized as a Protocol Buffer, which facilitate its manipulation in other programming languages.
 
 ## Go Usage
 
-Sample usage for working with rulesets in Go looks like the following:
+The example below illustrates the usage of `gyp`, this a simple program that reads a YARA source file from the standard input, creates the corresponding AST, and writes the rules back to the standard output. The resulting output won't be exactly like the input, during the parsing and re-generation of the rules the text is reformatted and comments are lost.
 
 ```go
 package main
 
 import (
-  "fmt"
-  "log"
-  "os"
-  proto "github.com/golang/protobuf/proto"
+	"log"
+	"os"
 
-  "github.com/VirusTotal/gyp"
+	"github.com/VirusTotal/gyp"
 )
 
 func main() {
-  input, err := os.Open(os.Args[1])   // Single argument: path to your file
-  if err != nil {
-    log.Fatalf("Error: %s\n", err)
-  }
-
-  ruleset, err := gyp.Parse(input)
-  if err != nil {
-    log.Fatalf(`Parsing failed: "%s"`, err)
-  }
-
-  fmt.Printf("Ruleset:\n%v\n", ruleset)
-
-  // Manipulate the first rule
-  rule := ruleset.Rules[0]
-  rule.Identifier = proto.String("new_rule_name")
-  rule.Modifiers.Global = proto.Bool(true)
-  rule.Modifiers.Private = proto.Bool(false)
+	ruleset, err := gyp.Parse(os.Stdin)
+	if err != nil {
+		log.Fatalf(`Error parsing rules: %v`, err)
+	}
+	if err = ruleset.WriteSource(os.Stdout); err != nil {
+		log.Fatalf(`Error writing rules: %v`, err)
+	}
 }
 ```
 
@@ -231,14 +63,6 @@ The `Makefile` includes targets for quickly building the parser and lexer and th
 - Build `y2j` tool: `make y2j`
 - Build `j2y` tool: `make j2y`
 
-## Limitations
-
-Currently, there are no guarantees with the library that modified rules will serialize back into a valid YARA ruleset:
-
-1. you can set `rule.Identifier = "123"`, but this would be invalid YARA.
-2. Adding or removing strings may cause a condition to become invalid.
-3. Comments cannot be retained.
-4. Numbers are always serialized in decimal base.
 
 ## License and third party code
 
