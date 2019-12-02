@@ -31,20 +31,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package hex
 
 import (
-  "fmt"
-  proto "github.com/golang/protobuf/proto"
-
-  "github.com/VirusTotal/gyp/pb"
+  "github.com/VirusTotal/gyp/ast"
   "github.com/VirusTotal/gyp/error"
 )
 
-const StringChainingThreshold int64 = 200
+const StringChainingThreshold int = 200
 
-var ParsedHexString pb.HexTokens
-
-var insideOr int
-
-type ByteWithMask struct {
+type byteWithMask struct {
   Value byte
   Mask byte
 }
@@ -64,22 +57,22 @@ $token _RBRACKET_
 %token _RPARENS_
 $token _PIPE_
 
-%type <tokens> hex_string
-%type <tokens> tokens
-%type <tokens> token_sequence
-%type <token> token_or_range
-%type <token> token
-%type <bm> byte
-%type <alt> alternatives
-%type <rng> range
+%type <tokens>   tokens
+%type <tokens>   token_sequence
+%type <token>    token_or_range
+%type <token>    token
+%type <hexor>    alternatives
+%type <token>    range
+%type <bytes>    bytes
+%type <bm>       byte
 
 %union {
-  integer int64
-  token   *pb.HexToken
-  tokens  *pb.HexTokens
-  bm      ByteWithMask
-  alt     *pb.HexAlternative
-  rng     *pb.Jump
+  integer int
+  bm      byteWithMask
+  token   ast.HexToken
+  tokens  ast.HexTokens
+  bytes   *ast.HexBytes
+  hexor   *ast.HexOr
 }
 
 %%
@@ -87,7 +80,7 @@ $token _PIPE_
 hex_string
     : _LBRACE_ tokens _RBRACE_
       {
-        ParsedHexString = *$2
+        asLexer(xxlex).hexTokens = $2
       }
     ;
 
@@ -95,18 +88,15 @@ hex_string
 tokens
     : token
       {
-        $$ = &pb.HexTokens{ Token: []*pb.HexToken{$1} }
+        $$ = []ast.HexToken{$1}
       }
     | token token
       {
-        $$ = &pb.HexTokens{ Token: mergeTokens($1, $2) }
+        $$ =[]ast.HexToken{$1, $2}
       }
     | token token_sequence token
       {
-        tokens := append([]*pb.HexToken{$1}, $2.Token...)
-        tokens = append(tokens, $3)
-        tokens = mergeTokens(tokens...)
-        $$ = &pb.HexTokens{ Token: tokens }
+        $$ = append(append([]ast.HexToken{$1}, $2...), $3)
       }
     ;
 
@@ -114,12 +104,11 @@ tokens
 token_sequence
     : token_or_range
       {
-        $$ = &pb.HexTokens{ Token: []*pb.HexToken{$1} }
+        $$ = []ast.HexToken{$1}
       }
     | token_sequence token_or_range
       {
-        appendToken($1, $2)
-        $$ = $1
+        $$ = append($1, $2)
       }
     ;
 
@@ -129,37 +118,26 @@ token_or_range
       {
         $$ = $1
       }
-    |  range
+    | range
       {
-        $$ = &pb.HexToken{ Value: &pb.HexToken_Jump{$1} }
+        $$ = $1
       }
     ;
 
 
 token
-    : byte
+    : bytes
       {
-        $$ = &pb.HexToken{
-          Value: &pb.HexToken_Sequence{
-            &pb.BytesSequence{
-              Mask: []byte{$1.Mask},
-              Value: []byte{$1.Value},
-            },
-          },
-        }
+        $$ = $1
       }
     | _LPARENS_
       {
-        insideOr += 1
+        asLexer(xxlex).insideOr += 1
       }
-       alternatives
+      alternatives _RPARENS_
       {
-        $$ = &pb.HexToken{ Value: &pb.HexToken_Alternative{ $3 } }
-      }
-      _RPARENS_
-      {
-        insideOr -= 1
-        $$ = $<token>4
+        asLexer(xxlex).insideOr -= 1
+        $$ = $3
       }
     ;
 
@@ -167,92 +145,84 @@ token
 range
     : _LBRACKET_ _NUMBER_ _RBRACKET_
       {
+        lexer := asLexer(xxlex)
+
         if $2 <= 0 {
-          err := gyperror.Error{
+          return lexer.SetError(
             gyperror.InvalidJumpLengthError,
-            fmt.Sprintf("%d", $2),
-            0,
-          }
-          panic(err)
+            `invalid jump length: %d`, $2)
         }
 
-        if insideOr > 0 && $2 > StringChainingThreshold {
-          err := gyperror.Error{
+        if lexer.insideOr > 0 && $2 > StringChainingThreshold {
+          return lexer.SetError(
             gyperror.JumpTooLargeInsideAlternationError,
-            fmt.Sprintf("%d", $2),
-            0,
-          }
-          panic(err)
+            `jump too large inside alternation: %d`, $2)
         }
 
-        $$ = &pb.Jump{ Start: proto.Int64($2), End: proto.Int64($2) }
+        $$ = &ast.HexJump{
+          Start: $2,
+          End: $2,
+        }
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _NUMBER_ _RBRACKET_
       {
-        if insideOr > 0 &&
+        lexer := asLexer(xxlex)
+
+        if lexer.insideOr > 0 &&
           ($2 > StringChainingThreshold || $4 > StringChainingThreshold) {
-          err := gyperror.Error{
-            gyperror.JumpTooLargeInsideAlternationError,
-            fmt.Sprintf("%d-%d", $2, $4),
-            0,
-          }
-          panic(err)
+            return lexer.SetError(
+              gyperror.JumpTooLargeInsideAlternationError,
+              `jump too large inside alternation: %d-%d`, $2, $4)
         }
 
         if $2 < 0 || $4 < 0 {
-          err := gyperror.Error{
+          return lexer.SetError(
             gyperror.NegativeJumpError,
-            fmt.Sprintf("%d-$d", $2, $4),
-            0,
-          }
-          panic(err)
+            `negative jump: %d-%d`, $2, $4)
         }
 
         if $2 > $4 {
-          err := gyperror.Error{
+          return lexer.SetError(
             gyperror.InvalidJumpRangeError,
-            fmt.Sprintf("%d-%d", $2, $4),
-            0,
-          }
-          panic(err)
+            `jump too large inside alternation: %d-%d`, $2, $4)
         }
 
-        $$ = &pb.Jump{ Start: proto.Int64($2), End: proto.Int64($4) }
+        $$ = &ast.HexJump{
+          Start: $2,
+          End: $4,
+        }
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _RBRACKET_
       {
-        if insideOr > 0 {
-          err := gyperror.Error{
+        lexer := asLexer(xxlex)
+
+        if lexer.insideOr > 0 {
+          return lexer.SetError(
             gyperror.UnboundedJumpInsideAlternationError,
-            fmt.Sprintf("%d-", $2),
-            0,
-          }
-          panic(err)
+            `unbounded jump inside alternation: %d`, $2)
         }
 
         if $2 < 0 {
-          err := gyperror.Error{
+          return lexer.SetError(
             gyperror.NegativeJumpError,
-            fmt.Sprintf("%d-", $2),
-            0,
-          }
-          panic(err)
+            `negative jump: %d`, $2)
         }
 
-        $$ = &pb.Jump{ Start: proto.Int64($2) }
+        $$ = &ast.HexJump{
+          Start: $2,
+        }
       }
     | _LBRACKET_ _HYPHEN_ _RBRACKET_
       {
-        if insideOr > 0 {
-          err := gyperror.Error{
+        lexer := asLexer(xxlex)
+
+        if lexer.insideOr > 0 {
+          return lexer.SetError(
             gyperror.UnboundedJumpInsideAlternationError,
-            "-",
-            0,
-          }
-          panic(err)
+            `unbounded jump inside alternation`)
         }
 
-        $$ = &pb.Jump{}
+        $$ = &ast.HexJump{}
       }
     ;
 
@@ -260,14 +230,36 @@ range
 alternatives
     : tokens
       {
-          $$ = &pb.HexAlternative{ Tokens: []*pb.HexTokens{$1} }
+        $$ = &ast.HexOr{
+          Alternatives: ast.HexTokens{$1},
+        }
       }
     | alternatives _PIPE_ tokens
       {
-          $1.Tokens = append($1.Tokens, $3)
-          $$ = $1
+        $1.Alternatives = append($1.Alternatives, $3)
+        $$ = $1
       }
     ;
+
+
+// This production doesn't exist in the original YARA's hex grammar, because
+// YARA handles each byte as an individual token. In gyp we wanted to group
+// contiguous bytes into a single token, and for that reason the "bytes"
+// production was introduced.
+bytes
+    : byte
+      {
+        $$ = &ast.HexBytes{
+          Bytes: []byte{$1.Value},
+          Masks: []byte{$1.Mask},
+        }
+      }
+    | bytes byte
+      {
+        $1.Bytes = append($1.Bytes, $2.Value)
+        $1.Masks = append($1.Masks, $2.Mask)
+      }
+
 
 byte
     : _BYTE_
@@ -281,37 +273,3 @@ byte
     ;
 
 %%
-
-func appendToken(tokens *pb.HexTokens, t *pb.HexToken) {
-  if len(tokens.Token) == 0 {
-    tokens.Token = []*pb.HexToken{t}
-    return
-  }
-
-  numTokens := len(tokens.Token)
-  lastToken := tokens.Token[numTokens - 1]
-  tokens.Token = append(tokens.Token[:numTokens - 1], mergeTokens(lastToken, t)...)
-}
-
-func mergeTokens(tokens... *pb.HexToken) (out []*pb.HexToken) {
-  if len(tokens) == 0 {
-    return
-  }
-
-  for _, token := range tokens {
-    if len(out) == 0 {
-      out = append(out, token)
-    } else {
-      prev := out[len(out) - 1]
-      tokensCanBeMerged := prev.GetSequence() != nil && token.GetSequence() != nil
-      if tokensCanBeMerged {
-        prev.GetSequence().Value = append(prev.GetSequence().Value, token.GetSequence().Value...)
-        prev.GetSequence().Mask = append(prev.GetSequence().Mask, token.GetSequence().Mask...)
-      } else {
-        out = append(out, token)
-      }
-    }
-  }
-
-  return
-}

@@ -103,6 +103,11 @@ rule foo {
 	`
 rule foo {
   condition:
+    1 - (2 + 3) == 0
+}`,
+	`
+rule foo {
+  condition:
     1 + 2 - 3 == 0
 }`,
 	`
@@ -286,6 +291,27 @@ rule foo {
 rule foo {
   condition:
     some_function(/abc/is)
+}`,
+	`
+rule foo {
+  strings:
+    $a = { 01 02 03 04 ?? AA B? ?C }
+  condition:
+    $a
+}`,
+	`
+rule foo {
+  strings:
+    $a = { 01 02 ( 03 04 | 05 06 ) 07 08 09 }
+  condition:
+    $a
+}`,
+	`
+rule foo {
+  strings:
+    $a = { 01 02 [2] 03 04 [1-2] 05 06 [1-] 07 08 [-] 09 0A }
+  condition:
+    $a
 }`,
 }
 

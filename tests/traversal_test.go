@@ -83,7 +83,7 @@ func TestTraversal(t *testing.T) {
 
 	v := newTestVisitor()
 
-	for _, r := range rs.GetRules() {
+	for _, r := range rs.AsProto().GetRules() {
 		r.GetCondition().DepthFirstSearch(v)
 	}
 

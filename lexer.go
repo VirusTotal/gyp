@@ -1679,11 +1679,11 @@ case 70:
   // No need to collect like str and regexp start conditions
   hexReader := strings.NewReader(YYtext)
 
-  hexString, err := hex.Parse(hexReader)
+  hexTokens, err := hex.Parse(hexReader)
   if err != nil {
     panic(err)
   }
-  yy.Context.lval.hextokens = &hexString
+  yy.Context.lval.hexTokens = hexTokens
 
   return _HEX_STRING_;
 }

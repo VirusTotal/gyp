@@ -20,5 +20,6 @@ func openTestFile(t *testing.T, fname string) io.Reader {
 
 func parseTestFile(t *testing.T, fname string) (*pb.RuleSet, error) {
 	f := openTestFile(t, fname)
-	return gyp.Parse(f)
+	rs, err := gyp.Parse(f)
+	return rs.AsProto(), err
 }

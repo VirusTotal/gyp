@@ -88,7 +88,7 @@ hexdigit      [a-fA-F0-9]
   if err != nil {
     fmt.Printf("Error parsing byte: %s\n", err)
   }
-  yylval.bm = ByteWithMask{ Mask: byte(0xFF), Value: byte(val) }
+  yylval.bm = byteWithMask{ Mask: byte(0xFF), Value: byte(val) }
   return _BYTE_;
 }
 
@@ -98,7 +98,7 @@ hexdigit      [a-fA-F0-9]
   if err != nil {
     fmt.Printf("Error parsing byte: %s\n", err)
   }
-  yylval.bm = ByteWithMask{ Mask: byte(0xF0), Value: byte(val) }
+  yylval.bm = byteWithMask{ Mask: byte(0xF0), Value: byte(val) }
   return _MASKED_BYTE_;
 }
 
@@ -108,12 +108,12 @@ hexdigit      [a-fA-F0-9]
   if err != nil {
     fmt.Printf("Error parsing byte: %s\n", err)
   }
-  yylval.bm = ByteWithMask{ Mask: byte(0x0F), Value: byte(val) }
+  yylval.bm = byteWithMask{ Mask: byte(0x0F), Value: byte(val) }
   return _MASKED_BYTE_;
 }
 
 \?\? {
-  yylval.bm = ByteWithMask{ Mask: byte(0x00) }
+  yylval.bm = byteWithMask{ Mask: byte(0x00) }
   return _MASKED_BYTE_;
 }
 
@@ -131,12 +131,11 @@ hexdigit      [a-fA-F0-9]
 }
 
 <yrange>{digit}+ {
-  val, err := strconv.ParseInt(string(yytext), 10, 64)
+  val, err := strconv.ParseInt(string(yytext), 10, 32)
   if err != nil {
     fmt.Printf("Error parsing jump limit: %s\n", err)
   }
-  yylval.integer = int64(val)
-
+  yylval.integer = int(val)
   return _NUMBER_;
 }
 

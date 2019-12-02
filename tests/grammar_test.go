@@ -8,12 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testRules = `include "./true.yar"
-
-import "pe"
-import "math"
-
-rule BASIC_BOOL {
+var testRules = `rule BASIC_BOOL {
   condition:
     true
 }
@@ -240,11 +235,6 @@ rule AND_OR_PRECEDENCE_PARENS {
     ($foo1 or $foo2 or $foo3) and $foo4
 }
 
-rule ASSOCIATIVIY1 {
-  condition:
-    5 - (2 + 3) == 0
-}
-
 rule STRING_LENGTH {
   strings:
     $foo1 = /foo(1)+/
@@ -266,7 +256,7 @@ func TestRulesetParsing(t *testing.T) {
 	var b strings.Builder
 	serializer := gyp.NewSerializer(&b)
 	serializer.SetIndent("  ")
-	err = serializer.Serialize(ruleset)
+	err = serializer.Serialize(ruleset.AsProto())
 	assert.NoError(t, err)
 
 	output := b.String()

@@ -95,6 +95,6 @@ func (l *lexer) SetError(code gyperror.Code, format string, a ...interface{}) in
 
 // Helper function that cast a yrLexer interface to a lexer struct. This
 // function is used in in grammar.y.
-func asLexer(yrlex yrLexer) *lexer {
-	return yrlex.(*lexer)
+func asLexer(l yrLexer) *lexer {
+	return l.(*lexer)
 }

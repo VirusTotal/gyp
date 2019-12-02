@@ -173,6 +173,11 @@ func stringFromProto(s *pb.String) String {
 			XorMax:     modifiers.GetXorMax(),
 			Value:      escape(v.Text.GetText()),
 		}
+	case *pb.String_Hex:
+		return &HexString{
+			Identifier: s.GetId(),
+			Tokens:     hexTokensFromProto(v.Hex),
+		}
 	case *pb.String_Regexp:
 		modifiers := v.Regexp.GetModifiers()
 		var regexpm RegexpModifiers
@@ -199,9 +204,36 @@ func stringFromProto(s *pb.String) String {
 	}
 }
 
-func metaFromProto(s *pb.Meta) *Meta {
+func hexTokensFromProto(pbTokens *pb.HexTokens) HexTokens {
+	tokens := make(HexTokens, len(pbTokens.GetToken()))
+	for i, token := range pbTokens.GetToken() {
+		switch v := token.GetValue().(type) {
+		case *pb.HexToken_Sequence:
+			tokens[i] = &HexBytes{
+				Bytes: v.Sequence.GetValue(),
+				Masks: v.Sequence.GetMask(),
+			}
+		case *pb.HexToken_Alternative:
+			alternatives := make(HexTokens, len(v.Alternative.GetTokens()))
+			for i, a := range v.Alternative.GetTokens() {
+				alternatives[i] = hexTokensFromProto(a)
+			}
+			tokens[i] = &HexOr{
+				Alternatives: alternatives,
+			}
+		case *pb.HexToken_Jump:
+			tokens[i] = &HexJump{
+				Start: int(v.Jump.GetStart()),
+				End:   int(v.Jump.GetEnd()),
+			}
+		}
+	}
+	return tokens
+}
+
+func metaFromProto(m *pb.Meta) *Meta {
 	var value interface{}
-	switch v := s.GetValue().(type) {
+	switch v := m.GetValue().(type) {
 	case *pb.Meta_Boolean:
 		value = v.Boolean
 	case *pb.Meta_Number:
@@ -210,7 +242,7 @@ func metaFromProto(s *pb.Meta) *Meta {
 		value = v.Text
 	}
 	return &Meta{
-		Key:   s.GetKey(),
+		Key:   m.GetKey(),
 		Value: value,
 	}
 }
@@ -225,12 +257,12 @@ func rangeFromProto(r *pb.Range) *Range {
 	}
 }
 
-func enumFromProto(r *pb.IntegerEnumeration) *Enum {
-	if r == nil {
+func enumFromProto(e *pb.IntegerEnumeration) *Enum {
+	if e == nil {
 		return nil
 	}
-	values := make([]Expression, len(r.GetValues()))
-	for i, v := range r.GetValues() {
+	values := make([]Expression, len(e.GetValues()))
+	for i, v := range e.GetValues() {
 		values[i] = expressionFromProto(v)
 	}
 	return &Enum{

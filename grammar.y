@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package gyp
 
 import (
-    "github.com/VirusTotal/gyp/pb"
     "github.com/VirusTotal/gyp/ast"
     "github.com/VirusTotal/gyp/error"
 )
@@ -86,7 +85,7 @@ type stringModifiers struct {
 %token <f64> _DOUBLE_
 %token <s> _INTEGER_FUNCTION_
 %token <s> _TEXT_STRING_
-%token <hextokens> _HEX_STRING_
+%token <hexTokens> _HEX_STRING_
 %token <reg> _REGEXP_
 %token <mod> _ASCII_
 %token <mod> _WIDE_
@@ -164,7 +163,7 @@ type stringModifiers struct {
     s             string
     ss            []string
     reg           *ast.LiteralRegexp
-    hextokens     *pb.HexTokens
+    hexTokens     []ast.HexToken
     mod           modifiers
     smod          stringModifiers
     rule          *ast.Rule
@@ -430,7 +429,11 @@ string_declaration
       }
     | _STRING_IDENTIFIER_ '=' _HEX_STRING_ hex_modifiers
       {
-
+        $$ = &ast.HexString{
+          Identifier: $1,
+          Private: $4 & ModPrivate != 0,
+          Tokens: $3,
+        }
       }
     ;
 

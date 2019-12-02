@@ -443,7 +443,7 @@ case 3:
   if err != nil {
     fmt.Printf("Error parsing byte: %s\n", err)
   }
-  yylval.bm = ByteWithMask{ Mask: byte(0xFF), Value: byte(val) }
+  yylval.bm = byteWithMask{ Mask: byte(0xFF), Value: byte(val) }
   return _BYTE_;
 }
 case 4:
@@ -458,7 +458,7 @@ case 4:
   if err != nil {
     fmt.Printf("Error parsing byte: %s\n", err)
   }
-  yylval.bm = ByteWithMask{ Mask: byte(0xF0), Value: byte(val) }
+  yylval.bm = byteWithMask{ Mask: byte(0xF0), Value: byte(val) }
   return _MASKED_BYTE_;
 }
 case 5:
@@ -473,7 +473,7 @@ case 5:
   if err != nil {
     fmt.Printf("Error parsing byte: %s\n", err)
   }
-  yylval.bm = ByteWithMask{ Mask: byte(0x0F), Value: byte(val) }
+  yylval.bm = byteWithMask{ Mask: byte(0x0F), Value: byte(val) }
   return _MASKED_BYTE_;
 }
 case 6:
@@ -483,7 +483,7 @@ case 6:
 
 //line hex/hex_lexer.l:115
 {
-  yylval.bm = ByteWithMask{ Mask: byte(0x00) }
+  yylval.bm = byteWithMask{ Mask: byte(0x00) }
   return _MASKED_BYTE_;
 }
 case 7:
@@ -527,12 +527,11 @@ case 11:
 
 //line hex/hex_lexer.l:133
 {
-  val, err := strconv.ParseInt(string(yytext), 10, 64)
+  val, err := strconv.ParseInt(string(yytext), 10, 32)
   if err != nil {
     fmt.Printf("Error parsing jump limit: %s\n", err)
   }
-  yylval.integer = int64(val)
-
+  yylval.integer = int(val)
   return _NUMBER_;
 }
 case 12:
@@ -540,7 +539,7 @@ case 12:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:143
+//line hex/hex_lexer.l:142
 {
   yy.start = 1 + 2*  (yyInitial );
   return _RBRACKET_;
@@ -551,14 +550,14 @@ case 13:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:148
+//line hex/hex_lexer.l:147
 // skip whitespaces
 case 14:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:150
+//line hex/hex_lexer.l:149
 {
   panic(
     gyperror.Error{
@@ -574,14 +573,14 @@ case 15:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:160
+//line hex/hex_lexer.l:159
 // skip whitespaces
 case 16:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:162
+//line hex/hex_lexer.l:161
 {
   return _LPARENS_
 }
@@ -590,7 +589,7 @@ case 17:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:166
+//line hex/hex_lexer.l:165
 {
   return _RPARENS_
 }
@@ -599,7 +598,7 @@ case 18:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:170
+//line hex/hex_lexer.l:169
 {
   return _PIPE_
 }
@@ -608,7 +607,7 @@ case 19:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:174
+//line hex/hex_lexer.l:173
 {               // reject all other characters
   panic(
     gyperror.Error{
@@ -623,9 +622,9 @@ case 20:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:184
+//line hex/hex_lexer.l:183
 yyout.Write(yytext) 
-//line hex/hex_lexer.go:629
+//line hex/hex_lexer.go:628
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -1086,7 +1085,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line hex/hex_lexer.l:184
+//line hex/hex_lexer.l:183
 
 
 
