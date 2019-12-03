@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"github.com/VirusTotal/gyp"
-
-	"github.com/VirusTotal/gyp/ast"
+	"github.com/VirusTotal/gyp/pb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,14 +22,14 @@ func newTestVisitor() *testVisitor {
 	}
 }
 
-func (t *testVisitor) PreOrderVisit(e *ast.Expression) {
+func (t *testVisitor) PreOrderVisit(e *pb.Expression) {
 	var b bytes.Buffer
 	s := gyp.NewSerializer(&b)
 	s.SerializeExpression(e)
 	t.preOrderResults = append(t.preOrderResults, b.String())
 }
 
-func (t *testVisitor) PostOrderVisit(e *ast.Expression) {
+func (t *testVisitor) PostOrderVisit(e *pb.Expression) {
 	var b bytes.Buffer
 	s := gyp.NewSerializer(&b)
 	s.SerializeExpression(e)
@@ -72,13 +71,19 @@ func TestTraversal(t *testing.T) {
 		rule rule_7 {
 			condition: not true
 		}
+		rule rule_8 {
+			condition: my_function(1,2,3)
+		}
+		rule rule_9 {
+			condition: for all i in my_function("foo") : ( i > 0)
+		}
 		`)
 
 	assert.NoError(t, err)
 
 	v := newTestVisitor()
 
-	for _, r := range rs.GetRules() {
+	for _, r := range rs.AsProto().GetRules() {
 		r.GetCondition().DepthFirstSearch(v)
 	}
 
@@ -120,6 +125,19 @@ func TestTraversal(t *testing.T) {
 		// rule_7
 		"not true",
 		"true",
+
+		// rule_8
+		"my_function(1, 2, 3)",
+		"1",
+		"2",
+		"3",
+
+		// rule_9
+		"for all i in my_function(\"foo\") : (i > 0)",
+		"\"foo\"",
+		"i > 0",
+		"i",
+		"0",
 	}, v.preOrderResults)
 
 	assert.Equal(t, []string{
@@ -160,6 +178,19 @@ func TestTraversal(t *testing.T) {
 		// rule_7
 		"true",
 		"not true",
+
+		// rule_8
+		"1",
+		"2",
+		"3",
+		"my_function(1, 2, 3)",
+
+		// rule_9
+		"\"foo\"",
+		"i",
+		"0",
+		"i > 0",
+		"for all i in my_function(\"foo\") : (i > 0)",
 	}, v.postOrderResults)
 
 }

@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	"github.com/VirusTotal/gyp"
-	"github.com/VirusTotal/gyp/error"
+	gyperror "github.com/VirusTotal/gyp/error"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestUnterminatedString tests for a rule with an unterminated string
@@ -18,9 +19,7 @@ condition:
   any of them
 }`
 	_, err := gyp.ParseString(rs)
-	if err == nil {
-		t.Fatalf(`Parsing succeeded; should have failed`)
-	}
+	assert.Error(t, err, `Parsing succeeded; should have failed`)
 	yaraErr, ok := err.(gyperror.Error)
 	if !ok || yaraErr.Code != gyperror.UnterminatedStringError {
 		t.Fatalf(`Unexpected error: "%s", expected UnterminatedStringError`, err)
@@ -38,9 +37,7 @@ condition:
   any of them
 }`
 	_, err := gyp.ParseString(rs)
-	if err == nil {
-		t.Fatalf(`Parsing succeeded; should have failed`)
-	}
+	assert.Error(t, err, `Parsing succeeded; should have failed`)
 	yaraErr, ok := err.(gyperror.Error)
 	if !ok || yaraErr.Code != gyperror.UnterminatedRegexError {
 		t.Fatalf(`Unexpected error: "%s", expected UnterminatedRegexError`, err)

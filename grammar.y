@@ -31,14 +31,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package gyp
 
 import (
-    "fmt"
-    proto "github.com/golang/protobuf/proto"
-
+    "strings"
     "github.com/VirusTotal/gyp/ast"
-    "github.com/VirusTotal/gyp/error"
+    gyperror "github.com/VirusTotal/gyp/error"
 )
 
-var ParsedRuleset ast.RuleSet
+type modifiers uint64
+
+const (
+	_           = iota // ignore first value by assigning to blank identifier
+	ModGlobal modifiers = 1 << iota
+	ModPrivate
+  ModASCII
+  ModWide
+  ModXor
+  ModFullword
+  ModNocase
+)
+
+type stringModifiers struct {
+  modifiers
+  XorMin int32
+  XorMax int32
+}
+
 
 %}
 
@@ -70,7 +86,7 @@ var ParsedRuleset ast.RuleSet
 %token <f64> _DOUBLE_
 %token <s> _INTEGER_FUNCTION_
 %token <s> _TEXT_STRING_
-%token <hextokens> _HEX_STRING_
+%token <hexTokens> _HEX_STRING_
 %token <reg> _REGEXP_
 %token <mod> _ASCII_
 %token <mod> _WIDE_
@@ -89,11 +105,8 @@ var ParsedRuleset ast.RuleSet
 %token _MATCHES_
 %token _CONTAINS_
 %token _IMPORT_
-
 %token _TRUE_
 %token _FALSE_
-
-%token _LBRACE_ _RBRACE_
 %token _INCLUDE_
 
 %left _OR_
@@ -109,61 +122,64 @@ var ParsedRuleset ast.RuleSet
 %right _NOT_ '~' UNARY_MINUS
 
 %type <s>         import
-%type <yr>        rule
+%type <rule>      rule
 %type <ss>        tags
 %type <ss>        tag_list
-%type <m>         meta
-%type <mp>        meta_declaration
-%type <m>         meta_declarations
+%type <meta>      meta_declaration
+%type <metas>     meta_declarations
+%type <metas>     meta
 %type <yss>       strings
 %type <ys>        string_declaration
 %type <yss>       string_declarations
-%type <mod>       string_modifier
-%type <mod>       string_modifiers
-%type <rm>        rule_modifier
-%type <rm>        rule_modifiers
+%type <smod>      string_modifier
+%type <smod>      string_modifiers
+%type <mod>       regexp_modifier
+%type <mod>       regexp_modifiers
+%type <mod>       hex_modifier
+%type <mod>       hex_modifiers
+%type <mod>       rule_modifier
+%type <mod>       rule_modifiers
 %type <expr>      condition
-%type <expr>      boolean_expression
 %type <expr>      expression
+%type <expr>      boolean_expression
 %type <expr>      primary_expression
-%type <id>        identifier
+%type <expr>      identifier
 %type <exprs>     arguments_list
 %type <exprs>     arguments
-%type <regp>      regexp
-%type <forexp>    for_expression
-%type <intset>    integer_set
-%type <intenum>   integer_enumeration
+%type <quantifier> for_expression
+%type <exprs>     integer_enumeration
+%type <node>      iterator
+%type <node>      integer_set
+%type <node>      string_set
+%type <reg>       regexp
 %type <rng>       range
-%type <strset>    string_set
-%type <strenum>   string_enumeration
-%type <strenumi>  string_enumeration_item
+%type <ss>        for_variables
+%type <exprs>     string_enumeration
+%type <si>        string_enumeration_item
+
 
 %union {
     i64           int64
     f64           float64
     s             string
     ss            []string
-
-    rm            *ast.RuleModifiers
-    m             []*ast.Meta
-    mp            *ast.Meta
-    mod           *ast.StringModifiers
-    reg           ast.Regexp
-    regp          *ast.Regexp
-    ys            *ast.String
-    yss           []*ast.String
-    yr            *ast.Rule
-    id            *ast.Identifier
-    forexp        *ast.ForExpression
-    intset        *ast.IntegerSet
-    intenum       *ast.IntegerEnumeration
+    reg           *ast.LiteralRegexp
+    hexTokens     []ast.HexToken
+    mod           modifiers
+    smod          stringModifiers
+    rule          *ast.Rule
+    meta          *ast.Meta
+    metas         []*ast.Meta
+    ys            ast.String
+    yss           []ast.String
+    node          ast.Node
+    nodes         []ast.Node
     rng           *ast.Range
-    strset        *ast.StringSet
-    strenumi      *ast.StringEnumeration_StringEnumerationItem
-    strenum       *ast.StringEnumeration
-    expr          *ast.Expression
-    exprs         *ast.Expressions
-    hextokens     *ast.HexTokens
+    expr          ast.Expression
+    exprs         []ast.Expression
+    si            *ast.StringIdentifier
+    sis           []*ast.StringIdentifier
+    quantifier    *ast.Quantifier
 }
 
 
@@ -171,23 +187,32 @@ var ParsedRuleset ast.RuleSet
 
 rules
     : /* empty */
-    | rules rule {
-        ParsedRuleset.Rules = append(ParsedRuleset.Rules, $2)
-    }
-    | rules import {
-        ParsedRuleset.Imports = append(ParsedRuleset.Imports, $2)
-    }
-    | rules _INCLUDE_ _TEXT_STRING_ {
-        ParsedRuleset.Includes = append(ParsedRuleset.Includes, $3)
-    }
-    | rules _END_OF_INCLUDED_FILE_ { }
+    | rules rule
+      {
+        ruleSet := asLexer(yrlex).ruleSet
+        ruleSet.Rules = append(ruleSet.Rules, $2)
+      }
+    | rules import
+      {
+        ruleSet := asLexer(yrlex).ruleSet
+        ruleSet.Imports = append(ruleSet.Imports, $2)
+      }
+    | rules _INCLUDE_ _TEXT_STRING_
+      {
+        ruleSet := asLexer(yrlex).ruleSet
+        ruleSet.Includes = append(ruleSet.Includes, $3)
+      }
+    | rules _END_OF_INCLUDED_FILE_
+      {
+
+      }
     ;
 
 
 import
     : _IMPORT_ _TEXT_STRING_
       {
-          $$ = $2
+        $$ = $2
       }
     ;
 
@@ -195,522 +220,539 @@ import
 rule
     : rule_modifiers _RULE_ _IDENTIFIER_
       {
-          $$ = &ast.Rule{
-              Modifiers: $1,
-              Identifier: proto.String($3),
-          }
+        lexer := asLexer(yrlex)
 
-          // Forbid duplicate rules
-          for _, r := range ParsedRuleset.Rules {
-              if $3 == *r.Identifier {
-                  err := gyperror.Error{ gyperror.DuplicateRuleError, $3 }
-                  panic(err)
-              }
-          }
+        // Forbid duplicate rules
+        for _, r := range lexer.ruleSet.Rules {
+            if $3 == r.Identifier {
+              return lexer.SetError(
+                gyperror.DuplicateRuleError, `duplicate rule "%s"`, $3)
+            }
+        }
+
+        $$ = &ast.Rule{
+            Global: $1 & ModGlobal == ModGlobal,
+            Private: $1 & ModPrivate == ModPrivate,
+            Identifier: $3,
+        }
       }
-      tags _LBRACE_ meta strings
+      tags '{' meta strings
       {
-          // $4 is the rule created in above action
-          $<yr>4.Tags = $5
-
-          // Forbid duplicate tags
-          idx := make(map[string]struct{})
-          for _, t := range $5 {
-              if _, had := idx[t]; had {
-                  err := gyperror.Error{
-                    gyperror.DuplicateTagError,
-                    fmt.Sprintf(
-                      `"%s" at rule "%s"`,
-                      $<yr>4.GetIdentifier(),
-                      t),
-                  }
-                  panic(err)
-              }
-              idx[t] = struct{}{}
-          }
-
-          $<yr>4.Meta = $7
-
-          $<yr>4.Strings = $8
-
-          // Forbid duplicate string IDs, except `$` (anonymous)
-          idx = make(map[string]struct{})
-          for _, s := range $8 {
-              if s.GetId() == "$" {
-                  continue
-              }
-              if _, had := idx[*s.Id]; had {
-                  err := gyperror.Error{
-                    gyperror.DuplicateStringError,
-                    fmt.Sprintf(
-                      `"%s" at rule "%s"`,
-                      $<yr>4.GetIdentifier(),
-                      s.GetId(),
-                    ),
-                  }
-                  panic(err)
-              }
-              idx[*s.Id] = struct{}{}
-          }
+        $<rule>4.Tags = $5
+        $<rule>4.Meta = $7
+        $<rule>4.Strings = $8
       }
-      condition _RBRACE_
+      condition '}'
       {
-          condition := $10
-          $<yr>4.Condition = condition
-          $$ = $<yr>4
+        $<rule>4.Condition = $10
+        $$ = $<rule>4
       }
     ;
 
 
 meta
-    : /* empty */ { $$ = []*ast.Meta{} }
+    : /* empty */
+      {
+        $$ = []*ast.Meta{}
+      }
     | _META_ ':' meta_declarations
       {
-          $$ = make([]*ast.Meta, 0, len($3))
-          for _, mpair := range $3 {
-              // YARA is ok with duplicate keys; we follow suit
-              $$ = append($$, mpair)
-          }
+        $$ = $3
       }
     ;
 
 
 strings
-    : /* empty */ { $$ = []*ast.String{} }
-    | _STRINGS_ ':' string_declarations { $$ = $3 }
+    : /* empty */
+      {
+        $$ = []ast.String{}
+      }
+    | _STRINGS_ ':' string_declarations
+      {
+        $$ = $3
+      }
     ;
 
 
 condition
-    : _CONDITION_ ':' boolean_expression { $$ = $3 }
+    : _CONDITION_ ':' boolean_expression
+      {
+        $$ = $3
+      }
     ;
 
 
 rule_modifiers
-    : /* empty */ { $$ = &ast.RuleModifiers{} }
-    | rule_modifiers rule_modifier     {
-        $$ = &ast.RuleModifiers{
-            Private: proto.Bool($1.GetPrivate() || $2.GetPrivate()),
-            Global: proto.Bool($1.GetGlobal() || $2.GetGlobal()),
-        }
-    }
+    : /* empty */
+      {
+        $$ = 0
+      }
+    | rule_modifiers rule_modifier
+      {
+        $$ = $1 | $2
+      }
     ;
 
 
 rule_modifier
-    : _PRIVATE_ { $$ = &ast.RuleModifiers{ Private: proto.Bool(true) } }
-    | _GLOBAL_ { $$ = &ast.RuleModifiers{ Global: proto.Bool(true) } }
+    : _PRIVATE_
+      {
+        $$ = ModPrivate
+      }
+    | _GLOBAL_
+      {
+        $$ = ModGlobal
+      }
     ;
 
 
 tags
-    : /* empty */ { $$ = []string{} }
-    | ':' tag_list { $$ = $2 }
+    : /* empty */
+      {
+        $$ = []string{}
+      }
+    | ':' tag_list
+      {
+        $$ = $2
+      }
     ;
 
 
 tag_list
-    : _IDENTIFIER_ { $$ = []string{$1} }
-    | tag_list _IDENTIFIER_ { $$ = append($1, $2) }
+    : _IDENTIFIER_
+      {
+        $$ = []string{$1}
+      }
+    | tag_list _IDENTIFIER_
+      {
+        lexer := asLexer(yrlex)
+
+        for _, tag := range $1 {
+          if tag == $2 {
+            return lexer.SetError(
+                gyperror.DuplicateTagError, `duplicate tag "%s"`, $2)
+          }
+        }
+
+        $$ = append($1, $2)
+      }
     ;
 
 
 meta_declarations
-    : meta_declaration { $$ = []*ast.Meta{$1} }
-    | meta_declarations meta_declaration { $$ = append($$, $2) }
+    : meta_declaration
+      {
+        $$ = []*ast.Meta{$1}
+      }
+    | meta_declarations meta_declaration
+      {
+        $$ = append($1, $2)
+      }
     ;
 
 
 meta_declaration
     : _IDENTIFIER_ '=' _TEXT_STRING_
       {
-          $$ = &ast.Meta{
-              Key: proto.String($1),
-              Value: &ast.Meta_Text{$3},
-          }
+        $$ = &ast.Meta{
+          Key: $1,
+          Value: $3,
+        }
       }
     | _IDENTIFIER_ '=' _NUMBER_
       {
-          $$ = &ast.Meta{
-              Key: proto.String($1),
-              Value: &ast.Meta_Number{$3},
-          }
+        $$ = &ast.Meta{
+          Key: $1,
+          Value: $3,
+        }
       }
     | _IDENTIFIER_ '=' '-' _NUMBER_
       {
-          $$ = &ast.Meta{
-              Key: proto.String($1),
-              Value: &ast.Meta_Number{-$4},
-          }
+        $$ = &ast.Meta{
+          Key: $1,
+          Value: -$4,
+        }
       }
     | _IDENTIFIER_ '=' _TRUE_
       {
-          $$ = &ast.Meta{
-              Key: proto.String($1),
-              Value: &ast.Meta_Boolean{true},
-          }
+        $$ = &ast.Meta{
+          Key: $1,
+          Value: true,
+        }
       }
     | _IDENTIFIER_ '=' _FALSE_
       {
-          $$ = &ast.Meta{
-              Key: proto.String($1),
-              Value: &ast.Meta_Boolean{false},
-          }
+        $$ = &ast.Meta{
+          Key: $1,
+          Value: false,
+        }
       }
     ;
 
 
 string_declarations
-    : string_declaration { $$ = []*ast.String{$1} }
-    | string_declarations string_declaration { $$ = append($1, $2) }
+    : string_declaration
+      {
+        $$ = []ast.String{$1}
+      }
+    | string_declarations string_declaration
+      {
+        $$ = append($1, $2)
+      }
     ;
 
 
 string_declaration
-    : _STRING_IDENTIFIER_ '='
+    : _STRING_IDENTIFIER_ '=' _TEXT_STRING_ string_modifiers
       {
-          $$ = &ast.String{
-              Id: proto.String($1),
-          }
+        $$ = &ast.TextString{
+          Identifier: strings.TrimPrefix($1, "$"),
+          ASCII: $4.modifiers & ModASCII != 0,
+          Wide: $4.modifiers & ModWide != 0,
+          Nocase: $4.modifiers & ModNocase != 0,
+          Fullword: $4.modifiers & ModFullword != 0,
+          Private: $4.modifiers & ModPrivate != 0,
+          Xor: $4.modifiers & ModXor != 0,
+          XorMin: $4.XorMin,
+          XorMax: $4.XorMax,
+          Value: $3,
+        }
       }
-      _TEXT_STRING_ string_modifiers
+    | _STRING_IDENTIFIER_ '=' _REGEXP_ regexp_modifiers
       {
-          $<ys>3.Value = &ast.String_Text{&ast.TextString{
-            Text: proto.String(decodeEscapedString($4)),
-            Modifiers: $5 ,
-          }}
-          $$ = $<ys>3
+        $$ = &ast.RegexpString{
+          Identifier: strings.TrimPrefix($1, "$"),
+          ASCII: $4 & ModASCII != 0,
+          Wide: $4 & ModWide != 0,
+          Nocase: $4 & ModNocase != 0,
+          Fullword: $4 & ModFullword != 0,
+          Private: $4 & ModPrivate != 0,
+          Regexp: $3,
+        }
       }
-    | _STRING_IDENTIFIER_ '='
+    | _STRING_IDENTIFIER_ '=' _HEX_STRING_ hex_modifiers
       {
-          $$ = &ast.String{
-              Id: proto.String($1),
-          }
-      }
-      _REGEXP_ string_modifiers
-      {
-          $<ys>3.Value = &ast.String_Regexp{&ast.Regexp{
-              Text: $4.Text,
-          }}
-
-          $5.I = $4.Modifiers.I
-          $5.S = $4.Modifiers.S
-
-          $<ys>3.GetRegexp().Modifiers = $5
-
-          $$ = $<ys>3
-      }
-    | _STRING_IDENTIFIER_ '=' _HEX_STRING_
-      {
-          $$ = &ast.String{
-              Id: proto.String($1),
-              Value: &ast.String_Hex{$3},
-          }
+        $$ = &ast.HexString{
+          Identifier: strings.TrimPrefix($1, "$"),
+          Private: $4 & ModPrivate != 0,
+          Tokens: $3,
+        }
       }
     ;
 
 
 string_modifiers
-    : /* empty */                         { $$ = &ast.StringModifiers{} }
+    : /* empty */
+      {
+        $$ = stringModifiers{}
+      }
     | string_modifiers string_modifier
       {
-          $$ = &ast.StringModifiers {
-              Wide: proto.Bool($1.GetWide() || $2.GetWide()),
-              Ascii: proto.Bool($1.GetAscii() || $2.GetAscii()),
-              Nocase: proto.Bool($1.GetNocase() || $2.GetNocase()),
-              Fullword: proto.Bool($1.GetFullword() || $2.GetFullword()),
-              Xor: proto.Bool($1.GetXor() || $2.GetXor()),
-          }
+        if $1.modifiers & $2.modifiers != 0 {
+          return asLexer(yrlex).SetError(
+            gyperror.DuplicateModifierError, `duplicate modifier`)
+        }
+
+        $1.modifiers |= $2.modifiers
+
+        if $2.modifiers | ModXor != 0 {
+          $1.XorMin = $2.XorMin
+          $1.XorMax = $2.XorMax
+        }
+
+        $$ = $1
       }
     ;
 
 
 string_modifier
-    : _WIDE_        { $$ = &ast.StringModifiers{ Wide: proto.Bool(true) } }
-    | _ASCII_       { $$ = &ast.StringModifiers{ Ascii: proto.Bool(true) } }
-    | _NOCASE_      { $$ = &ast.StringModifiers{ Nocase: proto.Bool(true)} }
-    | _FULLWORD_    { $$ = &ast.StringModifiers{ Fullword: proto.Bool(true) } }
-    | _XOR_         { $$ = &ast.StringModifiers{ Xor: proto.Bool(true) } }
+    : _WIDE_        { $$ = stringModifiers{modifiers: ModWide} }
+    | _ASCII_       { $$ = stringModifiers{modifiers: ModASCII} }
+    | _NOCASE_      { $$ = stringModifiers{modifiers: ModNocase} }
+    | _FULLWORD_    { $$ = stringModifiers{modifiers: ModFullword} }
+    | _PRIVATE_     { $$ = stringModifiers{modifiers: ModPrivate} }
+    | _XOR_
+      {
+        $$ = stringModifiers{
+          modifiers: ModXor,
+          XorMin: 0,
+          XorMax: 255,
+        }
+      }
+    | _XOR_ '(' _NUMBER_ ')'
+      {
+        $$ = stringModifiers{
+          modifiers: ModXor,
+          XorMin: int32($3),
+          XorMax: int32($3),
+        }
+      }
+    | _XOR_ '(' _NUMBER_ '-' _NUMBER_ ')'
+      {
+        lexer := asLexer(yrlex)
+
+        if $3 < 0 {
+          return lexer.SetError(
+            gyperror.InvalidStringModifierError,
+            "lower bound for xor range exceeded (min: 0)")
+        }
+
+        if $5 > 255 {
+          return lexer.SetError(
+            gyperror.InvalidStringModifierError,
+            "upper bound for xor range exceeded (max: 255)")
+        }
+
+        if $3 > $5 {
+          return lexer.SetError(
+            gyperror.InvalidStringModifierError,
+            "xor lower bound exceeds upper bound")
+        }
+
+        $$ = stringModifiers{
+          modifiers: ModXor,
+          XorMin: int32($3),
+          XorMax: int32($5),
+        }
+      }
     ;
 
+
+regexp_modifiers
+    : /* empty */
+      {
+        $$ = 0
+      }
+    | regexp_modifiers regexp_modifier
+      {
+        $$ = $1 | $2
+      }
+    ;
+
+
+regexp_modifier
+    : _WIDE_        { $$ = ModWide }
+    | _ASCII_       { $$ = ModASCII }
+    | _NOCASE_      { $$ = ModNocase }
+    | _FULLWORD_    { $$ = ModFullword }
+    | _PRIVATE_     { $$ = ModPrivate }
+    ;
+
+
+hex_modifiers
+    : /* empty */
+      {
+        $$ = 0
+      }
+    | hex_modifiers hex_modifier
+      {
+        $$ = $1 | $2
+      }
+    ;
+
+
+hex_modifier
+    : _PRIVATE_     { $$ = ModPrivate }
+    ;
 
 
 identifier
     : _IDENTIFIER_
       {
-          $$ = &ast.Identifier{
-              Items: []*ast.Identifier_IdentifierItem{
-                  { Item: &ast.Identifier_IdentifierItem_Identifier{$1} },
-              },
-          }
+        $$ = &ast.Identifier{Identifier: $1}
       }
     | identifier '.' _IDENTIFIER_
       {
-          $$.Items =  append(
-              $1.Items,
-              &ast.Identifier_IdentifierItem{
-                  Item: &ast.Identifier_IdentifierItem_Identifier{$3},
-              },
-          )
+        $$ = &ast.MemberAccess{
+          Container: $1,
+          Member: $3,
+        }
       }
     | identifier '[' primary_expression ']'
       {
-          $$.Items = append(
-              $1.Items,
-              &ast.Identifier_IdentifierItem{
-                 Item: &ast.Identifier_IdentifierItem_Index{$3},
-              },
-          )
+        $$ = &ast.Subscripting{
+          Array: $1,
+          Index: $3,
+        }
       }
     | identifier '(' arguments ')'
       {
-          $$.Items = append(
-              $1.Items,
-              &ast.Identifier_IdentifierItem{
-                  Item: &ast.Identifier_IdentifierItem_Arguments{$3},
-              },
-          )
+        $$ = &ast.FunctionCall{
+          Callable: $1,
+          Arguments: $3,
+        }
       }
     ;
 
 
 arguments
-    : /* empty */     { $$ = &ast.Expressions{} }
-    | arguments_list  { $$ = $1 }
+    : /* empty */
+      {
+        $$ = []ast.Expression{}
+      }
+    | arguments_list
+     {
+        $$ = $1
+     }
 
 
 arguments_list
     : expression
       {
-          $$ = &ast.Expressions{
-              Terms: []*ast.Expression{$1},
-          }
+        $$ = []ast.Expression{$1}
       }
     | arguments_list ',' expression
       {
-          $$.Terms = append($1.Terms, $3)
+        $$ = append($1, $3)
       }
     ;
 
 
 regexp
     : _REGEXP_
-    {
-        regexp := $1
-        $$ = &regexp
-    }
+      {
+        $$ = $1
+      }
     ;
 
 
 boolean_expression
-    : expression { $$ = $1 }
+    : expression
+      {
+        $$ = $1
+      }
     ;
+
 
 expression
     : _TRUE_
       {
-          $$ = &ast.Expression{
-             Expression: &ast.Expression_BoolValue{true},
-          }
+        $$ = ast.KeywordTrue
       }
     | _FALSE_
       {
-          $$ = &ast.Expression{
-             Expression: &ast.Expression_BoolValue{false},
-          }
+        $$ = ast.KeywordFalse
       }
     | primary_expression _MATCHES_ regexp
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_MATCHES.Enum(),
-                      Left: $1,
-                      Right: &ast.Expression{
-                          Expression: &ast.Expression_Regexp{$3},
-                      },
-                  },
-              },
-          }
+        $$ = &ast.Operation{
+          Operator: ast.OpMatches,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | primary_expression _CONTAINS_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_CONTAINS.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = &ast.Operation{
+          Operator: ast.OpContains,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | _STRING_IDENTIFIER_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_StringIdentifier{$1},
-          }
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
+        }
       }
     | _STRING_IDENTIFIER_ _AT_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_AT.Enum(),
-                      Left: &ast.Expression{
-                          Expression: &ast.Expression_StringIdentifier{$1},
-                      },
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
+          At: $3,
+        }
       }
     | _STRING_IDENTIFIER_ _IN_ range
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_IN.Enum(),
-                      Left: &ast.Expression{
-                          Expression: &ast.Expression_StringIdentifier{$1},
-                      },
-                      Right: &ast.Expression{
-                          Expression: &ast.Expression_Range{$3},
-                      },
-                  },
-              },
-          }
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
+          In: $3,
+        }
       }
     | _FOR_ for_expression error { }
-    | _FOR_ for_expression _IDENTIFIER_ _IN_ integer_set ':' '(' boolean_expression ')'
+    | _FOR_ for_expression for_variables _IN_ iterator ':' '(' boolean_expression ')'
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_ForInExpression{
-                  ForInExpression: &ast.ForInExpression{
-                      ForExpression: $2,
-                      Identifier: proto.String($3),
-                      IntegerSet: $5,
-                      Expression: $8,
-                  },
-              },
-          }
+        $$ = &ast.ForIn{
+          Quantifier: $2,
+          Variables: $3,
+          Iterator: $5,
+          Condition: $8,
+        }
       }
     | _FOR_ for_expression _OF_ string_set ':' '(' boolean_expression ')'
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_ForOfExpression{
-                  ForOfExpression: &ast.ForOfExpression{
-                      ForExpression: $2,
-                      StringSet: $4,
-                      Expression: $7,
-                  },
-              },
-          }
+        $$ = &ast.ForOf{
+          Quantifier: $2,
+          Strings: $4,
+          Condition:  $7,
+        }
       }
     | for_expression _OF_ string_set
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_ForOfExpression{
-                  ForOfExpression: &ast.ForOfExpression{
-                      ForExpression: $1,
-                      StringSet: $3,
-                  },
-              },
-          }
+        $$ = &ast.Of{
+          Quantifier: $1,
+          Strings: $3,
+        }
       }
     | _NOT_ boolean_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_NotExpression{$2},
-          }
+        $$ = &ast.Not{$2}
       }
     | boolean_expression _AND_ boolean_expression
       {
-          $$ = createAndExpression($1, $3)
+        $$ = operation(ast.OpAnd, $1, $3)
       }
     | boolean_expression _OR_ boolean_expression
       {
-          $$ = createOrExpression($1, $3)
+        $$ = operation(ast.OpOr, $1, $3)
       }
     | primary_expression _LT_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_LT.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = &ast.Operation{
+          Operator: ast.OpLessThan,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | primary_expression _GT_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_GT.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = &ast.Operation{
+          Operator: ast.OpGreaterThan,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | primary_expression _LE_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_LE.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = &ast.Operation{
+          Operator: ast.OpLessOrEqual,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | primary_expression _GE_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_GE.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = &ast.Operation{
+          Operator: ast.OpGreaterOrEqual,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | primary_expression _EQ_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_EQ.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = &ast.Operation{
+          Operator: ast.OpEqual,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | primary_expression _NEQ_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_NEQ.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = &ast.Operation{
+          Operator: ast.OpNotEqual,
+          Operands: []ast.Expression{$1, $3},
+        }
       }
     | primary_expression
       {
-          $$ = $1
+        $$ = $1
       }
     |'(' expression ')'
       {
-          $$ = $2
+        $$ = &ast.Group{$2}
       }
     ;
 
@@ -718,15 +760,11 @@ expression
 integer_set
     : '(' integer_enumeration ')'
       {
-          $$ = &ast.IntegerSet{
-              Set: &ast.IntegerSet_IntegerEnumeration{$2},
-          }
+        $$ = &ast.Enum{Values: $2}
       }
     | range
       {
-          $$ = &ast.IntegerSet{
-              Set: &ast.IntegerSet_Range{$1},
-          }
+        $$ = $1
       }
     ;
 
@@ -734,10 +772,10 @@ integer_set
 range
     : '(' primary_expression _DOT_DOT_  primary_expression ')'
       {
-          $$ = &ast.Range{
-              Start: $2,
-              End: $4,
-          }
+        $$ = &ast.Range{
+          Start: $2,
+          End: $4,
+        }
       }
     ;
 
@@ -745,12 +783,11 @@ range
 integer_enumeration
     : primary_expression
       {
-          $$ = &ast.IntegerEnumeration{
-              Values: []*ast.Expression{$1},
-          }
+        $$ = []ast.Expression{$1}
       }
-    | integer_enumeration ',' primary_expression {
-          $$.Values = append($$.Values, $3)
+    | integer_enumeration ',' primary_expression
+      {
+        $$ = append($1, $3)
       }
    ;
 
@@ -758,11 +795,11 @@ integer_enumeration
 string_set
     : '(' string_enumeration ')'
       {
-          $$ = &ast.StringSet{ Set: &ast.StringSet_Strings{$2} }
+        $$ = &ast.Enum{Values: $2}
       }
     | _THEM_
       {
-          $$ = &ast.StringSet { Set: &ast.StringSet_Keyword{ast.StringSetKeyword_THEM} }
+        $$ = ast.KeywordThem
       }
     ;
 
@@ -770,13 +807,11 @@ string_set
 string_enumeration
     : string_enumeration_item
       {
-          $$ = &ast.StringEnumeration{
-              Items: []*ast.StringEnumeration_StringEnumerationItem{$1},
-          }
+        $$ = []ast.Expression{$1}
       }
     | string_enumeration ',' string_enumeration_item
       {
-          $$.Items = append($1.Items, $3)
+        $$ = append($1, $3)
       }
     ;
 
@@ -784,16 +819,14 @@ string_enumeration
 string_enumeration_item
     : _STRING_IDENTIFIER_
       {
-        $$ = &ast.StringEnumeration_StringEnumerationItem{
-            StringIdentifier: proto.String($1),
-            HasWildcard: proto.Bool(false),
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
         }
       }
     | _STRING_IDENTIFIER_WITH_WILDCARD_
       {
-        $$ = &ast.StringEnumeration_StringEnumerationItem{
-            StringIdentifier: proto.String($1),
-            HasWildcard: proto.Bool(true),
+        $$ = &ast.StringIdentifier{
+          Identifier: strings.TrimPrefix($1, "$"),
         }
       }
     ;
@@ -802,21 +835,38 @@ string_enumeration_item
 for_expression
     : primary_expression
       {
-          $$ = &ast.ForExpression{
-              For: &ast.ForExpression_Expression{$1},
-          }
+        $$ = &ast.Quantifier{$1}
       }
     | _ALL_
       {
-          $$ = &ast.ForExpression{
-              For: &ast.ForExpression_Keyword{ast.ForKeyword_ALL},
-          }
+        $$ = &ast.Quantifier{ast.KeywordAll}
       }
     | _ANY_
       {
-          $$ = &ast.ForExpression{
-              For: &ast.ForExpression_Keyword{ast.ForKeyword_ANY},
-          }
+        $$ = &ast.Quantifier{ast.KeywordAny}
+      }
+    ;
+
+
+for_variables
+    : _IDENTIFIER_
+      {
+        $$ = []string{$1}
+      }
+    | for_variables ',' _IDENTIFIER_
+      {
+        $$ = append($1, $3)
+      }
+    ;
+
+iterator
+    : identifier
+      {
+        $$ = $1
+      }
+    | integer_set
+      {
+        $$ = $1
       }
     ;
 
@@ -824,302 +874,142 @@ for_expression
 primary_expression
     : '(' primary_expression ')'
       {
-          $$ = $2
+        $$ = &ast.Group{$2}
       }
     | _FILESIZE_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_Keyword{ast.Keyword_FILESIZE},
-          }
+        $$ = ast.KeywordFilesize
       }
     | _ENTRYPOINT_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_Keyword{ast.Keyword_ENTRYPOINT},
-          }
+        $$ = ast.KeywordEntrypoint
       }
     | _INTEGER_FUNCTION_ '(' primary_expression ')'
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_IntegerFunction{
-                  &ast.IntegerFunction{
-                      Function: proto.String($1),
-                      Argument: $3,
-                  },
-              },
-          }
+        $$ = &ast.FunctionCall{
+          Callable: &ast.Identifier{Identifier: $1},
+          Arguments: []ast.Expression{$3},
+        }
       }
     | _NUMBER_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_NumberValue{$1},
-          }
+        $$ = &ast.LiteralInteger{$1}
       }
     | _DOUBLE_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_DoubleValue{$1},
-          }
+        $$ = &ast.LiteralFloat{$1}
       }
     | _TEXT_STRING_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_Text{$1},
-          }
+        $$ = &ast.LiteralString{$1}
       }
     | _STRING_COUNT_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_StringCount{$1},
-          }
+        $$ = &ast.StringCount{
+          Identifier: strings.TrimPrefix($1, "#"),
+        }
       }
     | _STRING_OFFSET_ '[' primary_expression ']'
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_StringOffset{
-                  &ast.StringOffset{
-                      StringIdentifier: proto.String($1),
-                      Index: $3,
-                  },
-              },
-          }
+        $$ = &ast.StringOffset{
+          Identifier: strings.TrimPrefix($1, "@"),
+          Index: $3,
+        }
       }
     | _STRING_OFFSET_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_StringOffset{
-                  &ast.StringOffset{
-                      StringIdentifier: proto.String($1),
-                  },
-              },
-          }
+        $$ = &ast.StringOffset{
+          Identifier: strings.TrimPrefix($1, "@"),
+        }
       }
     | _STRING_LENGTH_ '[' primary_expression ']'
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_StringLength{
-                  &ast.StringLength{
-                      StringIdentifier: proto.String($1),
-                      Index: $3,
-                  },
-              },
-          }
+        $$ = &ast.StringLength{
+          Identifier: strings.TrimPrefix($1, "!"),
+          Index: $3,
+        }
       }
     | _STRING_LENGTH_
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_StringLength{
-                  &ast.StringLength{
-                      StringIdentifier: proto.String($1),
-                  },
-              },
-          }
+        $$ = &ast.StringLength{
+          Identifier: strings.TrimPrefix($1, "!"),
+        }
       }
     | identifier
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_Identifier{$1},
-          }
+        $$ = $1
       }
     | '-' primary_expression %prec UNARY_MINUS
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_UnaryExpression{
-                  &ast.UnaryExpression{
-                      Operator: ast.UnaryExpression_UNARY_MINUS.Enum(),
-                      Expression: $2,
-                  },
-              },
-          }
+        $$ = &ast.Minus{$2}
       }
     | primary_expression '+' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_PLUS.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpAdd, $1, $3)
       }
     | primary_expression '-' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_MINUS.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpSub, $1, $3)
       }
     | primary_expression '*' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_TIMES.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpMul, $1, $3)
       }
     | primary_expression '\\' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_DIV.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpDiv, $1, $3)
       }
     | primary_expression '%' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_MOD.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpMod, $1, $3)
       }
     | primary_expression '^' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_XOR.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpBitXor, $1, $3)
       }
     | primary_expression '&' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_BITWISE_AND.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpBitAnd, $1, $3)
       }
     | primary_expression '|' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_BITWISE_OR.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpBitOr, $1, $3)
       }
     | '~' primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_UnaryExpression{
-                  UnaryExpression: &ast.UnaryExpression{
-                      Operator: ast.UnaryExpression_BITWISE_NOT.Enum(),
-                      Expression: $2,
-                  },
-              },
-          }
+        $$ = &ast.BitwiseNot{$2}
       }
     | primary_expression _SHIFT_LEFT_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_SHIFT_LEFT.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpShiftLeft, $1, $3)
       }
     | primary_expression _SHIFT_RIGHT_ primary_expression
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_BinaryExpression{
-                  BinaryExpression: &ast.BinaryExpression{
-                      Operator: ast.BinaryExpression_SHIFT_RIGHT.Enum(),
-                      Left: $1,
-                      Right: $3,
-                  },
-              },
-          }
+        $$ = operation(ast.OpShiftRight, $1, $3)
       }
     | regexp
       {
-          $$ = &ast.Expression{
-              Expression: &ast.Expression_Regexp{$1},
-          }
+        $$ = $1
       }
     ;
 
 %%
 
-func createOrExpression(terms... *ast.Expression) (or *ast.Expression) {
-    expressions := []*ast.Expression{}
-    for _, term := range terms {
-        if term.GetOrExpression() == nil {
-           expressions = append(expressions, term)
-        } else {
-           expressions = append(expressions, term.GetOrExpression().GetTerms()...)
-        }
+
+// This function takes an operator and two operands and returns a Expression
+// representing the operation. If the left operand is an operation of the
+// the same kind than the specified by the operator, the right operand is
+// simply appended to that existing operation. This implies that the operator
+// must be left-associative in order to be used with this function.
+func operation(operator ast.OperatorType, left, right ast.Expression) (n ast.Expression) {
+  if operation, ok := left.(*ast.Operation); ok && operation.Operator == operator {
+    operation.Operands = append(operation.Operands, right)
+    n = operation
+  } else {
+    n = &ast.Operation{
+      Operator: operator,
+      Operands: []ast.Expression{left, right},
     }
-
-    or = &ast.Expression{
-        Expression: &ast.Expression_OrExpression{&ast.Expressions{ Terms: expressions }},
-    }
-
-    return
-}
-
-func createAndExpression(terms... *ast.Expression) (and *ast.Expression) {
-    expressions := []*ast.Expression{}
-    for _, term := range terms {
-        if term.GetAndExpression() == nil {
-           expressions = append(expressions, term)
-        } else {
-           expressions = append(expressions, term.GetAndExpression().GetTerms()...)
-        }
-    }
-
-    and = &ast.Expression{
-        Expression: &ast.Expression_AndExpression{&ast.Expressions{ Terms: expressions }},
-    }
-
-    return
-}
-
-// Strings in YARA rules may contain escaped chars, such as doublequotes (")
-// or new lines (\n).
-// The strings returned by the lexer contains the backslashes used to escape
-// those chars. However, the backslashes are not part of the string to match
-// and they should be removed.
-// Example:
-// -  YARA rule:                  $str = "First line\nSecond line"
-// -  decodeEscapedString input:  str  = "First line\\nSecond line"
-// -  decodeEscapedString output: out  = "First line\nSecond line"
-func decodeEscapedString(str string) (out string) {
-  if _, err := fmt.Sscanf(fmt.Sprintf("\"%s\"", str), "%q", &out); err != nil {
-    panic(err)
   }
-
-  return out
+  return n
 }
