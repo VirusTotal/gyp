@@ -320,10 +320,13 @@ rule foo {
 }`,
 	`include "foo"
 rule foo {
-  strings:
-    $a = { 01 02 [2] 03 04 [1-2] 05 06 [1-] 07 08 [-] 09 0A }
   condition:
-    $a
+    true
+}`,
+	`import "foo"
+rule foo {
+  condition:
+    true
 }`,
 }
 
