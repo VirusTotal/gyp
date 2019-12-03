@@ -88,12 +88,12 @@ func (l *lexer) Error(msg string) {
 	}
 }
 
-// SetError sets the lexer error. The error message can be built by passing
+// setError sets the lexer error. The error message can be built by passing
 // a format string and arguments as fmt.Sprintf. This function returns 1 as
-// it's intended to by used in grammar.y as:
-//   return lexer.SetError(...)
-// By returning 1 from the parser the parsing is aborted.
-func (l *lexer) SetError(code gyperror.Code, format string, a ...interface{}) int {
+// it's intended to be used by Parse as:
+//   return lexer.setError(...)
+// By returning 1 from Parse the parsing is aborted.
+func (l *lexer) setError(code gyperror.Code, format string, a ...interface{}) int {
 	l.err = gyperror.Error{
 		Code:    code,
 		Line:    l.scanner.Lineno,
@@ -103,8 +103,7 @@ func (l *lexer) SetError(code gyperror.Code, format string, a ...interface{}) in
 }
 
 
-// Helper function that casts a yrLexer interface to a lexer struct. This
-// function is used in grammar.y.
+// Helper function that casts a yrLexer interface to a lexer struct.
 func asLexer(l yrLexer) *lexer {
 	return l.(*lexer)
 }
@@ -316,7 +315,7 @@ rule
         // Forbid duplicate rules
         for _, r := range lexer.ruleSet.Rules {
             if $3 == r.Identifier {
-              return lexer.SetError(
+              return lexer.setError(
                 gyperror.DuplicateRuleError, `duplicate rule "%s"`, $3)
             }
         }
@@ -420,7 +419,7 @@ tag_list
 
         for _, tag := range $1 {
           if tag == $2 {
-            return lexer.SetError(
+            return lexer.setError(
                 gyperror.DuplicateTagError, `duplicate tag "%s"`, $2)
           }
         }
@@ -540,7 +539,7 @@ string_modifiers
     | string_modifiers string_modifier
       {
         if $1.modifiers & $2.modifiers != 0 {
-          return asLexer(yrlex).SetError(
+          return asLexer(yrlex).setError(
             gyperror.DuplicateModifierError, `duplicate modifier`)
         }
 
@@ -583,19 +582,19 @@ string_modifier
         lexer := asLexer(yrlex)
 
         if $3 < 0 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.InvalidStringModifierError,
             "lower bound for xor range exceeded (min: 0)")
         }
 
         if $5 > 255 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.InvalidStringModifierError,
             "upper bound for xor range exceeded (max: 255)")
         }
 
         if $3 > $5 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.InvalidStringModifierError,
             "xor lower bound exceeds upper bound")
         }

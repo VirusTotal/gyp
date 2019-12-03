@@ -1,6 +1,20 @@
-// adapter.go provides an adapter for a flexgo lexer to work
-// with a goyacc parser
+/*
+Package gyp provides a pure Go parser for YARA rules.
 
+For example, you can parse YARA rules from a string:
+	ruleset, err := gyp.ParseString("rule test { condition: true }")
+
+Or from a io.Reader:
+	ruleset, err := gyp.Parse(os.Stdin)
+
+The rules can be written to source again:
+	err := ruleset.WriteSource(os.Stdout)
+
+Or you can iterate over the rules and inspect their attributes:
+	for _, rule := ruleset.Rules {
+		fmt.Println(rule.Identifier)
+	}
+*/
 package gyp
 
 import (
