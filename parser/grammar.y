@@ -28,9 +28,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 %{
-package gyp
+package parser
 
 import (
+    "fmt"
+    "io"
+    "io/ioutil"
     "strings"
     "github.com/VirusTotal/gyp/ast"
     gyperror "github.com/VirusTotal/gyp/error"
@@ -53,6 +56,93 @@ type stringModifiers struct {
   modifiers
   XorMin int32
   XorMax int32
+}
+
+// Lexer is an adapter that fits the flexgo lexer ("Scanner") into goyacc
+type lexer struct {
+	scanner Scanner
+	err     gyperror.Error
+	ruleSet *ast.RuleSet
+}
+
+// Lex provides the interface expected by the goyacc parser.
+// It sets the context's lval pointer (defined in the lexer file)
+// to the one passed as an argument so that the parser actions
+// can make use of it.
+func (l *lexer) Lex(lval *yrSymType) int {
+	l.scanner.Context.lval = lval
+	r := l.scanner.Lex()
+	if r.Error.Code != 0 {
+		r.Error.Line = l.scanner.Lineno
+		panic(r.Error)
+	}
+	return r.Token
+}
+
+// Error satisfies the interface expected of the goyacc parser.
+func (l *lexer) Error(msg string) {
+	l.err = gyperror.Error{
+		Code:    gyperror.LexicalError,
+		Line:    l.scanner.Lineno,
+		Message: msg,
+	}
+}
+
+// setError sets the lexer error. The error message can be built by passing
+// a format string and arguments as fmt.Sprintf. This function returns 1 as
+// it's intended to be used by Parse as:
+//   return lexer.setError(...)
+// By returning 1 from Parse the parsing is aborted.
+func (l *lexer) setError(code gyperror.Code, format string, a ...interface{}) int {
+	l.err = gyperror.Error{
+		Code:    code,
+		Line:    l.scanner.Lineno,
+		Message: fmt.Sprintf(format, a...),
+	}
+	return 1
+}
+
+
+// Helper function that casts a yrLexer interface to a lexer struct.
+func asLexer(l yrLexer) *lexer {
+	return l.(*lexer)
+}
+
+
+func Parse(input io.Reader) (rs *ast.RuleSet, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if yaraError, ok := r.(gyperror.Error); ok {
+				err = yaraError
+			} else {
+				err = gyperror.Error{
+					Code:    gyperror.UnknownError,
+					Message: fmt.Sprintf("%v", r),
+				}
+			}
+		}
+	}()
+
+	lexer := &lexer{
+		scanner: *NewScanner(),
+		ruleSet: &ast.RuleSet{
+			Imports: make([]string, 0),
+			Rules:   make([]*ast.Rule, 0),
+		},
+	}
+	lexer.scanner.In = input
+	lexer.scanner.Out = ioutil.Discard
+
+	if result := yrParse(lexer); result != 0 {
+		err = lexer.err
+	}
+
+	return lexer.ruleSet, err
+}
+
+
+func init() {
+	yrErrorVerbose = true
 }
 
 
@@ -225,7 +315,7 @@ rule
         // Forbid duplicate rules
         for _, r := range lexer.ruleSet.Rules {
             if $3 == r.Identifier {
-              return lexer.SetError(
+              return lexer.setError(
                 gyperror.DuplicateRuleError, `duplicate rule "%s"`, $3)
             }
         }
@@ -329,7 +419,7 @@ tag_list
 
         for _, tag := range $1 {
           if tag == $2 {
-            return lexer.SetError(
+            return lexer.setError(
                 gyperror.DuplicateTagError, `duplicate tag "%s"`, $2)
           }
         }
@@ -449,7 +539,7 @@ string_modifiers
     | string_modifiers string_modifier
       {
         if $1.modifiers & $2.modifiers != 0 {
-          return asLexer(yrlex).SetError(
+          return asLexer(yrlex).setError(
             gyperror.DuplicateModifierError, `duplicate modifier`)
         }
 
@@ -492,19 +582,19 @@ string_modifier
         lexer := asLexer(yrlex)
 
         if $3 < 0 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.InvalidStringModifierError,
             "lower bound for xor range exceeded (min: 0)")
         }
 
         if $5 > 255 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.InvalidStringModifierError,
             "upper bound for xor range exceeded (max: 255)")
         }
 
         if $3 > $5 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.InvalidStringModifierError,
             "xor lower bound exceeds upper bound")
         }
