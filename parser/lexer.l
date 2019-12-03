@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Lexical analyzer for YARA */
 
 %top{
-package gyp
+package parser
 
 import (
     "fmt"
