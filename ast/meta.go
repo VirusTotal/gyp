@@ -22,7 +22,7 @@ func (m *Meta) String() string {
 	return fmt.Sprintf("%s = %#v", m.Key, m.Value)
 }
 
-// AsProto returns the meta serialized as a the Meta protobuf.
+// AsProto returns the meta serialized as a Meta protobuf.
 func (m *Meta) AsProto() *pb.Meta {
 	meta := &pb.Meta{Key: proto.String(m.Key)}
 	switch v := m.Value.(type) {

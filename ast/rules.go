@@ -83,7 +83,7 @@ func (r *Rule) Children() []Node {
 	return []Node{r.Condition}
 }
 
-// AsProto returns the rule serialized as a the Rule protobuf message.
+// AsProto returns the rule serialized as a Rule protobuf message.
 func (r *Rule) AsProto() *pb.Rule {
 	meta := make([]*pb.Meta, len(r.Meta))
 	for i, m := range r.Meta {
