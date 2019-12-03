@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"fmt"
 	"io"
 	"strings"
 	"text/template"
@@ -70,6 +71,11 @@ func (r *Rule) WriteSource(w io.Writer) error {
 
 // WriteSource writes the ruleset's source into the writer w.
 func (r *RuleSet) WriteSource(w io.Writer) error {
+	for _, include := range r.Includes {
+		if _, err := fmt.Fprintf(w, `include "%s"`, include); err != nil {
+			return err
+		}
+	}
 	for _, r := range r.Rules {
 		if err := r.WriteSource(w); err != nil {
 			return err
@@ -113,7 +119,8 @@ func (r *RuleSet) AsProto() *pb.RuleSet {
 		rules[i] = rule.AsProto()
 	}
 	return &pb.RuleSet{
-		Imports: r.Imports,
-		Rules:   rules,
+		Imports:  r.Imports,
+		Includes: r.Includes,
+		Rules:    rules,
 	}
 }

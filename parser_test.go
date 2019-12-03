@@ -318,6 +318,13 @@ rule foo {
   condition:
     $a
 }`,
+	`include "foo"
+rule foo {
+  strings:
+    $a = { 01 02 [2] 03 04 [1-2] 05 06 [1-] 07 08 [-] 09 0A }
+  condition:
+    $a
+}`,
 }
 
 // These tests won't pass the protobuf serialization-deserialization cycle.

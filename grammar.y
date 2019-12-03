@@ -199,6 +199,8 @@ rules
       }
     | rules _INCLUDE_ _TEXT_STRING_
       {
+        ruleSet := asLexer(yrlex).ruleSet
+        ruleSet.Includes = append(ruleSet.Includes, $3)
       }
     | rules _END_OF_INCLUDED_FILE_
       {

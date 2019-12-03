@@ -16,8 +16,9 @@ func RuleSetFromProto(rs *pb.RuleSet) *RuleSet {
 		astRules[i] = RuleFromProto(rule)
 	}
 	return &RuleSet{
-		Imports: rs.GetImports(),
-		Rules:   astRules,
+		Imports:  rs.GetImports(),
+		Includes: rs.GetIncludes(),
+		Rules:    astRules,
 	}
 }
 
