@@ -107,22 +107,22 @@ func (t *TextString) UnescapedValue() string {
 	return unescaped
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (h *HexJump) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (h *HexBytes) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (h HexTokens) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (h *HexOr) Children() []Node {
 	nodes := make([]Node, len(h.Alternatives))
 	for i, a := range h.Alternatives {

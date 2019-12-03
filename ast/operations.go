@@ -57,6 +57,6 @@ var OpPrecedence = map[OperatorType]int{
 	OpMod:            10,
 }
 
-// OpMaxPrecedence is the maximum possible precedence. This also the precedence
+// OpMaxPrecedence is the maximum possible precedence. This is also the precedence
 // for unary operators "not", "~" and "-".
 const OpMaxPrecedence = 11

@@ -78,7 +78,7 @@ func (r *RuleSet) WriteSource(w io.Writer) error {
 	return nil
 }
 
-// Children returns the children node's of a rule.
+// Children returns the node's children.
 func (r *Rule) Children() []Node {
 	return []Node{r.Condition}
 }

@@ -524,37 +524,37 @@ func (k Keyword) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (l *LiteralInteger) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (l *LiteralFloat) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (l *LiteralString) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (l *LiteralRegexp) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (i *Identifier) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (r *Range) Children() []Node {
 	return []Node{r.Start, r.End}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (e *Enum) Children() []Node {
 	nodes := make([]Node, len(e.Values))
 	for i, v := range e.Values {
@@ -563,7 +563,7 @@ func (e *Enum) Children() []Node {
 	return nodes
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (s *StringIdentifier) Children() []Node {
 	children := make([]Node, 0)
 	if s.At != nil {
@@ -575,22 +575,22 @@ func (s *StringIdentifier) Children() []Node {
 	return children
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (s *StringCount) Children() []Node {
 	return []Node{}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (s *StringOffset) Children() []Node {
 	return []Node{s.Index}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (s *StringLength) Children() []Node {
 	return []Node{s.Index}
 }
 
-// Children returns the Nodes's children.
+// Children returns the Node's children.
 func (f *FunctionCall) Children() []Node {
 	expressions := append([]Expression{f.Callable}, f.Arguments...)
 	nodes := make([]Node, len(expressions))
