@@ -69,9 +69,10 @@ rule STRING2 {
 
 rule STRING_MODIFIERS {
   strings:
-    $s1 = "foo" ascii wide nocase fullword private xor
+    $s1 = "foo" ascii wide nocase fullword private base64 xor
     $s2 = "bar" xor(1)
     $s3 = "baz" xor(2-4)
+    $s4 = "qux" base64("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
   condition:
     all of them
 }
@@ -261,4 +262,13 @@ func TestRulesetParsing(t *testing.T) {
 
 	output := b.String()
 	assert.Equal(t, testRules, output)
+}
+
+func TestBase64AlphabetLength(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule BASE64 {
+		strings:
+			$foo = "foo" base64("baz")
+	}`)
+	assert.Error(t, err, "length of base64 alphabet must be 64")
 }

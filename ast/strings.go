@@ -22,15 +22,17 @@ type TextString struct {
 	Identifier string
 	// Value contains the string exactly as it appears in the YARA rule. Escape
 	// sequences remain escaped. See the UnescapeValue function.
-	Value    string
-	ASCII    bool
-	Wide     bool
-	Nocase   bool
-	Fullword bool
-	Private  bool
-	Xor      bool
-	XorMin   int32
-	XorMax   int32
+	Value          string
+	ASCII          bool
+	Wide           bool
+	Nocase         bool
+	Fullword       bool
+	Private        bool
+	Base64         bool
+	Base64Alphabet string
+	Xor            bool
+	XorMin         int32
+	XorMax         int32
 }
 
 // RegexpString describes a YARA regexp.
@@ -97,7 +99,7 @@ type HexOr struct {
 	Alternatives HexTokens
 }
 
-// UnescapedValue retuns the string's Value with any escape sequence replaced
+// UnescapedValue returns the string's Value with any escape sequence replaced
 // by the actual character that it represents.
 func (t *TextString) UnescapedValue() string {
 	unescaped, err := strconv.Unquote(fmt.Sprintf(`"%s"`, t.Value))
@@ -172,6 +174,11 @@ func (t *TextString) WriteSource(w io.Writer) error {
 	}
 	if err == nil && t.Private {
 		_, err = io.WriteString(w, " private")
+	}
+	if err == nil && t.Base64 {
+		if _, err = io.WriteString(w, " base64"); err == nil && t.Base64Alphabet != "" {
+			_, err = io.WriteString(w, fmt.Sprintf("(\"%s\")", t.Base64Alphabet))
+		}
 	}
 	if err == nil && t.Xor {
 		if t.XorMin == 0 && t.XorMax == 255 {
@@ -315,14 +322,16 @@ func (h *HexOr) WriteSource(w io.Writer) error {
 // AsProto returns the string serialized as pb.String.
 func (t *TextString) AsProto() *pb.String {
 	modifiers := &pb.StringModifiers{
-		Ascii:    proto.Bool(t.ASCII),
-		Wide:     proto.Bool(t.Wide),
-		Fullword: proto.Bool(t.Fullword),
-		Nocase:   proto.Bool(t.Nocase),
-		Private:  proto.Bool(t.Private),
-		Xor:      proto.Bool(t.Xor),
-		XorMin:   proto.Int32(t.XorMin),
-		XorMax:   proto.Int32(t.XorMax),
+		Ascii:          proto.Bool(t.ASCII),
+		Wide:           proto.Bool(t.Wide),
+		Fullword:       proto.Bool(t.Fullword),
+		Nocase:         proto.Bool(t.Nocase),
+		Private:        proto.Bool(t.Private),
+		Xor:            proto.Bool(t.Xor),
+		XorMin:         proto.Int32(t.XorMin),
+		XorMax:         proto.Int32(t.XorMax),
+		Base64:         proto.Bool(t.Base64),
+		Base64Alphabet: proto.String(t.Base64Alphabet),
 	}
 	return &pb.String{
 		Id: proto.String(fmt.Sprintf("$%s", t.Identifier)),

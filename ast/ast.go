@@ -602,27 +602,27 @@ func (f *FunctionCall) Children() []Node {
 
 // Children returns the node's child nodes.
 func (m *MemberAccess) Children() []Node {
-	return append([]Node{m.Container})
+	return []Node{m.Container}
 }
 
 // Children returns the node's child nodes.
 func (s *Subscripting) Children() []Node {
-	return append([]Node{s.Array, s.Index})
+	return []Node{s.Array, s.Index}
 }
 
 // Children returns the node's child nodes.
 func (f *ForIn) Children() []Node {
-	return append([]Node{f.Quantifier, f.Iterator, f.Condition})
+	return []Node{f.Quantifier, f.Iterator, f.Condition}
 }
 
 // Children returns the node's child nodes.
 func (f *ForOf) Children() []Node {
-	return append([]Node{f.Quantifier, f.Strings, f.Condition})
+	return []Node{f.Quantifier, f.Strings, f.Condition}
 }
 
 // Children returns the node's child nodes.
 func (o *Of) Children() []Node {
-	return append([]Node{o.Quantifier, o.Strings})
+	return []Node{o.Quantifier, o.Strings}
 }
 
 // Children returns the operation's children nodes.
