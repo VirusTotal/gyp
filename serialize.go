@@ -342,7 +342,7 @@ func (ys *YaraSerializer) serializeTextString(t *pb.TextString) error {
 	return ys.serializeStringModifiers(t.Modifiers)
 }
 
-// Serialize for StringModifiers creates a space-sparated list of
+// Serialize for StringModifiers creates a space-separated list of
 // string modifiers, excluding the i and s which are appended to /regex/
 func (ys *YaraSerializer) serializeStringModifiers(m *pb.StringModifiers) error {
 	const modsAvailable = 4
@@ -361,6 +361,14 @@ func (ys *YaraSerializer) serializeStringModifiers(m *pb.StringModifiers) error 
 	}
 	if m.GetPrivate() {
 		modifiers = append(modifiers, "private")
+	}
+	if m.GetBase64() {
+		alphabet := m.GetBase64Alphabet()
+		if alphabet != "" {
+			modifiers = append(modifiers, fmt.Sprintf("base64(\"%s\")", alphabet))
+		} else {
+			modifiers = append(modifiers, "base64")
+		}
 	}
 	if m.GetXor() {
 		modifier := "xor"

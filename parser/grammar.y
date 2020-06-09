@@ -45,17 +45,19 @@ const (
 	_           = iota // ignore first value by assigning to blank identifier
 	ModGlobal modifiers = 1 << iota
 	ModPrivate
-  ModASCII
-  ModWide
-  ModXor
-  ModFullword
-  ModNocase
+    ModASCII
+    ModWide
+    ModXor
+    ModFullword
+    ModNocase
+    ModBase64
 )
 
 type stringModifiers struct {
   modifiers
   XorMin int32
   XorMax int32
+  Base64Alphabet string
 }
 
 // Lexer is an adapter that fits the flexgo lexer ("Scanner") into goyacc
@@ -183,6 +185,7 @@ func init() {
 %token _XOR_
 %token <mod> _NOCASE_
 %token <mod> _FULLWORD_
+%token <mod> _BASE64_
 %token _AT_
 %token _FILESIZE_
 %token _ENTRYPOINT_
@@ -502,6 +505,8 @@ string_declaration
           Nocase: $4.modifiers & ModNocase != 0,
           Fullword: $4.modifiers & ModFullword != 0,
           Private: $4.modifiers & ModPrivate != 0,
+          Base64: $4.modifiers & ModBase64 != 0,
+          Base64Alphabet: $4.Base64Alphabet,
           Xor: $4.modifiers & ModXor != 0,
           XorMin: $4.XorMin,
           XorMax: $4.XorMax,
@@ -550,6 +555,10 @@ string_modifiers
           $1.XorMax = $2.XorMax
         }
 
+        if $2.modifiers | ModBase64 != 0 {
+          $1.Base64Alphabet = $2.Base64Alphabet
+        }
+
         $$ = $1
       }
     ;
@@ -561,6 +570,20 @@ string_modifier
     | _NOCASE_      { $$ = stringModifiers{modifiers: ModNocase} }
     | _FULLWORD_    { $$ = stringModifiers{modifiers: ModFullword} }
     | _PRIVATE_     { $$ = stringModifiers{modifiers: ModPrivate} }
+    | _BASE64_      { $$ = stringModifiers{modifiers: ModBase64} }
+    | _BASE64_ '(' _TEXT_STRING_ ')'
+       {
+         if len($3) != 64 {
+            return asLexer(yrlex).setError(
+              gyperror.InvalidStringModifierError,
+              "length of base64 alphabet must be 64")
+         }
+
+         $$ = stringModifiers{
+            modifiers: ModBase64,
+            Base64Alphabet: $3,
+         }
+       }
     | _XOR_
       {
         $$ = stringModifiers{

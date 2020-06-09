@@ -163,16 +163,18 @@ func stringFromProto(s *pb.String) String {
 	case *pb.String_Text:
 		modifiers := v.Text.GetModifiers()
 		return &TextString{
-			Identifier: strings.TrimPrefix(s.GetId(), "$"),
-			ASCII:      modifiers.GetAscii(),
-			Wide:       modifiers.GetWide(),
-			Nocase:     modifiers.GetNocase(),
-			Fullword:   modifiers.GetFullword(),
-			Private:    modifiers.GetPrivate(),
-			Xor:        modifiers.GetXor(),
-			XorMin:     modifiers.GetXorMin(),
-			XorMax:     modifiers.GetXorMax(),
-			Value:      escape(v.Text.GetText()),
+			Identifier:     strings.TrimPrefix(s.GetId(), "$"),
+			ASCII:          modifiers.GetAscii(),
+			Wide:           modifiers.GetWide(),
+			Nocase:         modifiers.GetNocase(),
+			Fullword:       modifiers.GetFullword(),
+			Private:        modifiers.GetPrivate(),
+			Xor:            modifiers.GetXor(),
+			XorMin:         modifiers.GetXorMin(),
+			XorMax:         modifiers.GetXorMax(),
+			Base64:         modifiers.GetBase64(),
+			Base64Alphabet: modifiers.GetBase64Alphabet(),
+			Value:          escape(v.Text.GetText()),
 		}
 	case *pb.String_Hex:
 		return &HexString{

@@ -70,6 +70,12 @@ message StringModifiers {
   // only if the "xor" field is true.
   optional int32 xor_min = 9;
   optional int32 xor_max = 10;
+
+  // String is base64.
+  optional bool base64 = 11;
+
+  // Optional alphabet for base64 strings.
+  optional string base64alphabet = 12;
 }
 
 

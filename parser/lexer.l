@@ -138,6 +138,7 @@ octdigit      [0-7]
 "meta"                  { return Token(_META_);        }
 "strings"               { return Token(_STRINGS_);     }
 "ascii"                 { return Token(_ASCII_);       }
+"base64"                { return Token(_BASE64_);      }
 "wide"                  { return Token(_WIDE_);        }
 "xor"                   { return Token(_XOR_);         }
 "fullword"              { return Token(_FULLWORD_);    }
