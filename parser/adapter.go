@@ -1,23 +1,18 @@
-// adapter.go provides an adapter for a flexgo lexer to work
-// with a goyacc parser
-
-package hex
+package parser
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-
 	"github.com/VirusTotal/gyp/ast"
 	gyperror "github.com/VirusTotal/gyp/error"
+	"io"
+	"io/ioutil"
 )
 
 func init() {
-	hexErrorVerbose = true
+	yrErrorVerbose = true
 }
 
-// Parse parses an hex string in a YARA rule from the provided input source
-func Parse(input io.Reader) (tokens []ast.HexToken, err error) {
+func Parse(input io.Reader) (rs *ast.RuleSet, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if yaraError, ok := r.(gyperror.Error); ok {
@@ -25,39 +20,41 @@ func Parse(input io.Reader) (tokens []ast.HexToken, err error) {
 			} else {
 				err = gyperror.Error{
 					Code:    gyperror.UnknownError,
-					Message: fmt.Sprintf("%s", r),
+					Message: fmt.Sprintf("%v", r),
 				}
 			}
 		}
 	}()
 
-	lexer := lexer{
-		scanner:   *NewScanner(),
-		hexTokens: nil,
+	lexer := &lexer{
+		scanner: *NewScanner(),
+		ruleSet: &ast.RuleSet{
+			Imports: make([]string, 0),
+			Rules:   make([]*ast.Rule, 0),
+		},
 	}
 	lexer.scanner.In = input
 	lexer.scanner.Out = ioutil.Discard
 
-	if result := hexParse(&lexer); result != 0 {
+	if result := yrParse(lexer); result != 0 {
 		err = lexer.err
 	}
 
-	return lexer.hexTokens, err
+	return lexer.ruleSet, err
 }
 
 // Lexer is an adapter that fits the flexgo lexer ("Scanner") into goyacc
 type lexer struct {
-	scanner   Scanner
-	insideOr  int
-	err       gyperror.Error
-	hexTokens []ast.HexToken
+	scanner Scanner
+	err     gyperror.Error
+	ruleSet *ast.RuleSet
 }
 
 // Lex provides the interface expected by the goyacc parser.
-// It sets the context's lval pointer (defined in the hex_lexer.l file)
+// It sets the context's lval pointer (defined in the lexer file)
 // to the one passed as an argument so that the parser actions
 // can make use of it.
-func (l *lexer) Lex(lval *hexSymType) int {
+func (l *lexer) Lex(lval *yrSymType) int {
 	l.scanner.Context.lval = lval
 	r := l.scanner.Lex()
 	if r.Error.Code != 0 {
@@ -78,9 +75,9 @@ func (l *lexer) Error(msg string) {
 
 // setError sets the lexer error. The error message can be built by passing
 // a format string and arguments as fmt.Sprintf. This function returns 1 as
-// it's intended to by used in hex_grammar.y as:
+// it's intended to be used by Parse as:
 //   return lexer.setError(...)
-// By returning 1 from the parser the parsing is aborted.
+// By returning 1 from Parse the parsing is aborted.
 func (l *lexer) setError(code gyperror.Code, format string, a ...interface{}) int {
 	l.err = gyperror.Error{
 		Code:    code,
@@ -90,8 +87,7 @@ func (l *lexer) setError(code gyperror.Code, format string, a ...interface{}) in
 	return 1
 }
 
-// Helper function that casts a yrLexer interface to a lexer struct. This
-// function is used in grammar.y.
-func asLexer(l hexLexer) *lexer {
+// Helper function that casts a yrLexer interface to a lexer struct.
+func asLexer(l yrLexer) *lexer {
 	return l.(*lexer)
 }

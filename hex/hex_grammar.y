@@ -38,10 +38,9 @@ import (
 const StringChainingThreshold int = 200
 
 type byteWithMask struct {
-  Value byte
-  Mask byte
+	Value byte
+	Mask  byte
 }
-
 %}
 
 
@@ -80,7 +79,7 @@ $token _PIPE_
 hex_string
     : _LBRACE_ tokens _RBRACE_
       {
-        asLexer(xxlex).hexTokens = $2
+        asLexer(hexlex).hexTokens = $2
       }
     ;
 
@@ -132,11 +131,11 @@ token
       }
     | _LPARENS_
       {
-        asLexer(xxlex).insideOr += 1
+        asLexer(hexlex).insideOr += 1
       }
       alternatives _RPARENS_
       {
-        asLexer(xxlex).insideOr -= 1
+        asLexer(hexlex).insideOr -= 1
         $$ = $3
       }
     ;
@@ -145,16 +144,16 @@ token
 range
     : _LBRACKET_ _NUMBER_ _RBRACKET_
       {
-        lexer := asLexer(xxlex)
+        lexer := asLexer(hexlex)
 
         if $2 <= 0 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.InvalidJumpLengthError,
             `invalid jump length: %d`, $2)
         }
 
         if lexer.insideOr > 0 && $2 > StringChainingThreshold {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.JumpTooLargeInsideAlternationError,
             `jump too large inside alternation: %d`, $2)
         }
@@ -166,23 +165,23 @@ range
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _NUMBER_ _RBRACKET_
       {
-        lexer := asLexer(xxlex)
+        lexer := asLexer(hexlex)
 
         if lexer.insideOr > 0 &&
           ($2 > StringChainingThreshold || $4 > StringChainingThreshold) {
-            return lexer.SetError(
+            return lexer.setError(
               gyperror.JumpTooLargeInsideAlternationError,
               `jump too large inside alternation: %d-%d`, $2, $4)
         }
 
         if $2 < 0 || $4 < 0 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.NegativeJumpError,
             `negative jump: %d-%d`, $2, $4)
         }
 
         if $2 > $4 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.InvalidJumpRangeError,
             `jump too large inside alternation: %d-%d`, $2, $4)
         }
@@ -194,16 +193,16 @@ range
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _RBRACKET_
       {
-        lexer := asLexer(xxlex)
+        lexer := asLexer(hexlex)
 
         if lexer.insideOr > 0 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.UnboundedJumpInsideAlternationError,
             `unbounded jump inside alternation: %d`, $2)
         }
 
         if $2 < 0 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.NegativeJumpError,
             `negative jump: %d`, $2)
         }
@@ -214,10 +213,10 @@ range
       }
     | _LBRACKET_ _HYPHEN_ _RBRACKET_
       {
-        lexer := asLexer(xxlex)
+        lexer := asLexer(hexlex)
 
         if lexer.insideOr > 0 {
-          return lexer.SetError(
+          return lexer.setError(
             gyperror.UnboundedJumpInsideAlternationError,
             `unbounded jump inside alternation`)
         }

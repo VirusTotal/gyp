@@ -1,10 +1,10 @@
-all: proto grammar y2j
+all: proto hexgrammar grammar y2j j2y
 
 grammar:
 	flexgo -G -v -o parser/lexer.go parser/lexer.l && goyacc -p yr -o parser/parser.go parser/grammar.y
 
 hexgrammar:
-	flexgo -G -v -o hex/hex_lexer.go hex/hex_lexer.l && goyacc -p xx -o hex/hex_parser.go hex/hex_grammar.y
+	flexgo -G -v -o hex/hex_lexer.go hex/hex_lexer.l && goyacc -p hex -o hex/hex_parser.go hex/hex_grammar.y
 
 proto:
 	protoc --go_out=. pb/yara.proto

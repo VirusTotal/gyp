@@ -46,6 +46,10 @@ import (
     gyperror "github.com/VirusTotal/gyp/error"
 )
 
+type YYcontext struct {
+  lval *yrSymType
+}
+
 // YYtype is the structure returned by the lexer every time the scanner asks
 // for the next token. If the lexer wants to return an error to the scanner it
 // sets the Error field and leaves the Token empty.
@@ -62,11 +66,6 @@ func Error(c gyperror.Code, msg string) YYtype {
   return YYtype{Error: gyperror.Error{c, msg, 0,}}
 }
 
-// Note that the parser is generated with the yr prefix to avoid name
-// collisions with the hex and regexp parsers.
-type YYcontext struct {
-  lval *yrSymType
-}
 
 // The YY_USER_DATA macro is used to define variables inside the Scanner
 // Lex() method. These variables manage buffers for gathering groups of
@@ -81,7 +80,6 @@ type YYcontext struct {
 }
 
 %{
-
 YY_USER_DATA(
   var (
     collectText       bool    // true when reading string/regex/hex text
