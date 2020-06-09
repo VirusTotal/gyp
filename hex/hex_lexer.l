@@ -42,6 +42,9 @@ import (
     gyperror "github.com/VirusTotal/gyp/error"
 )
 
+type YYcontext struct {
+  lval *hexSymType
+}
 
 // YYtype is the structure returned by the lexer every time the scanner asks
 // for the next token. If the lexer wants to return an error to the scanner it
@@ -50,8 +53,6 @@ type YYtype struct {
   Token int
   Error gyperror.Error
 }
-
-type YYcontext interface{}
 
 func Token(t int) YYtype {
   return YYtype{Token: t}
@@ -63,18 +64,9 @@ func Error(c gyperror.Code, msg string) YYtype {
 
 }
 
-
 %{
-
 // Define a constant for end-of-file
 const eof = 0
-
-// These globals must be accessible to the goyacc parser.
-// Bear in mind that the xx prefix is used because the parser is generated
-// with this prefix in order to avoid name collisions.
-var yylval *hexSymType
-var err error
-
 %}
 
 %option reentrant bison-bridge
@@ -106,7 +98,7 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  yylval.bm = byteWithMask{ Mask: byte(0xFF), Value: byte(val) }
+  yy.Context.lval.bm = byteWithMask{ Mask: byte(0xFF), Value: byte(val) }
   return Token(_BYTE_);
 }
 
@@ -117,7 +109,7 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  yylval.bm = byteWithMask{ Mask: byte(0xF0), Value: byte(val) }
+  yy.Context.lval.bm = byteWithMask{ Mask: byte(0xF0), Value: byte(val) }
   return Token(_MASKED_BYTE_);
 }
 
@@ -128,12 +120,12 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  yylval.bm = byteWithMask{ Mask: byte(0x0F), Value: byte(val) }
+  yy.Context.lval.bm = byteWithMask{ Mask: byte(0x0F), Value: byte(val) }
   return Token(_MASKED_BYTE_);
 }
 
 \?\? {
-  yylval.bm = byteWithMask{ Mask: byte(0x00) }
+  yy.Context.lval.bm = byteWithMask{ Mask: byte(0x00) }
   return Token(_MASKED_BYTE_);
 }
 
@@ -156,7 +148,7 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing jump limit: %s\n", err))
   }
-  yylval.integer = int(val)
+  yy.Context.lval.integer = int(val)
   return Token(_NUMBER_);
 }
 

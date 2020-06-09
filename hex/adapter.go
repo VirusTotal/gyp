@@ -54,11 +54,11 @@ type lexer struct {
 }
 
 // Lex provides the interface expected by the goyacc parser.
-// It sets the global yylval pointer (defined in the lexer file)
+// It sets the context's lval pointer (defined in the hex_lexer.l file)
 // to the one passed as an argument so that the parser actions
 // can make use of it.
 func (l *lexer) Lex(lval *hexSymType) int {
-	yylval = lval
+	l.scanner.Context.lval = lval
 	r := l.scanner.Lex()
 	if r.Error.Code != 0 {
 		r.Error.Line = l.scanner.Lineno
@@ -76,12 +76,12 @@ func (l *lexer) Error(msg string) {
 	}
 }
 
-// SetError sets the lexer error. The error message can be built by passing
+// setError sets the lexer error. The error message can be built by passing
 // a format string and arguments as fmt.Sprintf. This function returns 1 as
 // it's intended to by used in hex_grammar.y as:
-//   return lexer.SetError(...)
+//   return lexer.setError(...)
 // By returning 1 from the parser the parsing is aborted.
-func (l *lexer) SetError(code gyperror.Code, format string, a ...interface{}) int {
+func (l *lexer) setError(code gyperror.Code, format string, a ...interface{}) int {
 	l.err = gyperror.Error{
 		Code:    code,
 		Line:    l.scanner.Lineno,

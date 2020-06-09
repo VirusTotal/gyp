@@ -556,13 +556,13 @@ hexdefault:
 			lexer := asLexer(hexlex)
 
 			if hexDollar[2].integer <= 0 {
-				return lexer.SetError(
+				return lexer.setError(
 					gyperror.InvalidJumpLengthError,
 					`invalid jump length: %d`, hexDollar[2].integer)
 			}
 
 			if lexer.insideOr > 0 && hexDollar[2].integer > StringChainingThreshold {
-				return lexer.SetError(
+				return lexer.setError(
 					gyperror.JumpTooLargeInsideAlternationError,
 					`jump too large inside alternation: %d`, hexDollar[2].integer)
 			}
@@ -580,19 +580,19 @@ hexdefault:
 
 			if lexer.insideOr > 0 &&
 				(hexDollar[2].integer > StringChainingThreshold || hexDollar[4].integer > StringChainingThreshold) {
-				return lexer.SetError(
+				return lexer.setError(
 					gyperror.JumpTooLargeInsideAlternationError,
 					`jump too large inside alternation: %d-%d`, hexDollar[2].integer, hexDollar[4].integer)
 			}
 
 			if hexDollar[2].integer < 0 || hexDollar[4].integer < 0 {
-				return lexer.SetError(
+				return lexer.setError(
 					gyperror.NegativeJumpError,
 					`negative jump: %d-%d`, hexDollar[2].integer, hexDollar[4].integer)
 			}
 
 			if hexDollar[2].integer > hexDollar[4].integer {
-				return lexer.SetError(
+				return lexer.setError(
 					gyperror.InvalidJumpRangeError,
 					`jump too large inside alternation: %d-%d`, hexDollar[2].integer, hexDollar[4].integer)
 			}
@@ -609,13 +609,13 @@ hexdefault:
 			lexer := asLexer(hexlex)
 
 			if lexer.insideOr > 0 {
-				return lexer.SetError(
+				return lexer.setError(
 					gyperror.UnboundedJumpInsideAlternationError,
 					`unbounded jump inside alternation: %d`, hexDollar[2].integer)
 			}
 
 			if hexDollar[2].integer < 0 {
-				return lexer.SetError(
+				return lexer.setError(
 					gyperror.NegativeJumpError,
 					`negative jump: %d`, hexDollar[2].integer)
 			}
@@ -631,7 +631,7 @@ hexdefault:
 			lexer := asLexer(hexlex)
 
 			if lexer.insideOr > 0 {
-				return lexer.SetError(
+				return lexer.setError(
 					gyperror.UnboundedJumpInsideAlternationError,
 					`unbounded jump inside alternation`)
 			}
