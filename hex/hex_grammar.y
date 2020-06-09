@@ -38,10 +38,9 @@ import (
 const StringChainingThreshold int = 200
 
 type byteWithMask struct {
-  Value byte
-  Mask byte
+	Value byte
+	Mask  byte
 }
-
 %}
 
 
@@ -80,7 +79,7 @@ $token _PIPE_
 hex_string
     : _LBRACE_ tokens _RBRACE_
       {
-        asLexer(xxlex).hexTokens = $2
+        asLexer(hexlex).hexTokens = $2
       }
     ;
 
@@ -132,11 +131,11 @@ token
       }
     | _LPARENS_
       {
-        asLexer(xxlex).insideOr += 1
+        asLexer(hexlex).insideOr += 1
       }
       alternatives _RPARENS_
       {
-        asLexer(xxlex).insideOr -= 1
+        asLexer(hexlex).insideOr -= 1
         $$ = $3
       }
     ;
@@ -145,7 +144,7 @@ token
 range
     : _LBRACKET_ _NUMBER_ _RBRACKET_
       {
-        lexer := asLexer(xxlex)
+        lexer := asLexer(hexlex)
 
         if $2 <= 0 {
           return lexer.SetError(
@@ -166,7 +165,7 @@ range
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _NUMBER_ _RBRACKET_
       {
-        lexer := asLexer(xxlex)
+        lexer := asLexer(hexlex)
 
         if lexer.insideOr > 0 &&
           ($2 > StringChainingThreshold || $4 > StringChainingThreshold) {
@@ -194,7 +193,7 @@ range
       }
     | _LBRACKET_ _NUMBER_ _HYPHEN_ _RBRACKET_
       {
-        lexer := asLexer(xxlex)
+        lexer := asLexer(hexlex)
 
         if lexer.insideOr > 0 {
           return lexer.SetError(
@@ -214,7 +213,7 @@ range
       }
     | _LBRACKET_ _HYPHEN_ _RBRACKET_
       {
-        lexer := asLexer(xxlex)
+        lexer := asLexer(hexlex)
 
         if lexer.insideOr > 0 {
           return lexer.SetError(

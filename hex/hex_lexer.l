@@ -72,7 +72,7 @@ const eof = 0
 // These globals must be accessible to the goyacc parser.
 // Bear in mind that the xx prefix is used because the parser is generated
 // with this prefix in order to avoid name collisions.
-var yylval *xxSymType
+var yylval *hexSymType
 var err error
 
 %}
