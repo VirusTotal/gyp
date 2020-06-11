@@ -12,6 +12,8 @@ import (
 
 // Rule describes a YARA rule.
 type Rule struct {
+	// Line number where the rule starts
+	LineNo     int
 	Global     bool
 	Private    bool
 	Identifier string

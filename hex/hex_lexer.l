@@ -42,20 +42,32 @@ import (
     gyperror "github.com/VirusTotal/gyp/error"
 )
 
-type YYcontext struct {
-  lval *hexSymType
-}
+type YYcontext struct {}
 
 // YYtype is the structure returned by the lexer every time the scanner asks
 // for the next token. If the lexer wants to return an error to the scanner it
 // sets the Error field and leaves the Token empty.
 type YYtype struct {
   Token int
+  Value *hexSymType
   Error gyperror.Error
 }
 
-func Token(t int) YYtype {
+func (s *Scanner) Token(t int) YYtype {
   return YYtype{Token: t}
+}
+
+func (s *Scanner) TokenInteger(t int, i int) YYtype {
+  return YYtype{Token: t, Value: &hexSymType{integer: i}}
+}
+
+func (s *Scanner) TokenByte(t int, value, mask byte) YYtype {
+  return YYtype{
+    Token: t,
+    Value: &hexSymType{
+        bm:  byteWithMask{ Mask: byte(mask), Value: byte(value) },
+    },
+  }
 }
 
 func Error(c gyperror.Code, msg string) YYtype {
@@ -87,10 +99,10 @@ hexdigit      [a-fA-F0-9]
 
 %%
 
-"{"                     { return Token(_LBRACE_); }
-"}"                     { return Token(_RBRACE_); }
+"{"                     { return yy.Token(_LBRACE_); }
+"}"                     { return yy.Token(_RBRACE_); }
 
-<<EOF>> { return Token(eof) }
+<<EOF>> { return yy.Token(eof) }
 
 <INITIAL>{hexdigit}{2}  {
   val, err := strconv.ParseInt(string(yytext), 16, 16)
@@ -98,8 +110,7 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  yy.Context.lval.bm = byteWithMask{ Mask: byte(0xFF), Value: byte(val) }
-  return Token(_BYTE_);
+  return yy.TokenByte(_BYTE_, byte(val), byte(0xFF));
 }
 
 <INITIAL>{hexdigit}\?  {
@@ -109,8 +120,7 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  yy.Context.lval.bm = byteWithMask{ Mask: byte(0xF0), Value: byte(val) }
-  return Token(_MASKED_BYTE_);
+  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0xF0));
 }
 
 \?{hexdigit}  {
@@ -120,18 +130,16 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  yy.Context.lval.bm = byteWithMask{ Mask: byte(0x0F), Value: byte(val) }
-  return Token(_MASKED_BYTE_);
+  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0x0F));
 }
 
 \?\? {
-  yy.Context.lval.bm = byteWithMask{ Mask: byte(0x00) }
-  return Token(_MASKED_BYTE_);
+  return yy.TokenByte(_MASKED_BYTE_, byte(0x00), byte(0x00));
 }
 
 \[ {
   BEGIN (yrange);
-  return Token(_LBRACKET_);
+  return yy.Token(_LBRACKET_);
 }
 
 "/*"(.|\n)*"*/"    // skip comments
@@ -139,7 +147,7 @@ hexdigit      [a-fA-F0-9]
 "//".*             // skip single-line comments
 
 <yrange>\- {
-  return Token(_HYPHEN_);
+  return yy.Token(_HYPHEN_);
 }
 
 <yrange>{digit}+ {
@@ -148,13 +156,12 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing jump limit: %s\n", err))
   }
-  yy.Context.lval.integer = int(val)
-  return Token(_NUMBER_);
+  return yy.TokenInteger(_NUMBER_, int(val));
 }
 
 <yrange>\] {
   BEGIN (INITIAL);
-  return Token(_RBRACKET_);
+  return yy.Token(_RBRACKET_);
 }
 
 <yrange>[ \t\r\n]   // skip whitespaces
@@ -168,15 +175,15 @@ hexdigit      [a-fA-F0-9]
 [ \t\r\n]         // skip whitespaces
 
 "(" {
-  return Token(_LPARENS_)
+  return yy.Token(_LPARENS_)
 }
 
 ")" {
-  return Token(_RPARENS_)
+  return yy.Token(_RPARENS_)
 }
 
 "|" {
-  return Token(_PIPE_)
+  return yy.Token(_PIPE_)
 }
 
 . {               // reject all other characters

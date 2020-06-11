@@ -46,20 +46,42 @@ import (
     gyperror "github.com/VirusTotal/gyp/error"
 )
 
-type YYcontext struct {
-  lval *yrSymType
-}
+type YYcontext struct {}
 
 // YYtype is the structure returned by the lexer every time the scanner asks
-// for the next token. If the lexer wants to return an error to the scanner it
-// sets the Error field and leaves the Token empty.
+// for the next token. Each token may have an associated value, for example,
+// the _IDENTIFIER_ token has an associated string with the identifier's name.
+// If the lexer wants to return an error to the scanner it
+// sets the Error field and leaves the Token and Value empty.
 type YYtype struct {
   Token int
+  Lineno int
+  Value *yrSymType
   Error gyperror.Error
 }
 
-func Token(t int) YYtype {
-  return YYtype{Token: t}
+// Token creates a YYtype struct for the given token type with no associated
+// value.
+func (s *Scanner) Token(t int) YYtype {
+  return YYtype{Token: t, Lineno: s.Lineno}
+}
+
+// TokenString creates a YYtype struct for the given token type with an
+// associated string.
+func (s *Scanner) TokenString(t int, v string) YYtype {
+  return YYtype{Token: t, Lineno: s.Lineno, Value: &yrSymType{s: v}}
+}
+
+func (s *Scanner) TokenInt64(t int, v int64) YYtype {
+  return YYtype{Token: t, Lineno: s.Lineno, Value: &yrSymType{i64: v}}
+}
+
+func (s *Scanner) TokenRegExp(reg *ast.LiteralRegexp) YYtype {
+  return YYtype{Token: _REGEXP_, Lineno: s.Lineno, Value: &yrSymType{reg: reg}}
+}
+
+func (s *Scanner) TokenHexString(hexTokens []ast.HexToken) YYtype {
+  return YYtype{Token: _HEX_STRING_, Lineno: s.Lineno, Value: &yrSymType{hexTokens: hexTokens}}
 }
 
 func Error(c gyperror.Code, msg string) YYtype {
@@ -121,45 +143,45 @@ octdigit      [0-7]
 
 %%
 
-".."                    { return Token(_DOT_DOT_);     }
-"<"                     { return Token(_LT_);          }
-">"                     { return Token(_GT_);          }
-"<="                    { return Token(_LE_);          }
-">="                    { return Token(_GE_);          }
-"=="                    { return Token(_EQ_);          }
-"!="                    { return Token(_NEQ_);         }
-"<<"                    { return Token(_SHIFT_LEFT_);  }
-">>"                    { return Token(_SHIFT_RIGHT_); }
-"private"               { return Token(_PRIVATE_);     }
-"global"                { return Token(_GLOBAL_);      }
-"rule"                  { return Token(_RULE_);        }
-"meta"                  { return Token(_META_);        }
-"strings"               { return Token(_STRINGS_);     }
-"ascii"                 { return Token(_ASCII_);       }
-"base64"                { return Token(_BASE64_);      }
-"wide"                  { return Token(_WIDE_);        }
-"xor"                   { return Token(_XOR_);         }
-"fullword"              { return Token(_FULLWORD_);    }
-"nocase"                { return Token(_NOCASE_);      }
-"condition"             { return Token(_CONDITION_);   }
-"true"                  { return Token(_TRUE_);        }
-"false"                 { return Token(_FALSE_);       }
-"not"                   { return Token(_NOT_);         }
-"and"                   { return Token(_AND_);         }
-"or"                    { return Token(_OR_);          }
-"at"                    { return Token(_AT_);          }
-"in"                    { return Token(_IN_);          }
-"of"                    { return Token(_OF_);          }
-"them"                  { return Token(_THEM_);        }
-"for"                   { return Token(_FOR_);         }
-"all"                   { return Token(_ALL_);         }
-"any"                   { return Token(_ANY_);         }
-"entrypoint"            { return Token(_ENTRYPOINT_);  }
-"filesize"              { return Token(_FILESIZE_);    }
-"matches"               { return Token(_MATCHES_);     }
-"contains"              { return Token(_CONTAINS_);    }
-"import"                { return Token(_IMPORT_);      }
-"include"               { return Token(_INCLUDE_);     }
+".."                    { return yy.Token(_DOT_DOT_);     }
+"<"                     { return yy.Token(_LT_);          }
+">"                     { return yy.Token(_GT_);          }
+"<="                    { return yy.Token(_LE_);          }
+">="                    { return yy.Token(_GE_);          }
+"=="                    { return yy.Token(_EQ_);          }
+"!="                    { return yy.Token(_NEQ_);         }
+"<<"                    { return yy.Token(_SHIFT_LEFT_);  }
+">>"                    { return yy.Token(_SHIFT_RIGHT_); }
+"private"               { return yy.Token(_PRIVATE_);     }
+"global"                { return yy.Token(_GLOBAL_);      }
+"rule"                  { return yy.Token(_RULE_);        }
+"meta"                  { return yy.Token(_META_);        }
+"strings"               { return yy.Token(_STRINGS_);     }
+"ascii"                 { return yy.Token(_ASCII_);       }
+"base64"                { return yy.Token(_BASE64_);      }
+"wide"                  { return yy.Token(_WIDE_);        }
+"xor"                   { return yy.Token(_XOR_);         }
+"fullword"              { return yy.Token(_FULLWORD_);    }
+"nocase"                { return yy.Token(_NOCASE_);      }
+"condition"             { return yy.Token(_CONDITION_);   }
+"true"                  { return yy.Token(_TRUE_);        }
+"false"                 { return yy.Token(_FALSE_);       }
+"not"                   { return yy.Token(_NOT_);         }
+"and"                   { return yy.Token(_AND_);         }
+"or"                    { return yy.Token(_OR_);          }
+"at"                    { return yy.Token(_AT_);          }
+"in"                    { return yy.Token(_IN_);          }
+"of"                    { return yy.Token(_OF_);          }
+"them"                  { return yy.Token(_THEM_);        }
+"for"                   { return yy.Token(_FOR_);         }
+"all"                   { return yy.Token(_ALL_);         }
+"any"                   { return yy.Token(_ANY_);         }
+"entrypoint"            { return yy.Token(_ENTRYPOINT_);  }
+"filesize"              { return yy.Token(_FILESIZE_);    }
+"matches"               { return yy.Token(_MATCHES_);     }
+"contains"              { return yy.Token(_CONTAINS_);    }
+"import"                { return yy.Token(_IMPORT_);      }
+"include"               { return yy.Token(_INCLUDE_);     }
 
 "/*"                    { BEGIN (comment);       }
 <comment>"*/"           { BEGIN (INITIAL);       }
@@ -168,119 +190,104 @@ octdigit      [0-7]
 
 "//"[^\n]*              { /* skip single-line comments */ }
 
-<<EOF>> { return Token(eof) }
+<<EOF>> { return yy.Token(eof) }
 
 
 $({letter}|{digit}|_)*"*"  {
-  yy.Context.lval.s = string(yytext)
-  return Token(_STRING_IDENTIFIER_WITH_WILDCARD_);
+  return yy.TokenString(_STRING_IDENTIFIER_WITH_WILDCARD_, string(yytext));
 }
 
 
 $({letter}|{digit}|_)*  {
-  yy.Context.lval.s = string(yytext)
-  return Token(_STRING_IDENTIFIER_);
+  return yy.TokenString(_STRING_IDENTIFIER_, string(yytext));
 }
 
 
 #({letter}|{digit}|_)*  {
-  yy.Context.lval.s = string(yytext)
-  return Token(_STRING_COUNT_);
+  return yy.TokenString(_STRING_COUNT_, string(yytext));
 }
 
 
 @({letter}|{digit}|_)*  {
-  yy.Context.lval.s = string(yytext)
-  return Token(_STRING_OFFSET_);
+  return yy.TokenString(_STRING_OFFSET_, string(yytext));
 }
 
 
 !({letter}|{digit}|_)*  {
-  yy.Context.lval.s = string(yytext)
-  return Token(_STRING_LENGTH_);
+  return yy.TokenString(_STRING_LENGTH_, string(yytext));
 }
 
 
 u?int(8|16|32)(be)? {
-  yy.Context.lval.s = string(yytext)
-  return Token(_INTEGER_FUNCTION_);
+  return yy.TokenString(_INTEGER_FUNCTION_, string(yytext));
 }
 
 
 ({letter}|_)({letter}|{digit}|_)*  {
-  yy.Context.lval.s = string(yytext)
-  return Token(_IDENTIFIER_);
+  return yy.TokenString(_IDENTIFIER_, string(yytext));
 }
 
 
 {digit}+(MB|KB){0,1}  {
-  var err error
   s := strings.TrimRight(YYtext, "MKB")
-  yy.Context.lval.i64, err = strconv.ParseInt(s, 10, 64)
+  v, err := strconv.ParseInt(s, 10, 64)
   if err != nil {
     return Error(
       gyperror.NumberConversionError,
       fmt.Sprintf("%s", err))
   }
-
   if strings.HasSuffix(YYtext, "KB") {
-      if yy.Context.lval.i64 > math.MaxInt64 / 1024 {
+      if v > math.MaxInt64 / 1024 {
         return Error(
           gyperror.IntegerOverflowError,
           fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64))
       } else {
-        yy.Context.lval.i64 *= 1024
+        v *= 1024
       }
   } else if strings.HasSuffix(YYtext, "MB") {
-      if yy.Context.lval.i64 > math.MaxInt64 / 1048576 {
+      if v > math.MaxInt64 / 1048576 {
         return Error(
           gyperror.IntegerOverflowError,
           fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64))
       } else {
-          yy.Context.lval.i64 *= 1048576
+          v *= 1048576
       }
   }
-  return Token(_NUMBER_);
+  return yy.TokenInt64(_NUMBER_, v);
 }
 
 {digit}+"."{digit}+  {
-  return Token(_DOUBLE_);
+  return yy.Token(_DOUBLE_);
 }
 
 0x{hexdigit}+  {
-  var err error
-  yy.Context.lval.i64, err = strconv.ParseInt(YYtext, 0, 64)
+  v, err := strconv.ParseInt(YYtext, 0, 64)
   if err != nil {
     return Error(
       gyperror.NumberConversionError,
       fmt.Sprintf("%s", err))
   }
-
-  return Token(_NUMBER_);
+  return yy.TokenInt64(_NUMBER_, v);
 }
 
 0o{octdigit}+  {
-  var err error
   s := strings.TrimLeft(YYtext, "0o")
-  yy.Context.lval.i64, err = strconv.ParseInt(s, 8, 64)
+  v, err := strconv.ParseInt(s, 8, 64)
   if err != nil {
     return Error(
       gyperror.NumberConversionError,
       fmt.Sprintf("%s", err))
   }
-  return Token(_NUMBER_);
+  return yy.TokenInt64(_NUMBER_, v);
 }
 
 
 <str>\"   {     /* saw closing quote - all done */
-
   // NOTE: text will end with `"` char
   collectText = false
-  yy.Context.lval.s = strings.TrimSuffix(string(text), `"`)
-
+  s := strings.TrimSuffix(string(text), `"`)
   BEGIN (INITIAL);
-
-  return Token(_TEXT_STRING_);
+  return yy.TokenString(_TEXT_STRING_, s);
 }
 
 
@@ -324,7 +331,6 @@ u?int(8|16|32)(be)? {
 <regexp>\/i?s?  {
 
   collectText = false
-
   txt := strings.TrimSuffix(string(text), YYtext)
 
   var mods ast.RegexpModifiers
@@ -344,13 +350,11 @@ u?int(8|16|32)(be)? {
       }
   }
 
-  yy.Context.lval.reg = &ast.LiteralRegexp {
-      Value: txt,
-      Modifiers: mods,
-  }
-
   BEGIN (INITIAL);
-  return Token(_REGEXP_);
+  return yy.TokenRegExp(&ast.LiteralRegexp{
+     Value: txt,
+     Modifiers: mods,
+  });
 }
 
 
@@ -393,15 +397,12 @@ u?int(8|16|32)(be)? {
   // NOTE: The above comment may not apply. We plan to not use hex_lexer.l
 
   // No need to collect like str and regexp start conditions
-  hexReader := strings.NewReader(YYtext)
-
-  hexTokens, err := hex.Parse(hexReader)
+  hexTokens, err := hex.Parse(strings.NewReader(YYtext))
   if err != nil {
     return YYtype{Error: err.(gyperror.Error)}
   }
-  yy.Context.lval.hexTokens = hexTokens
 
-  return Token(_HEX_STRING_);
+  return yy.TokenHexString(hexTokens);
 }
 
 
@@ -412,7 +413,7 @@ u?int(8|16|32)(be)? {
   r := int(yytext[0])
 
   if r >= 32 && r < 127 {
-    return Token(r)
+    return yy.Token(r)
   }
 
   return Error(

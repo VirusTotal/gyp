@@ -58,11 +58,13 @@ type lexer struct {
 // to the one passed as an argument so that the parser actions
 // can make use of it.
 func (l *lexer) Lex(lval *hexSymType) int {
-	l.scanner.Context.lval = lval
 	r := l.scanner.Lex()
 	if r.Error.Code != 0 {
 		r.Error.Line = l.scanner.Lineno
 		panic(r.Error)
+	}
+	if r.Value != nil {
+		*lval = *r.Value
 	}
 	return r.Token
 }

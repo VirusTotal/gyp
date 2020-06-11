@@ -15,11 +15,23 @@ import (
 type String interface {
 	fmt.Stringer
 	AsProto() *pb.String
+	GetIdentifier() string
+	GetLineNo() int
+}
+
+// BaseString is a structure that contains the fields that are common to all
+// types of strings. This structure is embedded in TextString, HexString and
+// RegexpString.
+type BaseString struct {
+	// Identifier for the string, without the $ prefix.
+	Identifier string
+	// Line number where the string was defined.
+	LineNo int
 }
 
 // TextString describes a YARA text string.
 type TextString struct {
-	Identifier string
+	BaseString
 	// Value contains the string exactly as it appears in the YARA rule. Escape
 	// sequences remain escaped. See the UnescapeValue function.
 	Value          string
@@ -37,7 +49,7 @@ type TextString struct {
 
 // RegexpString describes a YARA regexp.
 type RegexpString struct {
-	Identifier string
+	BaseString
 	// Value contains the string exactly as it appears in the YARA rule. Escape
 	// sequences remain escaped. See the UnescapeValue function.
 	Regexp   *LiteralRegexp
@@ -59,9 +71,9 @@ type RegexpString struct {
 //      (A|B), (A|B|C)
 //
 type HexString struct {
-	Identifier string
-	Tokens     HexTokens
-	Private    bool
+	BaseString
+	Tokens  HexTokens
+	Private bool
 }
 
 // HexToken is the interface implemented by all types of token
@@ -131,6 +143,14 @@ func (h *HexOr) Children() []Node {
 		nodes[i] = a
 	}
 	return nodes
+}
+
+func (s *BaseString) GetIdentifier() string {
+	return s.Identifier
+}
+
+func (s *BaseString) GetLineNo() int {
+	return s.LineNo
 }
 
 func (t *TextString) String() string {

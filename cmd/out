@@ -1,0 +1,40 @@
+{
+  "imports": [
+    "dotnet"
+  ],
+  "rules": [
+    {
+      "modifiers": {
+        "global": false,
+        "private": false
+      },
+      "identifier": "test",
+      "tags": [
+      ],
+      "meta": [
+      ],
+      "strings": [
+      ],
+      "condition": {
+        "binaryExpression": {
+          "operator": "EQ",
+          "left": {
+            "identifier": {
+              "items": [
+                {
+                  "identifier": "dotnet"
+                },
+                {
+                  "identifier": "module_name"
+                }
+              ]
+            }
+          },
+          "right": {
+            "text": "foo.exe"
+          }
+        }
+      }
+    }
+  ]
+}

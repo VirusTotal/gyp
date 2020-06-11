@@ -163,7 +163,9 @@ func stringFromProto(s *pb.String) String {
 	case *pb.String_Text:
 		modifiers := v.Text.GetModifiers()
 		return &TextString{
-			Identifier:     strings.TrimPrefix(s.GetId(), "$"),
+			BaseString: BaseString{
+				Identifier: strings.TrimPrefix(s.GetId(), "$"),
+			},
 			ASCII:          modifiers.GetAscii(),
 			Wide:           modifiers.GetWide(),
 			Nocase:         modifiers.GetNocase(),
@@ -178,8 +180,10 @@ func stringFromProto(s *pb.String) String {
 		}
 	case *pb.String_Hex:
 		return &HexString{
-			Identifier: strings.TrimPrefix(s.GetId(), "$"),
-			Tokens:     hexTokensFromProto(v.Hex),
+			BaseString: BaseString{
+				Identifier: strings.TrimPrefix(s.GetId(), "$"),
+			},
+			Tokens: hexTokensFromProto(v.Hex),
 		}
 	case *pb.String_Regexp:
 		modifiers := v.Regexp.GetModifiers()
@@ -191,12 +195,14 @@ func stringFromProto(s *pb.String) String {
 			regexpm |= RegexpDotAll
 		}
 		return &RegexpString{
-			Identifier: strings.TrimPrefix(s.GetId(), "$"),
-			ASCII:      modifiers.GetAscii(),
-			Wide:       modifiers.GetWide(),
-			Nocase:     modifiers.GetNocase(),
-			Fullword:   modifiers.GetFullword(),
-			Private:    modifiers.GetPrivate(),
+			BaseString: BaseString{
+				Identifier: strings.TrimPrefix(s.GetId(), "$"),
+			},
+			ASCII:    modifiers.GetAscii(),
+			Wide:     modifiers.GetWide(),
+			Nocase:   modifiers.GetNocase(),
+			Fullword: modifiers.GetFullword(),
+			Private:  modifiers.GetPrivate(),
 			Regexp: &LiteralRegexp{
 				Value:     v.Regexp.GetText(),
 				Modifiers: regexpm,
