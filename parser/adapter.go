@@ -64,7 +64,7 @@ func (l *lexer) Lex(lval *yrSymType) int {
 		r.Error.Line = l.scanner.Lineno
 		panic(r.Error)
 	}
-	// If the token has an associated value, copy it into lval, if not
+	// If the token has an associated value, copy it into lval.
 	if r.Value != nil {
 		*lval = *r.Value
 	}
