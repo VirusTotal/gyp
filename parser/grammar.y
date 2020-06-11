@@ -39,9 +39,9 @@ import (
 type modifiers uint64
 
 const (
-	_                   = iota // ignore first value by assigning to blank identifier
-	ModGlobal modifiers = 1 << iota
-	ModPrivate
+    _                   = iota // ignore first value by assigning to blank identifier
+    ModGlobal modifiers = 1 << iota
+    ModPrivate
     ModASCII
     ModWide
     ModXor
@@ -182,6 +182,25 @@ type stringModifiers struct {
     si            *ast.StringIdentifier
     sis           []*ast.StringIdentifier
     quantifier    *ast.Quantifier
+
+    // lineno is not a symbol type, it's the line number where the symbol
+    // appears in the source file. This is a little hack used for passing
+    // the line number where each token appears from the lexer to the parser.
+    // This relies on the fact that Go doesn't implement unions, and therefore
+    // goyacc actually uses a struct for passing around symbol values. Being
+    // a struct those values can contain both the value itself (in some of
+    // the fields listed below) and the line number. This wouldn't work with
+    // C code produced by yacc, as this is actually a union in C.
+    //
+    // This can be within the rule actions as:
+    //
+    //  lineNumber := $<lineno>1
+    //
+    // In the example lineNumber will hold the line number for the first
+    // symbol in the rule. The value for the symbol itself would be $1 as
+    // usual.
+
+    lineno        int
 }
 
 
@@ -233,6 +252,7 @@ rule
         }
 
         $$ = &ast.Rule{
+            LineNo: $<lineno>2,
             Global: $1 & ModGlobal == ModGlobal,
             Private: $1 & ModPrivate == ModPrivate,
             Identifier: $3,
@@ -408,7 +428,10 @@ string_declaration
     : _STRING_IDENTIFIER_ '=' _TEXT_STRING_ string_modifiers
       {
         $$ = &ast.TextString{
-          Identifier: strings.TrimPrefix($1, "$"),
+          BaseString : ast.BaseString{
+          	Identifier: strings.TrimPrefix($1, "$"),
+          	LineNo: $<lineno>1,
+          },
           ASCII: $4.modifiers & ModASCII != 0,
           Wide: $4.modifiers & ModWide != 0,
           Nocase: $4.modifiers & ModNocase != 0,
@@ -425,7 +448,10 @@ string_declaration
     | _STRING_IDENTIFIER_ '=' _REGEXP_ regexp_modifiers
       {
         $$ = &ast.RegexpString{
-          Identifier: strings.TrimPrefix($1, "$"),
+          BaseString : ast.BaseString{
+          	Identifier: strings.TrimPrefix($1, "$"),
+          	LineNo: $<lineno>1,
+          },
           ASCII: $4 & ModASCII != 0,
           Wide: $4 & ModWide != 0,
           Nocase: $4 & ModNocase != 0,
@@ -437,7 +463,10 @@ string_declaration
     | _STRING_IDENTIFIER_ '=' _HEX_STRING_ hex_modifiers
       {
         $$ = &ast.HexString{
-          Identifier: strings.TrimPrefix($1, "$"),
+          BaseString : ast.BaseString{
+          	Identifier: strings.TrimPrefix($1, "$"),
+          	LineNo: $<lineno>1,
+          },
           Private: $4 & ModPrivate != 0,
           Tokens: $3,
         }

@@ -46,6 +46,33 @@ func TestNonAscii(t *testing.T) {
 	assert.EqualError(t, err, `line 1: non-ascii character "\x12"`)
 }
 
+func TestLineNo(t *testing.T) {
+	rs, err := ParseString(`
+rule foo {
+  strings:
+    $a = "foo"
+    // Intentional blank line
+    $b = "bar"
+    $c = "baz"
+  condition:
+    all of them
+}
+rule bar {
+  strings:
+    $a = "foo"
+  condition:
+    all of them 
+}`)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, rs.Rules[0].LineNo)
+	assert.Equal(t, 4, rs.Rules[0].Strings[0].GetLineNo())
+	assert.Equal(t, 6, rs.Rules[0].Strings[1].GetLineNo())
+	assert.Equal(t, 7, rs.Rules[0].Strings[2].GetLineNo())
+	assert.Equal(t, 11, rs.Rules[1].LineNo)
+	assert.Equal(t, 13, rs.Rules[1].Strings[0].GetLineNo())
+
+}
+
 // All tests in this list must have conditions without of unnecessary parenthesis
 // that enforce left-associativity. This is because once the rules are serialized
 // to a Protocol Buffer the parenthesis originally in the source are lost, and

@@ -99,7 +99,7 @@ rule foo {
 			Identifier: "foo",
 			Strings: []String{
 				&TextString{
-					Identifier: "a",
+					BaseString: BaseString{Identifier: "a"},
 					ASCII:      true,
 					Wide:       true,
 					Nocase:     true,
@@ -128,4 +128,26 @@ func TestRuleWriteSource(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, test.ExpectedSource, b.String())
 	}
+}
+
+func TestGetIdentifier(t *testing.T) {
+	rule := &Rule{
+		Identifier: "foo",
+		Strings: []String{
+			&TextString{
+				BaseString: BaseString{Identifier: "a"},
+				ASCII:      true,
+				Wide:       true,
+				Nocase:     true,
+				Xor:        true,
+				XorMin:     0,
+				XorMax:     255,
+				Value:      "bar",
+			},
+		},
+		Condition: KeywordTrue,
+	}
+
+	assert.Equal(t, "a", rule.Strings[0].GetIdentifier())
+	assert.Equal(t, "a", rule.Strings[0].(*TextString).Identifier)
 }
