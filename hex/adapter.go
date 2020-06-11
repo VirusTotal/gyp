@@ -53,10 +53,10 @@ type lexer struct {
 	hexTokens []ast.HexToken
 }
 
-// Lex provides the interface expected by the goyacc parser.
-// It sets the context's lval pointer (defined in the hex_lexer.l file)
-// to the one passed as an argument so that the parser actions
-// can make use of it.
+// Lex provides the interface expected by the goyacc parser. This function is
+// called by the parser for getting the next token from the lexer. It returns
+// the token number, and copies the value associated to the token (if any) into
+// the struct pointed by lval.
 func (l *lexer) Lex(lval *hexSymType) int {
 	r := l.scanner.Lex()
 	if r.Error.Code != 0 {
