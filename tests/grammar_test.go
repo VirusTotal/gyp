@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"github.com/VirusTotal/gyp/ast"
 	"strings"
 	"testing"
 
@@ -262,6 +263,15 @@ func TestRulesetParsing(t *testing.T) {
 
 	output := b.String()
 	assert.Equal(t, testRules, output)
+}
+
+func TestProtoSerialization(t *testing.T) {
+	ruleset, err := gyp.ParseString(testRules)
+	assert.NoError(t, err)
+	pbRuleset := ruleset.AsProto()
+	assert.NotNil(t, pbRuleset)
+	ruleset = ast.RuleSetFromProto(pbRuleset)
+	assert.NotNil(t, ruleset)
 }
 
 func TestBase64AlphabetLength(t *testing.T) {

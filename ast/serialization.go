@@ -471,6 +471,15 @@ func expressionFromProto(e *pb.Expression) Expression {
 		return forInExpressionFromProto(v.ForInExpression)
 	case *pb.Expression_ForOfExpression:
 		return forOfExpressionFromProto(v.ForOfExpression)
+	case *pb.Expression_Keyword:
+		switch keyword := v.Keyword; keyword {
+		case pb.Keyword_ENTRYPOINT:
+			return KeywordEntrypoint
+		case pb.Keyword_FILESIZE:
+			return KeywordFilesize
+		default:
+			panic(fmt.Sprintf(`unknown keyword "%T"`, keyword))
+		}
 	default:
 		panic(fmt.Sprintf(`unexpected node "%T"`, v))
 	}
