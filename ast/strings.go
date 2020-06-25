@@ -311,7 +311,7 @@ func (h *HexJump) WriteSource(w io.Writer) (err error) {
 	} else if h.Start == h.End {
 		_, err = fmt.Fprintf(w, "[%d] ", h.Start)
 	} else if h.Start == 0 {
-		_, err = fmt.Fprintf(w, "[-%d] ", h.End)
+		_, err = fmt.Fprintf(w, "[0-%d] ", h.End)
 	} else if h.End == 0 {
 		_, err = fmt.Fprintf(w, "[%d-] ", h.Start)
 	} else {
