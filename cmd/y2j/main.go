@@ -1,9 +1,10 @@
 package main
 
 import (
-	jsonpb "github.com/golang/protobuf/jsonpb"
 	"io"
 	"os"
+
+	jsonpb "github.com/golang/protobuf/jsonpb"
 
 	"github.com/VirusTotal/gyp"
 )
@@ -42,7 +43,7 @@ func main() {
 	}
 
 	marshaler := jsonpb.Marshaler{
-		Indent: "  ",
+		Indent: opts.Indent,
 	}
 	err = marshaler.Marshal(out, ruleset.AsProto())
 	if err != nil {
