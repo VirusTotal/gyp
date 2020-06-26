@@ -317,7 +317,7 @@ func (e *Enum) WriteSource(w io.Writer) error {
 	for i, expr := range e.Values {
 		err = expr.WriteSource(w)
 		if err == nil && i < len(e.Values)-1 {
-			_, err = io.WriteString(w, ",")
+			_, err = io.WriteString(w, ", ")
 		}
 		if err != nil {
 			return err
