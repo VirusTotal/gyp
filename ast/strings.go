@@ -33,7 +33,7 @@ type BaseString struct {
 type TextString struct {
 	BaseString
 	// Value contains the string exactly as it appears in the YARA rule. Escape
-	// sequences remain escaped. See the UnescapeValue function.
+	// sequences remain escaped. See the UnescapedValue function.
 	Value          string
 	ASCII          bool
 	Wide           bool

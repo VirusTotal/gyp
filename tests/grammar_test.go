@@ -81,8 +81,10 @@ rule STRING_MODIFIERS {
 rule STRING_ESCAPED_CHARS {
   strings:
     $s1 = "C:\\Foo\"\\Bar\n"
+    $s2 = "\""
+    $s3 = "\\"
   condition:
-    $s1
+    $s1 and $s2 and $s3
 }
 
 rule TAG : tag1 {
@@ -265,13 +267,35 @@ func TestRulesetParsing(t *testing.T) {
 	assert.Equal(t, testRules, output)
 }
 
-func TestProtoSerialization(t *testing.T) {
+func TestParsing(t *testing.T) {
+	// Parse rule and build AST.
 	ruleset, err := gyp.ParseString(testRules)
 	assert.NoError(t, err)
+	// Write rules from AST back to text.
+	var b strings.Builder
+	err = ruleset.WriteSource(&b)
+	assert.NoError(t, err)
+	// Make sure they are equal to the original sources.
+	output := b.String()
+	assert.Equal(t, testRules, output)
+}
+
+func TestProtoSerialization(t *testing.T) {
+	// Parse rule and build AST.
+	ruleset, err := gyp.ParseString(testRules)
+	assert.NoError(t, err)
+	// Convert AST to proto.
 	pbRuleset := ruleset.AsProto()
 	assert.NotNil(t, pbRuleset)
+	// Convert the proto back to AST.
 	ruleset = ast.RuleSetFromProto(pbRuleset)
 	assert.NotNil(t, ruleset)
+	// Recover rules sources from AST.
+	var b strings.Builder
+	err = ruleset.WriteSource(&b)
+	assert.NoError(t, err)
+	// Make sure they are equal to the original sources.
+	assert.Equal(t, testRules, b.String())
 }
 
 func TestBase64AlphabetLength(t *testing.T) {

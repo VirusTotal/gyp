@@ -31,7 +31,7 @@ type RuleSet struct {
 }
 
 var ruleTmpl = template.Must(template.New("rule").Parse(`
-{{ with .Rule -}}
+{{- with .Rule -}}
 {{ if .Global }}global {{ end -}}
 {{ if .Private }}private {{ end -}}
 rule {{ .Identifier }} {{ if .Tags }}: {{ range .Tags }}{{ . }} {{ end }}{{ end }}{
@@ -50,7 +50,9 @@ rule {{ .Identifier }} {{ if .Tags }}: {{ range .Tags }}{{ . }} {{ end }}{{ end 
 {{- end }}
   condition:
     {{ .Condition }}
-}`))
+}
+
+`))
 
 // WriteSource writes the rule's source into the writer w.
 func (r *Rule) WriteSource(w io.Writer) error {
