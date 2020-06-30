@@ -48,6 +48,7 @@ const (
     ModFullword
     ModNocase
     ModBase64
+    ModBase64Wide
 )
 
 type stringModifiers struct {
@@ -95,6 +96,7 @@ type stringModifiers struct {
 %token <mod> _NOCASE_
 %token <mod> _FULLWORD_
 %token <mod> _BASE64_
+%token <mod> _BASE64WIDE_
 %token _AT_
 %token _FILESIZE_
 %token _ENTRYPOINT_
@@ -438,6 +440,7 @@ string_declaration
           Fullword: $4.modifiers & ModFullword != 0,
           Private: $4.modifiers & ModPrivate != 0,
           Base64: $4.modifiers & ModBase64 != 0,
+          Base64Wide: $4.modifiers & ModBase64Wide != 0,
           Base64Alphabet: $4.Base64Alphabet,
           Xor: $4.modifiers & ModXor != 0,
           XorMin: $4.XorMin,
@@ -493,7 +496,7 @@ string_modifiers
           $1.XorMax = $2.XorMax
         }
 
-        if $2.modifiers | ModBase64 != 0 {
+        if $2.modifiers | (ModBase64 | ModBase64Wide) != 0 {
           $1.Base64Alphabet = $2.Base64Alphabet
         }
 
@@ -509,6 +512,7 @@ string_modifier
     | _FULLWORD_    { $$ = stringModifiers{modifiers: ModFullword} }
     | _PRIVATE_     { $$ = stringModifiers{modifiers: ModPrivate} }
     | _BASE64_      { $$ = stringModifiers{modifiers: ModBase64} }
+    | _BASE64WIDE_  { $$ = stringModifiers{modifiers: ModBase64Wide} }
     | _BASE64_ '(' _TEXT_STRING_ ')'
        {
          if len($3) != 64 {
@@ -522,6 +526,19 @@ string_modifier
             Base64Alphabet: $3,
          }
        }
+     | _BASE64WIDE_ '(' _TEXT_STRING_ ')'
+        {
+          if len($3) != 64 {
+             return asLexer(yrlex).setError(
+               gyperror.InvalidStringModifierError,
+               "length of base64 alphabet must be 64")
+          }
+
+          $$ = stringModifiers{
+             modifiers: ModBase64Wide,
+             Base64Alphabet: $3,
+          }
+        }
     | _XOR_
       {
         $$ = stringModifiers{

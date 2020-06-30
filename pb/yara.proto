@@ -76,6 +76,9 @@ message StringModifiers {
 
   // Optional alphabet for base64 strings.
   optional string base64alphabet = 12;
+
+  // String is base64 wide.
+  optional bool base64wide = 13;
 }
 
 
