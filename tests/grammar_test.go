@@ -74,6 +74,7 @@ rule STRING_MODIFIERS {
     $s2 = "bar" xor(1)
     $s3 = "baz" xor(2-4)
     $s4 = "qux" base64("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+    $s5 = "qux" base64wide("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
   condition:
     all of them
 }

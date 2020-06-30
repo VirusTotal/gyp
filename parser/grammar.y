@@ -491,12 +491,12 @@ string_modifiers
 
         $1.modifiers |= $2.modifiers
 
-        if $2.modifiers | ModXor != 0 {
+        if $2.modifiers & ModXor != 0 {
           $1.XorMin = $2.XorMin
           $1.XorMax = $2.XorMax
         }
 
-        if $2.modifiers | (ModBase64 | ModBase64Wide) != 0 {
+        if $2.modifiers & (ModBase64 | ModBase64Wide) != 0 {
           $1.Base64Alphabet = $2.Base64Alphabet
         }
 
