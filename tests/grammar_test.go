@@ -70,10 +70,11 @@ rule STRING2 {
 
 rule STRING_MODIFIERS {
   strings:
-    $s1 = "foo" ascii wide nocase fullword private base64 xor
+    $s1 = "foo" ascii wide nocase fullword private base64 base64wide xor
     $s2 = "bar" xor(1)
     $s3 = "baz" xor(2-4)
     $s4 = "qux" base64("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+    $s5 = "qux" base64wide("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
   condition:
     all of them
 }

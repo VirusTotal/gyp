@@ -181,6 +181,7 @@ func stringFromProto(s *pb.String) String {
 			XorMin:         modifiers.GetXorMin(),
 			XorMax:         modifiers.GetXorMax(),
 			Base64:         modifiers.GetBase64(),
+			Base64Wide:     modifiers.GetBase64Wide(),
 			Base64Alphabet: modifiers.GetBase64Alphabet(),
 			Value:          escape(v.Text.GetText()),
 		}

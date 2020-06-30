@@ -370,6 +370,14 @@ func (ys *YaraSerializer) serializeStringModifiers(m *pb.StringModifiers) error 
 			modifiers = append(modifiers, "base64")
 		}
 	}
+	if m.GetBase64Wide() {
+		alphabet := m.GetBase64Alphabet()
+		if alphabet != "" {
+			modifiers = append(modifiers, fmt.Sprintf("base64wide(\"%s\")", alphabet))
+		} else {
+			modifiers = append(modifiers, "base64wide")
+		}
+	}
 	if m.GetXor() {
 		modifier := "xor"
 		min := m.GetXorMin()

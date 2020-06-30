@@ -159,6 +159,7 @@ octdigit      [0-7]
 "strings"               { return yy.Token(_STRINGS_);     }
 "ascii"                 { return yy.Token(_ASCII_);       }
 "base64"                { return yy.Token(_BASE64_);      }
+"base64wide"            { return yy.Token(_BASE64WIDE_);  }
 "wide"                  { return yy.Token(_WIDE_);        }
 "xor"                   { return yy.Token(_XOR_);         }
 "fullword"              { return yy.Token(_FULLWORD_);    }

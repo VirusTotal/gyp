@@ -41,6 +41,7 @@ type TextString struct {
 	Fullword       bool
 	Private        bool
 	Base64         bool
+	Base64Wide     bool
 	Base64Alphabet string
 	Xor            bool
 	XorMin         int32
@@ -200,6 +201,11 @@ func (t *TextString) WriteSource(w io.Writer) error {
 			_, err = io.WriteString(w, fmt.Sprintf("(\"%s\")", t.Base64Alphabet))
 		}
 	}
+	if err == nil && t.Base64Wide {
+		if _, err = io.WriteString(w, " base64wide"); err == nil && t.Base64Alphabet != "" {
+			_, err = io.WriteString(w, fmt.Sprintf("(\"%s\")", t.Base64Alphabet))
+		}
+	}
 	if err == nil && t.Xor {
 		if t.XorMin == 0 && t.XorMax == 255 {
 			_, err = io.WriteString(w, " xor")
@@ -351,6 +357,7 @@ func (t *TextString) AsProto() *pb.String {
 		XorMin:         proto.Int32(t.XorMin),
 		XorMax:         proto.Int32(t.XorMax),
 		Base64:         proto.Bool(t.Base64),
+		Base64Wide:     proto.Bool(t.Base64Wide),
 		Base64Alphabet: proto.String(t.Base64Alphabet),
 	}
 	return &pb.String{
