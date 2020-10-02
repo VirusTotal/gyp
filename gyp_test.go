@@ -96,202 +96,268 @@ global private rule foo : bar baz {
     m_false = false
   condition:
     true
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     true and false and true
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     false or true or false
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     false and true or false
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     (false or true) and false
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     not false or not (true and false)
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     not false or not true and not false
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 == 2
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 - (2 + 3) == 0
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 + 2 - 3 == 0
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 + (2 - 3) == 0
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 + 2 - (3 + 4) == 0
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 - 2 + (3 - 4) == 0
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 + (2 - 3) % 1 != 5 * 1 - 4 \ 4
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 < 2 and 3 > 4
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 <= 2 and 3 >= 4
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 << (2 >> 2)
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     1 & (2 | 2) == 1
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     --1 + 1 == 1
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     -(-1 + 1) == 1
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = "bar"
   condition:
     $a
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = "bar"
   condition:
     $a at 10 + 10
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = "bar"
   condition:
     #a > 5
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = "foo\\bar"
   condition:
     $a
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = "bar"
   condition:
     $a at 4 + 2
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = "bar"
   condition:
     @a == 10 and @a[2] == 20
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = "bar" ascii wide nocase fullword xor(10-20)
   condition:
     $a in (5 * 5..6 * 6)
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     int32(0) == 0
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     foo[0] == 0
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     foo(1, 2 + 3, 4) == bar()
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     "foobar" contains "foo"
-}`,
+}
+`,
+	`
+rule foo {
+  condition:
+    "foobar" icontains "foo"
+}
+`,
+	`
+rule foo {
+  condition:
+    "foobar" startswith "foo"
+}
+`,
+	`
+rule foo {
+  condition:
+    "foobar" istartswith "foo"
+}
+`,
+	`
+rule foo {
+  condition:
+    "foobar" endswith "foo"
+}
+`,
+	`
+rule foo {
+  condition:
+    "foobar" iendswith "foo"
+}
+`,
 	`
 rule foo {
   condition:
     for all section in pe.sections : (section.name != ".text")
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     for any i in (1..2) : (i < 3)
-}`,
+}
+`,
 	`
 rule foo {
   condition:
-    for 3 i in (1,2,3) : (i < 4)
-}`,
-	`
-rule foo {
-  strings:
-    $a = "foo"
-    $b = "bar"
-  condition:
-    for all of ($a,$b) : ($)
-}`,
+    for 3 i in (1, 2, 3) : (i < 4)
+}
+`,
 	`
 rule foo {
   strings:
     $a = "foo"
     $b = "bar"
   condition:
-    all of ($a,$b)
-}`,
+    for all of ($a, $b) : ($)
+}
+`,
+	`
+rule foo {
+  strings:
+    $a = "foo"
+    $b = "bar"
+  condition:
+    all of ($a, $b)
+}
+`,
 	`
 rule foo {
   strings:
@@ -299,62 +365,72 @@ rule foo {
     $b = "bar"
   condition:
     any of ($a*)
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = /a\.bc/ wide nocase
   condition:
     $a
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = /a\.bc/is private
   condition:
     $a
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     "foobarbaz" matches /foo.*baz/is
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     some_function(/abc/is)
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = { 01 02 03 04 ?? AA B? ?C }
   condition:
     $a
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = { 01 02 ( 03 04 | 05 06 ) 07 08 09 }
   condition:
     $a
-}`,
+}
+`,
 	`
 rule foo {
   strings:
     $a = { 01 02 [2] 03 04 [1-2] 05 06 [1-] 07 08 [-] 09 0A }
   condition:
     $a
-}`,
+}
+`,
 	`include "foo"
 rule foo {
   condition:
     true
-}`,
+}
+`,
 	`import "foo"
 rule foo {
   condition:
     true
-}`,
+}
+`,
 }
 
 // These tests won't pass the protobuf serialization-deserialization cycle.
@@ -363,17 +439,20 @@ var nonProtoTests = []string{
 rule foo {
   condition:
     false or (true and false)
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     (not false) or not (true and false)
-}`,
+}
+`,
 	`
 rule foo {
   condition:
     (1 <= 2) and (3 >= 4)
-}`,
+}
+`,
 
 	// This test is not included in protoTests because during the protobuf
 	// serialization the strings are unescaped and \x07 is converted to the
@@ -385,7 +464,8 @@ rule foo {
     $a = "foo\x07bar"
   condition:
     $a
-}`,
+}
+`,
 }
 
 func TestWriteSource(t *testing.T) {

@@ -167,6 +167,10 @@ func (ys *YaraSerializer) serializeRuleSet(rs *pb.RuleSet) error {
 
 // Serializes a YARA rule.
 func (ys *YaraSerializer) serializeRule(r *pb.Rule) error {
+	if err := ys.writeString("\n"); err != nil {
+		return err
+	}
+
 	// Rule modifiers
 	if r.Modifiers.GetGlobal() {
 		if err := ys.writeString("global "); err != nil {
@@ -228,7 +232,7 @@ func (ys *YaraSerializer) serializeRule(r *pb.Rule) error {
 		return err
 	}
 
-	if err := ys.writeString("\n}\n\n"); err != nil {
+	if err := ys.writeString("\n}\n"); err != nil {
 		return err
 	}
 

@@ -181,6 +181,11 @@ octdigit      [0-7]
 "filesize"              { return yy.Token(_FILESIZE_);    }
 "matches"               { return yy.Token(_MATCHES_);     }
 "contains"              { return yy.Token(_CONTAINS_);    }
+"icontains"             { return yy.Token(_ICONTAINS_);   }
+"startswith"            { return yy.Token(_STARTSWITH_);  }
+"istartswith"           { return yy.Token(_ISTARTSWITH_); }
+"endswith"              { return yy.Token(_ENDSWITH_);    }
+"iendswith"             { return yy.Token(_IENDSWITH_);   }
 "import"                { return yy.Token(_IMPORT_);      }
 "include"               { return yy.Token(_INCLUDE_);     }
 
