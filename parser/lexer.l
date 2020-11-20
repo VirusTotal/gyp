@@ -104,18 +104,14 @@ func Error(c gyperror.Code, msg string) YYtype {
 %{
 YY_USER_DATA(
   var (
-    collectText       bool    // true when reading string/regex/hex text
-    text              []byte  // collects text while reading a string/regex/hex
-    YYtext            string  // each action sets this to the current yytext
+    str      []byte
+    regexp   []byte
+    YYtext   string  // each action sets this to the current yytext
   )
 )
 
 YY_USER_ACTION(
   YYtext = string(yytext)
-
-  if collectText {
-    text = append(text, yytext...)
-  }
 )
 
 // Define a constant for end-of-file
@@ -131,10 +127,9 @@ const eof = 0
 %option verbose
 %option warn
 
-%x str
-%x regexp
-%x include
-%x comment
+%x STR
+%x REGEXP
+%x COMMENT
 
 digit         [0-9]
 letter        [a-zA-Z]
@@ -189,9 +184,9 @@ octdigit      [0-7]
 "import"                { return yy.Token(_IMPORT_);      }
 "include"               { return yy.Token(_INCLUDE_);     }
 
-"/*"                    { BEGIN (comment);       }
-<comment>"*/"           { BEGIN (INITIAL);       }
-<comment>(.|\n)         { /* skip comments */   }
+"/*"                    { BEGIN (COMMENT);       }
+<COMMENT>"*/"           { BEGIN (INITIAL);       }
+<COMMENT>(.|\n)         { /* skip comments */   }
 
 
 "//"[^\n]*              { /* skip single-line comments */ }
@@ -288,57 +283,57 @@ u?int(8|16|32)(be)? {
 }
 
 
-<str>\"   {     /* saw closing quote - all done */
-  // NOTE: text will end with `"` char
-  collectText = false
-  s := strings.TrimSuffix(string(text), `"`)
+<STR>\"   {     /* saw closing quote - all done */
   BEGIN (INITIAL);
-  return yy.TokenString(_TEXT_STRING_, s);
+  return yy.TokenString(_TEXT_STRING_, string(str));
 }
 
 
-<str>\\t   {
+<STR>\\t   {
+  str = append(str, yytext...)
 }
 
 
-<str>\\n   {
+<STR>\\n   {
+  str = append(str, yytext...)
 }
 
 
-<str>\\\"   {
+<STR>\\\"   {
+  str = append(str, yytext...)
 }
 
 
-<str>\\\\   {
+<STR>\\\\  {
+  str = append(str, yytext...)
 }
 
 
-<str>\\x{hexdigit}{2} {
+<STR>\\x{hexdigit}{2} {
+  str = append(str, yytext...)
 }
 
 
-<str>[^\\\n\"]+   { }
+<STR>[^\\\n\"]+   {
+  str = append(str, yytext...)
+}
 
 
-<str>\n  {
+<STR>\n  {
   return Error(
     gyperror.UnterminatedStringError,
     "unterminate string")
 }
 
 
-<str>\\(.|\n) {
+<STR>\\(.|\n) {
   return Error(
     gyperror.IllegalEscapeSequenceError,
     "illegal escape sequence")
 }
 
 
-<regexp>\/i?s?  {
-
-  collectText = false
-  txt := strings.TrimSuffix(string(text), YYtext)
-
+<REGEXP>\/i?s?  {
   var mods ast.RegexpModifiers
   for _, c := range YYtext {
       switch c {
@@ -355,27 +350,30 @@ u?int(8|16|32)(be)? {
             fmt.Sprintf(`invalid regexp modifier "%c"`, c))
       }
   }
-
   BEGIN (INITIAL);
   return yy.TokenRegExp(&ast.LiteralRegexp{
-     Value: txt,
+     Value: string(regexp),
      Modifiers: mods,
   });
 }
 
 
-<regexp>\\\/  {
+<REGEXP>\\\/  {
+  regexp = append(regexp, yytext...)
 }
 
 
-<regexp>\\. {
+<REGEXP>\\. {
+  regexp = append(regexp, yytext...)
 }
 
 
-<regexp>[^/\n\\]+ { }
+<REGEXP>[^/\n\\]+ {
+  regexp = append(regexp, yytext...)
+}
 
 
-<regexp>\n  {
+<REGEXP>\n  {
   return Error(
     gyperror.UnterminatedRegexError,
     "unterminated regexp")
@@ -383,16 +381,14 @@ u?int(8|16|32)(be)? {
 
 
 \"  {
-  collectText = true
-  text = []byte{}
-  BEGIN (str);
+  str = []byte{}
+  BEGIN (STR);
 }
 
 
 "/"  {
-  collectText = true
-  text = []byte{}
-  BEGIN (regexp);
+  regexp = []byte{}
+  BEGIN (REGEXP);
 }
 
 
