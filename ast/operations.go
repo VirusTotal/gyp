@@ -25,6 +25,11 @@ const (
 	OpShiftLeft      OperatorType = "<<"
 	OpShiftRight     OperatorType = ">>"
 	OpContains       OperatorType = "contains"
+	OpIContains      OperatorType = "icontains"
+	OpStartsWith     OperatorType = "startswith"
+	OpIStartsWith    OperatorType = "istartswith"
+	OpEndsWith       OperatorType = "endswith"
+	OpIEndsWith      OperatorType = "iendswith"
 	OpMatches        OperatorType = "matches"
 	// Non public operation types. This are operations that exist in the
 	// protobuf, but are not translated into an Operation node in the AST.
@@ -44,6 +49,11 @@ var OpPrecedence = map[OperatorType]int{
 	OpGreaterThan:    4,
 	OpGreaterOrEqual: 4,
 	OpContains:       4,
+	OpIContains:      4,
+	OpStartsWith:     4,
+	OpIStartsWith:    4,
+	OpEndsWith:       4,
+	OpIEndsWith:      4,
 	OpMatches:        4,
 	OpBitOr:          5,
 	OpBitXor:         6,

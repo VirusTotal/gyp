@@ -9,7 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testRules = `rule BASIC_BOOL {
+var testRules = `
+rule BASIC_BOOL {
   condition:
     true
 }
@@ -251,7 +252,6 @@ rule MODULE {
   condition:
     foo.bar(10, 20, 30) != /(test){1}/
 }
-
 `
 
 func TestRulesetParsing(t *testing.T) {

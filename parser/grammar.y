@@ -108,6 +108,11 @@ type stringModifiers struct {
 %token _THEM_
 %token _MATCHES_
 %token _CONTAINS_
+%token _ICONTAINS_
+%token _STARTSWITH_
+%token _ISTARTSWITH_
+%token _ENDSWITH_
+%token _IENDSWITH_
 %token _IMPORT_
 %token _TRUE_
 %token _FALSE_
@@ -191,16 +196,17 @@ type stringModifiers struct {
     // This relies on the fact that Go doesn't implement unions, and therefore
     // goyacc actually uses a struct for passing around symbol values. Being
     // a struct those values can contain both the value itself (in some of
-    // the fields listed below) and the line number. This wouldn't work with
-    // C code produced by yacc, as this is actually a union in C.
+    // the fields listed above) and the line number. This wouldn't work with
+    // C code produced by yacc, as this would be a union instead of a struct.
     //
-    // This can be within the rule actions as:
+    // This can be used within rule actions as:
     //
     //  lineNumber := $<lineno>1
     //
     // In the example lineNumber will hold the line number for the first
-    // symbol in the rule. The value for the symbol itself would be $1 as
-    // usual.
+    // symbol in the production rule. The value for the symbol itself would
+    // be $1 as usual. Similarly $<lineno>N will return the line number for
+    // the N-th symbol in the production rule.
 
     lineno        int
 }
@@ -715,6 +721,41 @@ expression
           Operands: []ast.Expression{$1, $3},
         }
       }
+    | primary_expression _ICONTAINS_ primary_expression
+      {
+        $$ = &ast.Operation{
+          Operator: ast.OpIContains,
+          Operands: []ast.Expression{$1, $3},
+        }
+      }
+    | primary_expression _STARTSWITH_ primary_expression
+      {
+        $$ = &ast.Operation{
+          Operator: ast.OpStartsWith,
+          Operands: []ast.Expression{$1, $3},
+        }
+      }
+     | primary_expression _ISTARTSWITH_ primary_expression
+       {
+         $$ = &ast.Operation{
+           Operator: ast.OpIStartsWith,
+           Operands: []ast.Expression{$1, $3},
+         }
+       }
+    | primary_expression _ENDSWITH_ primary_expression
+      {
+        $$ = &ast.Operation{
+          Operator: ast.OpEndsWith,
+          Operands: []ast.Expression{$1, $3},
+        }
+      }
+     | primary_expression _IENDSWITH_ primary_expression
+       {
+         $$ = &ast.Operation{
+           Operator: ast.OpIEndsWith,
+           Operands: []ast.Expression{$1, $3},
+         }
+       }
     | _STRING_IDENTIFIER_
       {
         $$ = &ast.StringIdentifier{

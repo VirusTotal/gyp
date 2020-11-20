@@ -176,6 +176,11 @@ message BinaryExpression {
     BITWISE_OR = 19;  // |
     SHIFT_LEFT = 20;  // <<
     SHIFT_RIGHT = 21;  // >>
+    ICONTAINS = 22;
+    STARTSWITH = 23;
+    ISTARTSWITH = 24;
+    ENDSWITH = 25;
+    IENDSWITH = 26;
   }
 
   // Operator. Required.

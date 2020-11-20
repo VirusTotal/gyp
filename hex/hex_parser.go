@@ -6,6 +6,7 @@ package hex
 import __yyfmt__ "fmt"
 
 //line hex/hex_grammar.y:31
+
 import (
 	"github.com/VirusTotal/gyp/ast"
 	gyperror "github.com/VirusTotal/gyp/error"
@@ -58,6 +59,7 @@ var hexToknames = [...]string{
 	"_RPARENS_",
 	"_PIPE_",
 }
+
 var hexStatenames = [...]string{}
 
 const hexEofCode = 1
@@ -88,59 +90,59 @@ const hexPrivate = 57344
 const hexLast = 37
 
 var hexAct = [...]int{
-
 	3, 27, 28, 8, 9, 8, 9, 13, 15, 32,
 	4, 26, 6, 20, 6, 11, 24, 25, 23, 21,
 	19, 29, 10, 18, 2, 7, 30, 8, 9, 31,
 	17, 16, 1, 5, 14, 22, 12,
 }
-var hexPact = [...]int{
 
+var hexPact = [...]int{
 	17, -1000, 1, 14, -1, 23, -1000, -1000, -1000, -1000,
 	-1000, -1000, -1, -1000, -1000, 7, -1000, 1, -1000, -1000,
 	5, 0, -13, -1000, -1000, 15, -1000, -1000, 1, -2,
 	-1000, -1000, -1000,
 }
-var hexPgo = [...]int{
 
+var hexPgo = [...]int{
 	0, 0, 36, 7, 10, 35, 34, 33, 25, 32,
 	30,
 }
-var hexR1 = [...]int{
 
+var hexR1 = [...]int{
 	0, 9, 1, 1, 1, 2, 2, 3, 3, 4,
 	10, 4, 6, 6, 6, 6, 5, 5, 7, 7,
 	8, 8,
 }
-var hexR2 = [...]int{
 
+var hexR2 = [...]int{
 	0, 3, 1, 2, 3, 1, 2, 1, 1, 1,
 	0, 4, 3, 5, 4, 3, 1, 3, 1, 2,
 	1, 1,
 }
-var hexChk = [...]int{
 
+var hexChk = [...]int{
 	-1000, -9, 7, -1, -4, -7, 13, -8, 4, 5,
 	8, -4, -2, -3, -6, 9, -8, -10, -4, -3,
 	6, 12, -5, -1, 11, 12, 11, 14, 15, 6,
 	11, -1, 11,
 }
-var hexDef = [...]int{
 
+var hexDef = [...]int{
 	0, -2, 0, 0, 2, 9, 10, 18, 20, 21,
 	1, -2, 0, 5, 8, 0, 19, 0, -2, 6,
 	0, 0, 0, 16, 12, 0, 15, 11, 0, 0,
 	14, 17, 13,
 }
-var hexTok1 = [...]int{
 
+var hexTok1 = [...]int{
 	1,
 }
-var hexTok2 = [...]int{
 
+var hexTok2 = [...]int{
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15,
 }
+
 var hexTok3 = [...]int{
 	0,
 }
