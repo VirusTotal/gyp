@@ -143,13 +143,13 @@ const yyInteractiveDefault = false
 // SKEL ----------------------------------------------------------------
 
 // [4.0] data tables for the DFA go here -------------------------------
-const yyNumRules = 20
-const yyEndOfBuffer = 21
+const yyNumRules = 21
+const yyEndOfBuffer = 22
 var yyAccept = [39]int16{   0,
-        0,    0,    0,    0,    0,    0,   21,   19,   15,   15,
-       16,   17,   19,   19,   19,    7,    1,   18,    2,   20,
-       14,   13,   13,   10,   11,   12,    0,    9,    3,    4,
-        5,    6,   11,    0,    0,    9,    8,    0,
+        0,    0,    0,    0,    0,    0,   22,   20,   16,   16,
+       17,   18,   20,    7,   20,    8,    1,   19,    2,   21,
+       15,   14,   14,   11,   12,   13,    0,   10,    3,    4,
+        5,    6,   12,    0,    0,   10,    9,    0,
     }
 
 var yyEc = [256]byte{    0,
@@ -225,9 +225,9 @@ var yyChk = [70]int16{   0,
     }
 
 /* Table of booleans, true if rule could match eol. */
-var yyRuleCanMatchEol = [21]int32{   0,
-0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 
-    0,     };
+var yyRuleCanMatchEol = [22]int32{   0,
+0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 
+    0, 0,     };
 
 //line hex/hex_lexer.l:1
 /*
@@ -513,39 +513,50 @@ case 7:
 
 //line hex/hex_lexer.l:140
 {
+  return Error(
+    gyperror.UnevenNumberOfDigitsError,
+    fmt.Sprintf(`uneven number of digits in hex string`))
+}
+case 8:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:146
+{
   yy.start = 1 + 2*  (yrange);
   return yy.Token(_LBRACKET_);
 }
-case 8:
-/* rule 8 can match eol */
-
-	yylineno = yy.Lineno
-	
-
-//line hex/hex_lexer.l:145
-// skip comments
 case 9:
+/* rule 9 can match eol */
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:147
-// skip single-line comments
+//line hex/hex_lexer.l:151
+// skip comments
 case 10:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:149
-{
-  return yy.Token(_HYPHEN_);
-}
+//line hex/hex_lexer.l:153
+// skip single-line comments
 case 11:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:153
+//line hex/hex_lexer.l:155
+{
+  return yy.Token(_HYPHEN_);
+}
+case 12:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:159
 {
   val, err := strconv.ParseInt(string(yytext), 10, 32)
   if err != nil {
@@ -554,80 +565,69 @@ case 11:
   }
   return yy.TokenInteger(_NUMBER_, int(val));
 }
-case 12:
+case 13:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:162
+//line hex/hex_lexer.l:168
 {
   yy.start = 1 + 2*  (yyInitial );
   return yy.Token(_RBRACKET_);
 }
-case 13:
-/* rule 13 can match eol */
-
-	yylineno = yy.Lineno
-	
-
-//line hex/hex_lexer.l:167
-// skip whitespaces
 case 14:
+/* rule 14 can match eol */
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:169
-{
-  return Error(
-    gyperror.InvalidCharInHexStringError,
-    fmt.Sprintf(`invalid character in hex string: %02x`, yytext[0]))
-}
+//line hex/hex_lexer.l:173
+// skip whitespaces
 case 15:
-/* rule 15 can match eol */
 
 	yylineno = yy.Lineno
 	
 
 //line hex/hex_lexer.l:175
-// skip whitespaces
-case 16:
-
-	yylineno = yy.Lineno
-	
-
-//line hex/hex_lexer.l:177
 {
-  return yy.Token(_LPARENS_)
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf(`invalid character in hex string range: %c (0x%02x)`, yytext[0], yytext[0]))
 }
-case 17:
+case 16:
+/* rule 16 can match eol */
 
 	yylineno = yy.Lineno
 	
 
 //line hex/hex_lexer.l:181
+// skip whitespaces
+case 17:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:183
 {
-  return yy.Token(_RPARENS_)
+  return yy.Token(_LPARENS_)
 }
 case 18:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:185
+//line hex/hex_lexer.l:187
 {
-  return yy.Token(_PIPE_)
+  return yy.Token(_RPARENS_)
 }
 case 19:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:189
-{               // reject all other characters
-  return Error(
-    gyperror.InvalidCharInHexStringError,
-    fmt.Sprintf(`invalid character in hex string: %02x`, yytext[0]))
+//line hex/hex_lexer.l:191
+{
+  return yy.Token(_PIPE_)
 }
 case 20:
 
@@ -635,8 +635,19 @@ case 20:
 	
 
 //line hex/hex_lexer.l:195
+{               // reject all other characters
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf(`invalid character in hex string:  %c (0x%02x)`, yytext[0], yytext[0]))
+}
+case 21:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:201
 yyout.Write(yytext) 
-//line hex/hex_lexer.go:640
+//line hex/hex_lexer.go:651
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -1097,7 +1108,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line hex/hex_lexer.l:195
+//line hex/hex_lexer.l:201
 
 
 

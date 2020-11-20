@@ -28,6 +28,7 @@ const (
 	NumberConversionError
 	IntegerOverflowError
 	InvalidStringModifierError
+	UnevenNumberOfDigitsError
 )
 
 type Error struct {

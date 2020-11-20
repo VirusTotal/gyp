@@ -20,7 +20,8 @@ var ruleWriteSourceTests = []struct {
 rule foo {
   condition:
     true
-}`,
+}
+`,
 	},
 	{
 		Rule: &Rule{
@@ -32,7 +33,8 @@ rule foo {
 rule foo : bar baz {
   condition:
     false
-}`,
+}
+`,
 	},
 	{
 		Rule: &Rule{
@@ -45,7 +47,8 @@ rule foo : bar baz {
 global rule foo : bar baz {
   condition:
     true
-}`,
+}
+`,
 	},
 	{
 		Rule: &Rule{
@@ -58,7 +61,8 @@ global rule foo : bar baz {
 private rule foo : bar baz {
   condition:
     true
-}`,
+}
+`,
 	},
 	{
 		Rule: &Rule{
@@ -72,7 +76,8 @@ private rule foo : bar baz {
 global private rule foo : bar baz {
   condition:
     true
-}`,
+}
+`,
 	},
 	{
 		Rule: &Rule{
@@ -92,7 +97,8 @@ rule foo {
     baz = true
   condition:
     true
-}`,
+}
+`,
 	},
 	{
 		Rule: &Rule{
@@ -117,7 +123,8 @@ rule foo {
     $a = "bar" ascii wide nocase xor
   condition:
     true
-}`,
+}
+`,
 	},
 }
 
