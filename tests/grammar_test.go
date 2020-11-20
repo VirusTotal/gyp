@@ -330,3 +330,26 @@ func TestUnevenNumberOfDigits(t *testing.T) {
 		assert.Equal(t, "line 4: uneven number of digits in hex string", err.Error())
 	}
 }
+
+func TestNonAsciiCharacters(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule NON_ASCII {
+		strings:
+			$s1 = "foo` + "\xe8" + `bar"
+		condition:
+			all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: non-ascii character "\xe8"`, err.Error())
+	}
+	_, err = gyp.ParseString(`
+	rule NON_ASCII {
+		strings:
+			$s1 = /foo` + "\x03" + `bar/
+		condition:
+			all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: non-ascii character "\x03"`, err.Error())
+	}
+}
