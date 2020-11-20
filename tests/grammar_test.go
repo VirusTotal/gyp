@@ -307,3 +307,26 @@ func TestBase64AlphabetLength(t *testing.T) {
 	}`)
 	assert.Error(t, err, "length of base64 alphabet must be 64")
 }
+
+func TestUnevenNumberOfDigits(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNEVEN_HEX_STRING {
+		strings:
+			$s1 = {012 010203}
+		condition:
+			all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 4: uneven number of digits in hex string", err.Error())
+	}
+	_, err = gyp.ParseString(`
+	rule UNEVEN_HEX_STRING {
+		strings:
+			$s1 = {12233}
+		condition:
+			all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 4: uneven number of digits in hex string", err.Error())
+	}
+}

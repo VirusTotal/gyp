@@ -137,6 +137,12 @@ hexdigit      [a-fA-F0-9]
   return yy.TokenByte(_MASKED_BYTE_, byte(0x00), byte(0x00));
 }
 
+{hexdigit} {
+  return Error(
+    gyperror.UnevenNumberOfDigitsError,
+    fmt.Sprintf(`uneven number of digits in hex string`))
+}
+
 \[ {
   BEGIN (yrange);
   return yy.Token(_LBRACKET_);
@@ -169,7 +175,7 @@ hexdigit      [a-fA-F0-9]
 <yrange>. {
   return Error(
     gyperror.InvalidCharInHexStringError,
-    fmt.Sprintf(`invalid character in hex string: %02x`, yytext[0]))
+    fmt.Sprintf(`invalid character in hex string range: %c (0x%02x)`, yytext[0], yytext[0]))
 }
 
 [ \t\r\n]         // skip whitespaces
@@ -189,7 +195,7 @@ hexdigit      [a-fA-F0-9]
 . {               // reject all other characters
   return Error(
     gyperror.InvalidCharInHexStringError,
-    fmt.Sprintf(`invalid character in hex string: %02x`, yytext[0]))
+    fmt.Sprintf(`invalid character in hex string:  %c (0x%02x)`, yytext[0], yytext[0]))
 }
 
 %%
