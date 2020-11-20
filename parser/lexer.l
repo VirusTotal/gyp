@@ -88,6 +88,15 @@ func Error(c gyperror.Code, msg string) YYtype {
   return YYtype{Error: gyperror.Error{c, msg, 0,}}
 }
 
+func validateAscii(s []byte) error {
+  for _, c := range s {
+    if c < 32 || c >= 127 {
+       return fmt.Errorf(`non-ascii character "\x%02x"`, c)
+    }
+  }
+  return nil
+}
+
 
 // The YY_USER_DATA macro is used to define variables inside the Scanner
 // Lex() method. These variables manage buffers for gathering groups of
@@ -284,6 +293,9 @@ u?int(8|16|32)(be)? {
 
 
 <STR>\"   {     /* saw closing quote - all done */
+  if err := validateAscii(str); err != nil {
+    return Error(gyperror.NonAsciiByteError, err.Error())
+  }
   BEGIN (INITIAL);
   return yy.TokenString(_TEXT_STRING_, string(str));
 }
@@ -334,6 +346,10 @@ u?int(8|16|32)(be)? {
 
 
 <REGEXP>\/i?s?  {
+  if err := validateAscii(regexp); err != nil {
+    return Error(gyperror.NonAsciiByteError, err.Error())
+  }
+
   var mods ast.RegexpModifiers
   for _, c := range YYtext {
       switch c {
@@ -350,6 +366,7 @@ u?int(8|16|32)(be)? {
             fmt.Sprintf(`invalid regexp modifier "%c"`, c))
       }
   }
+
   BEGIN (INITIAL);
   return yy.TokenRegExp(&ast.LiteralRegexp{
      Value: string(regexp),
