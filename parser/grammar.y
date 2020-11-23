@@ -241,6 +241,11 @@ rules
 import
     : _IMPORT_ _TEXT_STRING_
       {
+        if err := validateAscii($2); err != nil {
+          return asLexer(yrlex).setError(
+            gyperror.NonAsciiByteError, err.Error())
+        }
+
         $$ = $2
       }
     ;
@@ -433,24 +438,31 @@ string_declarations
 
 
 string_declaration
-    : _STRING_IDENTIFIER_ '=' _TEXT_STRING_ string_modifiers
+    : _STRING_IDENTIFIER_ '=' _TEXT_STRING_
+      {
+        if err := validateAscii($3); err != nil {
+          return asLexer(yrlex).setError(
+            gyperror.NonAsciiByteError, err.Error())
+        }
+      }
+      string_modifiers
       {
         $$ = &ast.TextString{
           BaseString : ast.BaseString{
           	Identifier: strings.TrimPrefix($1, "$"),
           	LineNo: $<lineno>1,
           },
-          ASCII: $4.modifiers & ModASCII != 0,
-          Wide: $4.modifiers & ModWide != 0,
-          Nocase: $4.modifiers & ModNocase != 0,
-          Fullword: $4.modifiers & ModFullword != 0,
-          Private: $4.modifiers & ModPrivate != 0,
-          Base64: $4.modifiers & ModBase64 != 0,
-          Base64Wide: $4.modifiers & ModBase64Wide != 0,
-          Base64Alphabet: $4.Base64Alphabet,
-          Xor: $4.modifiers & ModXor != 0,
-          XorMin: $4.XorMin,
-          XorMax: $4.XorMax,
+          ASCII: $5.modifiers & ModASCII != 0,
+          Wide: $5.modifiers & ModWide != 0,
+          Nocase: $5.modifiers & ModNocase != 0,
+          Fullword: $5.modifiers & ModFullword != 0,
+          Private: $5.modifiers & ModPrivate != 0,
+          Base64: $5.modifiers & ModBase64 != 0,
+          Base64Wide: $5.modifiers & ModBase64Wide != 0,
+          Base64Alphabet: $5.Base64Alphabet,
+          Xor: $5.modifiers & ModXor != 0,
+          XorMin: $5.XorMin,
+          XorMax: $5.XorMax,
           Value: $3,
         }
       }
@@ -521,28 +533,38 @@ string_modifier
     | _BASE64WIDE_  { $$ = stringModifiers{modifiers: ModBase64Wide} }
     | _BASE64_ '(' _TEXT_STRING_ ')'
        {
+         if err := validateAscii($3); err != nil {
+           return asLexer(yrlex).setError(
+             gyperror.NonAsciiByteError, err.Error())
+         }
+
          if len($3) != 64 {
-            return asLexer(yrlex).setError(
-              gyperror.InvalidStringModifierError,
-              "length of base64 alphabet must be 64")
+           return asLexer(yrlex).setError(
+             gyperror.InvalidStringModifierError,
+             "length of base64 alphabet must be 64")
          }
 
          $$ = stringModifiers{
-            modifiers: ModBase64,
-            Base64Alphabet: $3,
+           modifiers: ModBase64,
+           Base64Alphabet: $3,
          }
        }
      | _BASE64WIDE_ '(' _TEXT_STRING_ ')'
         {
+          if err := validateAscii($3); err != nil {
+            return asLexer(yrlex).setError(
+              gyperror.NonAsciiByteError, err.Error())
+          }
+
           if len($3) != 64 {
-             return asLexer(yrlex).setError(
-               gyperror.InvalidStringModifierError,
-               "length of base64 alphabet must be 64")
+            return asLexer(yrlex).setError(
+              gyperror.InvalidStringModifierError,
+              "length of base64 alphabet must be 64")
           }
 
           $$ = stringModifiers{
-             modifiers: ModBase64Wide,
-             Base64Alphabet: $3,
+            modifiers: ModBase64Wide,
+            Base64Alphabet: $3,
           }
         }
     | _XOR_
@@ -1010,6 +1032,11 @@ primary_expression
       }
     | _TEXT_STRING_
       {
+        if err := validateAscii($1); err != nil {
+          return asLexer(yrlex).setError(
+            gyperror.NonAsciiByteError, err.Error())
+        }
+
         $$ = &ast.LiteralString{$1}
       }
     | _STRING_COUNT_
