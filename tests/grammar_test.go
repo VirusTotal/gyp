@@ -380,7 +380,7 @@ func TestNonAsciiCharacters(t *testing.T) {
 
 	// Non-ascii characters are NOT accepted in string literals.
 	_, err = gyp.ParseString(`
-    import "ñoño"
+	import "ñoño"
 	rule NON_ASCII {
 		condition:
 			false
