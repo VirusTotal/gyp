@@ -58,10 +58,10 @@ func Error(c gyperror.Code, msg string) YYtype {
   return YYtype{Error: gyperror.Error{c, msg, 0,}}
 }
 
-func validateAscii(s []byte) error {
-  for _, c := range s {
-    if c < 32 || c >= 127 {
-       return fmt.Errorf(`non-ascii character "\x%02x"`, c)
+func validateAscii(s string) error {
+  for i := 0; i < len(s); i++ {
+    if s[i] < 32 || s[i] >= 127 {
+       return fmt.Errorf(`non-ascii character "\x%02x"`, s[i])
     }
   }
   return nil
@@ -1259,9 +1259,6 @@ case 61:
 
 //line parser/lexer.l:295
 {     /* saw closing quote - all done */
-  if err := validateAscii(str); err != nil {
-    return Error(gyperror.NonAsciiByteError, err.Error())
-  }
   yy.start = 1 + 2*  (yyInitial );
   return yy.TokenString(_TEXT_STRING_, string(str));
 }
@@ -1271,7 +1268,7 @@ case 62:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:304
+//line parser/lexer.l:301
 {
   str = append(str, yytext...)
 }
@@ -1281,7 +1278,7 @@ case 63:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:309
+//line parser/lexer.l:306
 {
   str = append(str, yytext...)
 }
@@ -1291,7 +1288,7 @@ case 64:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:314
+//line parser/lexer.l:311
 {
   str = append(str, yytext...)
 }
@@ -1301,7 +1298,7 @@ case 65:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:319
+//line parser/lexer.l:316
 {
   str = append(str, yytext...)
 }
@@ -1311,7 +1308,7 @@ case 66:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:324
+//line parser/lexer.l:321
 {
   str = append(str, yytext...)
 }
@@ -1321,7 +1318,7 @@ case 67:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:329
+//line parser/lexer.l:326
 {
   str = append(str, yytext...)
 }
@@ -1332,7 +1329,7 @@ case 68:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:334
+//line parser/lexer.l:331
 {
   return Error(
     gyperror.UnterminatedStringError,
@@ -1345,7 +1342,7 @@ case 69:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:341
+//line parser/lexer.l:338
 {
   return Error(
     gyperror.IllegalEscapeSequenceError,
@@ -1357,9 +1354,9 @@ case 70:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:348
+//line parser/lexer.l:345
 {
-  if err := validateAscii(regexp); err != nil {
+  if err := validateAscii(string(regexp)); err != nil {
     return Error(gyperror.NonAsciiByteError, err.Error())
   }
 
@@ -1392,7 +1389,7 @@ case 71:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:378
+//line parser/lexer.l:375
 {
   regexp = append(regexp, yytext...)
 }
@@ -1402,7 +1399,7 @@ case 72:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:383
+//line parser/lexer.l:380
 {
   regexp = append(regexp, yytext...)
 }
@@ -1412,7 +1409,7 @@ case 73:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:388
+//line parser/lexer.l:385
 {
   regexp = append(regexp, yytext...)
 }
@@ -1423,7 +1420,7 @@ case 74:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:393
+//line parser/lexer.l:390
 {
   return Error(
     gyperror.UnterminatedRegexError,
@@ -1435,7 +1432,7 @@ case 75:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:400
+//line parser/lexer.l:397
 {
   str = []byte{}
   yy.start = 1 + 2*  (STR);
@@ -1446,7 +1443,7 @@ case 76:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:406
+//line parser/lexer.l:403
 {
   regexp = []byte{}
   yy.start = 1 + 2*  (REGEXP);
@@ -1458,7 +1455,7 @@ case 77:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:412
+//line parser/lexer.l:409
 {
   // Match hex-digits with whitespace or comments. The latter are stripped
   // out by hex_lexer.l
@@ -1480,7 +1477,7 @@ case 78:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:428
+//line parser/lexer.l:425
 /* skip whitespace */
 case 79:
 
@@ -1488,7 +1485,7 @@ case 79:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:430
+//line parser/lexer.l:427
 {
 
   r := int(yytext[0])
@@ -1507,9 +1504,9 @@ case 80:
 	YYtext = string(yytext)
 
 
-//line parser/lexer.l:443
+//line parser/lexer.l:440
 yyout.Write(yytext) 
-//line parser/lexer.go:1513
+//line parser/lexer.go:1510
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -1970,7 +1967,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line parser/lexer.l:443
+//line parser/lexer.l:440
 
 
 

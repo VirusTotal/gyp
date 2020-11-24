@@ -332,6 +332,7 @@ func TestUnevenNumberOfDigits(t *testing.T) {
 }
 
 func TestNonAsciiCharacters(t *testing.T) {
+	// Non-ascii characters are NOT accepted in text strings.
 	_, err := gyp.ParseString(`
 	rule NON_ASCII {
 		strings:
@@ -342,6 +343,8 @@ func TestNonAsciiCharacters(t *testing.T) {
 	if assert.Error(t, err) {
 		assert.Equal(t, `line 4: non-ascii character "\xe8"`, err.Error())
 	}
+
+	// Non-ascii characters are NOT accepted in regexps.
 	_, err = gyp.ParseString(`
 	rule NON_ASCII {
 		strings:
@@ -352,4 +355,56 @@ func TestNonAsciiCharacters(t *testing.T) {
 	if assert.Error(t, err) {
 		assert.Equal(t, `line 4: non-ascii character "\x03"`, err.Error())
 	}
+
+	// Non-ascii characters are NOT accepted in argument to base64 modifier.
+	_, err = gyp.ParseString(`
+	rule NON_ASCII {
+		strings:
+			$s1 = "foo" base64("é")
+		condition:
+			all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: non-ascii character "\xc3"`, err.Error())
+	}
+
+	// Non-ascii characters are NOT accepted in string literals.
+	_, err = gyp.ParseString(`
+	rule NON_ASCII {
+		condition:
+			"abc" != "ñbc"
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: non-ascii character "\xc3"`, err.Error())
+	}
+
+	// Non-ascii characters are NOT accepted in string literals.
+	_, err = gyp.ParseString(`
+	import "ñoño"
+	rule NON_ASCII {
+		condition:
+			false
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 2: non-ascii character "\xc3"`, err.Error())
+	}
+
+	// Non-ascii characters are accepted in meta strings.
+	_, err = gyp.ParseString(`
+	rule NON_ASCII {
+        meta:
+			test = "foo` + "\xe8" + `bar"
+		condition:
+			false
+	}`)
+	assert.NoError(t, err)
+
+	// Non-ascii characters are accepted in comments.
+	_, err = gyp.ParseString(`
+	rule NON_ASCII {
+        // This is a comment with a non-ascii é character: ` + "\xe8" + `
+		condition:
+			false
+	}`)
+	assert.NoError(t, err)
 }
