@@ -11,7 +11,7 @@ const (
 )
 
 func toASCII(s string) string {
-	ascii := make([]byte, 0)
+	ascii := make([]byte, 0, len(s))
 	for i := 0; i < len(s); i++ {
 		switch {
 		case s[i] == '\n':
