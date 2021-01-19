@@ -82,11 +82,12 @@ rule STRING_MODIFIERS {
 
 rule STRING_ESCAPED_CHARS {
   strings:
-    $s1 = "C:\\Foo\"\\Bar\n"
+    $s1 = "C:\\Foo\"\\Bar\r\n"
     $s2 = "\""
     $s3 = "\\"
+    $s4 = "\t"
   condition:
-    $s1 and $s2 and $s3
+    $s1 and $s2 and $s3 and $s4
 }
 
 rule TAG : tag1 {

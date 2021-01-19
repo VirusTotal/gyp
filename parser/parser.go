@@ -836,7 +836,7 @@ yrdefault:
 //line parser/grammar.y:230
 		{
 			ruleSet := asLexer(yrlex).ruleSet
-			ruleSet.Includes = append(ruleSet.Includes, string(yrDollar[3].s))
+			ruleSet.Includes = append(ruleSet.Includes, yrDollar[3].s)
 		}
 	case 5:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
@@ -996,7 +996,7 @@ yrdefault:
 		{
 			yrVAL.meta = &ast.Meta{
 				Key:   yrDollar[1].s,
-				Value: string(yrDollar[3].s),
+				Value: yrDollar[3].s,
 			}
 		}
 	case 26:

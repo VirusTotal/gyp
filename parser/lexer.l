@@ -303,6 +303,11 @@ u?int(8|16|32)(be)? {
 }
 
 
+<STR>\\r   {
+  str = append(str, yytext...)
+}
+
+
 <STR>\\n   {
   str = append(str, yytext...)
 }
