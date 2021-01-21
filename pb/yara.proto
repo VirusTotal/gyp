@@ -84,7 +84,9 @@ message StringModifiers {
 
 // Text string.
 message TextString {
-  // String content.
+  // String content. Any character that appears in escaped form in the source
+  // is translated to their binary form. For example, if the string contained
+  // \x01, this string contains a 01 byte.
   optional string text = 1;
 
   // String modifiers.

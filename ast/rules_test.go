@@ -84,7 +84,7 @@ global private rule foo : bar baz {
 			Identifier: "foo",
 			Meta: []*Meta{
 				&Meta{"foo", 1},
-				&Meta{"bar", "qux\t\n\xc3\x00"},
+				&Meta{"bar", `qux\t\n\xc3\x00☺`},
 				&Meta{"baz", true},
 			},
 			Condition: KeywordTrue,

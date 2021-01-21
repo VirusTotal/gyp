@@ -10,6 +10,39 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+const (
+	lowerhex = "0123456789abcdef"
+)
+
+// Escape replaces any character outside the printable ASCII range by their
+// corresponding escape sequence (\n, \\, \", etc). Characters that don't have
+// their own escape sequence are replaced by \xHH, where HH is the hex value
+// for the character. Printable ASCII characters remain the same.
+func Escape(s string) string {
+	ascii := make([]byte, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		switch {
+		case s[i] == '\n':
+			ascii = append(ascii, `\n`...)
+		case s[i] == '\r':
+			ascii = append(ascii, `\r`...)
+		case s[i] == '\t':
+			ascii = append(ascii, `\t`...)
+		case s[i] == '\\':
+			ascii = append(ascii, `\\`...)
+		case s[i] == '"':
+			ascii = append(ascii, `\"`...)
+		case s[i] >= 32 && s[i] < 127:
+			ascii = append(ascii, s[i])
+		default:
+			ascii = append(ascii, `\x`...)
+			ascii = append(ascii, lowerhex[s[i]>>4])
+			ascii = append(ascii, lowerhex[s[i]&0xF])
+		}
+	}
+	return string(ascii)
+}
+
 // String is the interface implemented by the different types of strings that
 // are supported by YARA (i.e: text strings, hex strings and regexps).
 type String interface {

@@ -2,7 +2,6 @@ package ast
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/VirusTotal/gyp/pb"
@@ -164,16 +163,6 @@ func createIdentifierExpression(ident *pb.Identifier) Expression {
 	return expr
 }
 
-func escape(s string) string {
-	// Escape all non-ascii characters in the string, the returned string is
-	// also enclosed in double quotes, but we don't want the quotes.
-	q := strconv.QuoteToASCII(s)
-	// Trim the leading and ending quotes, we don't use strings.Trim(q, `"`)
-	// because it strips *all* leading and trailing quotes, `"\""` becomes
-	// `"\` instead of `\"`, we want only one quote removed from each end.
-	return q[1 : len(q)-1]
-}
-
 func stringFromProto(s *pb.String) String {
 	switch v := s.GetValue().(type) {
 	case *pb.String_Text:
@@ -193,7 +182,7 @@ func stringFromProto(s *pb.String) String {
 			Base64:         modifiers.GetBase64(),
 			Base64Wide:     modifiers.GetBase64Wide(),
 			Base64Alphabet: modifiers.GetBase64Alphabet(),
-			Value:          escape(v.Text.GetText()),
+			Value:          Escape(v.Text.GetText()),
 		}
 	case *pb.String_Hex:
 		return &HexString{

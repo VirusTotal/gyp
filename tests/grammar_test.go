@@ -86,8 +86,10 @@ rule STRING_ESCAPED_CHARS {
     $s2 = "\""
     $s3 = "\\"
     $s4 = "\t"
+    $s5 = "\x00"
+    $s6 = "\x7f"
   condition:
-    $s1 and $s2 and $s3 and $s4
+    all of them
 }
 
 rule TAG : tag1 {
@@ -119,7 +121,7 @@ private rule PRIVATE {
 
 rule META {
   meta:
-    meta_str = "string metadata"
+    meta_str = "abcñ\n\t\x01☺"
     meta_int = 42
     meta_neg = -42
     meta_true = true

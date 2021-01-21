@@ -722,7 +722,9 @@ func (m *StringModifiers) GetBase64Wide() bool {
 
 // Text string.
 type TextString struct {
-	// String content.
+	// String content. Any character that appears in escaped form in the source
+	// is translated to their binary form. For example, if the string contained
+	// \x01, this string contains a 01 byte.
 	Text *string `protobuf:"bytes,1,opt,name=text" json:"text,omitempty"`
 	// String modifiers.
 	Modifiers            *StringModifiers `protobuf:"bytes,2,opt,name=modifiers" json:"modifiers,omitempty"`

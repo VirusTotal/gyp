@@ -4,6 +4,7 @@ package gyp
 
 import (
 	"fmt"
+	"github.com/VirusTotal/gyp/ast"
 	"io"
 	"math"
 	"strings"
@@ -339,10 +340,10 @@ func (ys *YaraSerializer) SerializeStringValue(str *pb.String) error {
 }
 
 func (ys *YaraSerializer) serializeTextString(t *pb.TextString) error {
-	if err := ys.writeString(fmt.Sprintf("%q", t.GetText())); err != nil {
+	literal := fmt.Sprintf(`"%s"`, ast.Escape(t.GetText()))
+	if err := ys.writeString(literal); err != nil {
 		return err
 	}
-
 	return ys.serializeStringModifiers(t.Modifiers)
 }
 
