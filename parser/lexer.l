@@ -76,6 +76,10 @@ func (s *Scanner) TokenInt64(t int, v int64) YYtype {
   return YYtype{Token: t, Lineno: s.Lineno, Value: &yrSymType{i64: v}}
 }
 
+func (s *Scanner) TokenFloat64(t int, v float64) YYtype {
+  return YYtype{Token: t, Lineno: s.Lineno, Value: &yrSymType{f64: v}}
+}
+
 func (s *Scanner) TokenRegExp(reg *ast.LiteralRegexp) YYtype {
   return YYtype{Token: _REGEXP_, Lineno: s.Lineno, Value: &yrSymType{reg: reg}}
 }
@@ -267,7 +271,13 @@ u?int(8|16|32)(be)? {
 }
 
 {digit}+"."{digit}+  {
-  return yy.Token(_DOUBLE_);
+  v, err := strconv.ParseFloat(YYtext, 64)
+  if err != nil {
+    return Error(
+      gyperror.NumberConversionError,
+      fmt.Sprintf("%s", err))
+  }
+  return yy.TokenFloat64(_DOUBLE_, v);
 }
 
 0x{hexdigit}+  {

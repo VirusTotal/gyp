@@ -250,7 +250,7 @@ func (l *LiteralInteger) WriteSource(w io.Writer) error {
 
 // WriteSource writes the node's source into the writer w.
 func (l *LiteralFloat) WriteSource(w io.Writer) error {
-	_, err := fmt.Fprint(w, l.Value)
+	_, err := fmt.Fprintf(w, "%f", l.Value)
 	return err
 }
 
