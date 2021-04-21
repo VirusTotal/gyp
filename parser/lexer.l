@@ -40,6 +40,7 @@ import (
     "math"
     "strconv"
     "strings"
+    "unicode/utf8"
 
     "github.com/VirusTotal/gyp/ast"
     "github.com/VirusTotal/gyp/hex"
@@ -95,12 +96,20 @@ func Error(c gyperror.Code, msg string) YYtype {
 func validateAscii(s string) error {
   for i := 0; i < len(s); i++ {
     if s[i] < 32 || s[i] >= 127 {
-       return fmt.Errorf(`non-ascii character "\x%02x"`, s[i])
+       return fmt.Errorf(`invalid ASCII character "\x%02x"`, s[i])
     }
   }
   return nil
 }
 
+func validateUTF8(s string) error {
+  for index, rune := range s {
+    if rune == utf8.RuneError {
+        return fmt.Errorf(`invalid UTF-8 character "\x%02x"`, s[index])
+    }
+  }
+  return nil
+}
 
 // The YY_USER_DATA macro is used to define variables inside the Scanner
 // Lex() method. These variables manage buffers for gathering groups of
@@ -358,8 +367,8 @@ u?int(8|16|32)(be)? {
 
 
 <REGEXP>\/i?s?  {
-  if err := validateAscii(string(regexp)); err != nil {
-    return Error(gyperror.NonAsciiByteError, err.Error())
+  if err := validateUTF8(string(regexp)); err != nil {
+    return Error(gyperror.InvalidUTF8Error, err.Error())
   }
 
   var mods ast.RegexpModifiers
@@ -448,7 +457,7 @@ u?int(8|16|32)(be)? {
   }
 
   return Error(
-    gyperror.NonAsciiByteError,
+    gyperror.InvalidAsciiError,
     fmt.Sprintf(`non-ascii character "\x%02x"`, r))
 }
 

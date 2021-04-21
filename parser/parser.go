@@ -850,7 +850,7 @@ yrdefault:
 		{
 			if err := validateAscii(yrDollar[2].s); err != nil {
 				return asLexer(yrlex).setError(
-					gyperror.NonAsciiByteError, err.Error())
+					gyperror.InvalidAsciiError, err.Error())
 			}
 
 			yrVAL.s = yrDollar[2].s
@@ -1051,9 +1051,9 @@ yrdefault:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
 //line parser/grammar.y:442
 		{
-			if err := validateAscii(yrDollar[3].s); err != nil {
+			if err := validateUTF8(yrDollar[3].s); err != nil {
 				return asLexer(yrlex).setError(
-					gyperror.NonAsciiByteError, err.Error())
+					gyperror.InvalidUTF8Error, err.Error())
 			}
 		}
 	case 33:
@@ -1185,7 +1185,7 @@ yrdefault:
 		{
 			if err := validateAscii(yrDollar[3].s); err != nil {
 				return asLexer(yrlex).setError(
-					gyperror.NonAsciiByteError, err.Error())
+					gyperror.InvalidAsciiError, err.Error())
 			}
 
 			if len(yrDollar[3].s) != 64 {
@@ -1205,7 +1205,7 @@ yrdefault:
 		{
 			if err := validateAscii(yrDollar[3].s); err != nil {
 				return asLexer(yrlex).setError(
-					gyperror.NonAsciiByteError, err.Error())
+					gyperror.InvalidAsciiError, err.Error())
 			}
 
 			if len(yrDollar[3].s) != 64 {
@@ -1776,9 +1776,9 @@ yrdefault:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
 //line parser/grammar.y:1034
 		{
-			if err := validateAscii(yrDollar[1].s); err != nil {
+			if err := validateUTF8(yrDollar[1].s); err != nil {
 				return asLexer(yrlex).setError(
-					gyperror.NonAsciiByteError, err.Error())
+					gyperror.InvalidUTF8Error, err.Error())
 			}
 
 			yrVAL.expr = &ast.LiteralString{yrDollar[1].s}
