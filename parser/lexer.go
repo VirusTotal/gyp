@@ -1527,7 +1527,7 @@ case 80:
 
   return Error(
     gyperror.InvalidAsciiError,
-    fmt.Sprintf(`non-ascii character "\x%02x"`, r))
+    fmt.Sprintf(`invalid ASCII character "\x%02x"`, r))
 }
 case 81:
 

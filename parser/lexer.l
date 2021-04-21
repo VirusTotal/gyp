@@ -458,7 +458,7 @@ u?int(8|16|32)(be)? {
 
   return Error(
     gyperror.InvalidAsciiError,
-    fmt.Sprintf(`non-ascii character "\x%02x"`, r))
+    fmt.Sprintf(`invalid ASCII character "\x%02x"`, r))
 }
 
 %%
