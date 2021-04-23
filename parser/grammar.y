@@ -243,7 +243,7 @@ import
       {
         if err := validateAscii($2); err != nil {
           return asLexer(yrlex).setError(
-            gyperror.NonAsciiByteError, err.Error())
+            gyperror.InvalidAsciiError, err.Error())
         }
 
         $$ = $2
@@ -440,10 +440,10 @@ string_declarations
 string_declaration
     : _STRING_IDENTIFIER_ '=' _TEXT_STRING_
       {
-        if err := validateAscii($3); err != nil {
-          return asLexer(yrlex).setError(
-            gyperror.NonAsciiByteError, err.Error())
-        }
+         if err := validateUTF8($3); err != nil {
+           return asLexer(yrlex).setError(
+             gyperror.InvalidUTF8Error, err.Error())
+         }
       }
       string_modifiers
       {
@@ -535,7 +535,7 @@ string_modifier
        {
          if err := validateAscii($3); err != nil {
            return asLexer(yrlex).setError(
-             gyperror.NonAsciiByteError, err.Error())
+             gyperror.InvalidAsciiError, err.Error())
          }
 
          if len($3) != 64 {
@@ -553,7 +553,7 @@ string_modifier
         {
           if err := validateAscii($3); err != nil {
             return asLexer(yrlex).setError(
-              gyperror.NonAsciiByteError, err.Error())
+              gyperror.InvalidAsciiError, err.Error())
           }
 
           if len($3) != 64 {
@@ -1032,10 +1032,10 @@ primary_expression
       }
     | _TEXT_STRING_
       {
-        if err := validateAscii($1); err != nil {
-          return asLexer(yrlex).setError(
-            gyperror.NonAsciiByteError, err.Error())
-        }
+         if err := validateUTF8($1); err != nil {
+           return asLexer(yrlex).setError(
+             gyperror.InvalidUTF8Error, err.Error())
+         }
 
         $$ = &ast.LiteralString{$1}
       }

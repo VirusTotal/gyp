@@ -18,7 +18,6 @@ const (
 	IllegalEscapeSequenceError
 	InvalidRegexModifierError
 	UnterminatedRegexError
-	NonAsciiByteError
 	InvalidJumpLengthError
 	JumpTooLargeInsideAlternationError
 	NegativeJumpError
@@ -29,6 +28,8 @@ const (
 	IntegerOverflowError
 	InvalidStringModifierError
 	UnevenNumberOfDigitsError
+	InvalidAsciiError
+	InvalidUTF8Error
 )
 
 type Error struct {
