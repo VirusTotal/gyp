@@ -371,9 +371,12 @@ func TestInvalidCharacters(t *testing.T) {
 		assert.Equal(t, `line 4: invalid ASCII character "\xc3"`, err.Error())
 	}
 
-	// UTF8 characters are accepted in literal strings.
+	// UTF8 characters are accepted in literal strings and regexps.
 	_, err = gyp.ParseString(`
 	rule TEST {
+        strings:
+            $ = "★bebé★"
+            $ = /★★★★★/
 		condition:
 			"abc" != "ñbc"
 	}`)
