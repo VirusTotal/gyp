@@ -1208,7 +1208,7 @@ case 57:
       if v > math.MaxInt64 / 1024 {
         return Error(
           gyperror.IntegerOverflowError,
-          fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64))
+          fmt.Sprintf("Found %s; Max: %d", YYtext, int64(math.MaxInt64)))
       } else {
         v *= 1024
       }
@@ -1216,7 +1216,7 @@ case 57:
       if v > math.MaxInt64 / 1048576 {
         return Error(
           gyperror.IntegerOverflowError,
-          fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64))
+          fmt.Sprintf("Found %s; Max: %d", YYtext, int64(math.MaxInt64)))
       } else {
           v *= 1048576
       }

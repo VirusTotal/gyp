@@ -263,7 +263,7 @@ u?int(8|16|32)(be)? {
       if v > math.MaxInt64 / 1024 {
         return Error(
           gyperror.IntegerOverflowError,
-          fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64))
+          fmt.Sprintf("Found %s; Max: %d", YYtext, int64(math.MaxInt64)))
       } else {
         v *= 1024
       }
@@ -271,7 +271,7 @@ u?int(8|16|32)(be)? {
       if v > math.MaxInt64 / 1048576 {
         return Error(
           gyperror.IntegerOverflowError,
-          fmt.Sprintf("Found %s; Max: %d", YYtext, math.MaxInt64))
+          fmt.Sprintf("Found %s; Max: %d", YYtext, int64(math.MaxInt64)))
       } else {
           v *= 1048576
       }
