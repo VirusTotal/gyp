@@ -93,7 +93,7 @@ global private rule foo : bar baz {
 rule foo {
   meta:
     foo = 1
-    bar = "qux\t\n\xc3\x00"
+    bar = "qux\t\n\xc3\x00☺"
     baz = true
   condition:
     true
