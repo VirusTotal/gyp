@@ -43,7 +43,7 @@ rule foo  {
 
 func TestNonAscii(t *testing.T) {
 	_, err := ParseString("rule \x12 foo { condition: false }")
-	assert.EqualError(t, err, `line 1: non-ascii character "\x12"`)
+	assert.EqualError(t, err, `line 1: invalid ASCII character "\x12"`)
 }
 
 func TestLineNo(t *testing.T) {
@@ -61,7 +61,7 @@ rule bar {
   strings:
     $a = "foo"
   condition:
-    all of them 
+    all of them
 }`)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, rs.Rules[0].LineNo)
