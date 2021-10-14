@@ -102,6 +102,7 @@ type stringModifiers struct {
 %token _ENTRYPOINT_
 %token _ALL_
 %token _ANY_
+%token _NONE_
 %token _IN_
 %token _OF_
 %token _FOR_
@@ -975,6 +976,10 @@ for_expression
     | _ANY_
       {
         $$ = &ast.Quantifier{ast.KeywordAny}
+      }
+    | _NONE_
+      {
+        $$ = &ast.Quantifier{ast.KeywordNone}
       }
     ;
 

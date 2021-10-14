@@ -255,6 +255,13 @@ rule MODULE {
   condition:
     foo.bar(1, 10, 3.141592, 4.000000, "foo") != /(test){1}/
 }
+
+rule KEYWORD_NONE {
+  strings:
+    $s = "AXSERS"
+  condition:
+    none of them
+}
 `
 
 func TestRulesetParsing(t *testing.T) {

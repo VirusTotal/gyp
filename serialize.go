@@ -45,6 +45,7 @@ var keywords = map[pb.Keyword]string{
 }
 
 var forKeywords = map[pb.ForKeyword]string{
+	pb.ForKeyword_NONE: "none",
 	pb.ForKeyword_ALL: "all",
 	pb.ForKeyword_ANY: "any",
 }

@@ -34,6 +34,7 @@ type Keyword string
 const (
 	KeywordAll        Keyword = "all"
 	KeywordAny        Keyword = "any"
+	KeywordNone       Keyword = "none"
 	KeywordEntrypoint Keyword = "entrypoint"
 	KeywordFalse      Keyword = "false"
 	KeywordFilesize   Keyword = "filesize"
@@ -900,6 +901,8 @@ func (q *Quantifier) AsProto() *pb.ForExpression {
 			pbkw = pb.ForKeyword_ALL
 		} else if kw == KeywordAny {
 			pbkw = pb.ForKeyword_ANY
+		} else if kw == KeywordNone {
+			pbkw = pb.ForKeyword_NONE
 		} else {
 			panic(fmt.Sprintf("unexpected keyword in for: %s", kw))
 		}
