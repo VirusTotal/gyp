@@ -1,4 +1,6 @@
+*.swp
 y2j
+j2y
 !y2j/
 y2j-linux
 y2j-mac
