@@ -296,6 +296,8 @@ func quantifierFromProto(expr *pb.ForExpression) *Quantifier {
 			q = KeywordAll
 		} else if v.Keyword == pb.ForKeyword_ANY {
 			q = KeywordAny
+		} else if v.Keyword == pb.ForKeyword_NONE {
+			q = KeywordNone
 		}
 	case *pb.ForExpression_Expression:
 		q = expressionFromProto(v.Expression)

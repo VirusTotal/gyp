@@ -194,6 +194,7 @@ octdigit      [0-7]
 "for"                   { return yy.Token(_FOR_);         }
 "all"                   { return yy.Token(_ALL_);         }
 "any"                   { return yy.Token(_ANY_);         }
+"none"                  { return yy.Token(_NONE_);        }
 "entrypoint"            { return yy.Token(_ENTRYPOINT_);  }
 "filesize"              { return yy.Token(_FILESIZE_);    }
 "matches"               { return yy.Token(_MATCHES_);     }

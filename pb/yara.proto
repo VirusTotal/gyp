@@ -3,7 +3,7 @@
 
 syntax = "proto2";
 
-option go_package = "pb";
+option go_package = "pb/";
 
 // Rule modifiers.
 message RuleModifiers {
@@ -334,6 +334,8 @@ enum Keyword {
 
 // Keywords used in FOR expressions.
 enum ForKeyword {
+  // No items must satisfy a condition.
+  NONE = 0;
   // All items must satisfy a condition.
   ALL = 1;
   // At least one item must satisfy a condition.
