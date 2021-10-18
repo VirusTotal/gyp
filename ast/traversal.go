@@ -5,7 +5,7 @@ package ast
 type searchCallback func(expr Node)
 
 // DepthFirstSearch performs a depth-first traversal of expr's syntax tree and
-// invokes callback with the given cbParam for every node found.
+// invokes callback for every node found.
 func DepthFirstSearch(expr Node, callback searchCallback) {
 	callback(expr)
 	for _, expr := range expr.Children() {
