@@ -3,7 +3,7 @@
 
 syntax = "proto2";
 
-option go_package = "pb/";
+option go_package = "github.com/VirusTotal/gyp/pb";
 
 // Rule modifiers.
 message RuleModifiers {
@@ -81,7 +81,6 @@ message StringModifiers {
   optional bool base64wide = 13;
 }
 
-
 // Text string.
 message TextString {
   // String content. Any character that appears in escaped form in the source
@@ -157,27 +156,27 @@ message Jump {
 message BinaryExpression {
   enum Operator {
     UNKNOWN = 0;
-    MATCHES = 1;  // matches
-    CONTAINS = 2;  // contains
-    AT = 3;  // at
-    IN = 4;  // in
-    LT = 5;  // <
-    GT = 6;  // >
-    LE = 7;  // <=
-    GE = 8;  // >=
-    EQ = 9;  // ==
-    NEQ = 10;  // !=
+    MATCHES = 1;            // matches
+    CONTAINS = 2;           // contains
+    AT = 3;                 // at
+    IN = 4;                 // in
+    LT = 5;                 // <
+    GT = 6;                 // >
+    LE = 7;                 // <=
+    GE = 8;                 // >=
+    EQ = 9;                 // ==
+    NEQ = 10;               // !=
     INTEGER_FUNCTION = 11;  // intXX and uintXX functions
-    PLUS = 12;  // +
-    MINUS = 13;  // -
-    TIMES = 14;  // *
-    DIV = 15;  // \
+    PLUS = 12;              // +
+    MINUS = 13;             // -
+    TIMES = 14;             // *
+    DIV = 15;               // \
     MOD = 16;  // %
-    XOR = 17;  // ^
-    BITWISE_AND = 18;  // &
-    BITWISE_OR = 19;  // |
-    SHIFT_LEFT = 20;  // <<
-    SHIFT_RIGHT = 21;  // >>
+    XOR = 17;               // ^
+    BITWISE_AND = 18;       // &
+    BITWISE_OR = 19;        // |
+    SHIFT_LEFT = 20;        // <<
+    SHIFT_RIGHT = 21;       // >>
     ICONTAINS = 22;
     STARTSWITH = 23;
     ISTARTSWITH = 24;
@@ -220,7 +219,8 @@ message Range {
   optional Expression end = 2;
 }
 
-// Functions for reading data from a file at a specified offset or virtual address.
+// Functions for reading data from a file at a specified offset or virtual
+// address.
 message IntegerFunction {
   // Integer function: (u)intXX(be). Required.
   optional string function = 1;
@@ -276,13 +276,12 @@ message IntegerEnumeration {
 message ForExpression {
   oneof for {
     Expression expression = 1;  // Example: "for 10"
-    ForKeyword keyword = 2;  // Example: "for all"
+    ForKeyword keyword = 2;     // Example: "for all"
   }
 }
 
-// A ForOfExpression is satisfied if at least "expression" strings in "string_set"
-// satisfy "expression".
-// Example: for all of ($s1, $s2) : (@$ > 10)
+// A ForOfExpression is satisfied if at least "expression" strings in
+// "string_set" satisfy "expression". Example: for all of ($s1, $s2) : (@$ > 10)
 message ForOfExpression {
   // FOR expression: "for all". Required.
   optional ForExpression for_expression = 1;
