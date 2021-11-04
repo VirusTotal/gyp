@@ -824,6 +824,13 @@ expression
           Strings: $3,
         }
       }
+    | primary_expression '%' _OF_ string_set
+      {
+        $$ = &ast.PercentOf{
+          Percent: $1,
+          Strings: $4,
+        }
+      }
     | _NOT_ boolean_expression
       {
         $$ = &ast.Not{$2}

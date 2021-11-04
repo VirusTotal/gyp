@@ -200,6 +200,13 @@ type Of struct {
 	Strings    Node
 }
 
+// PercentOf is an Expression representing a "percent of" operation. Example:
+//   <expression>% of <string_set>
+type PercentOf struct {
+	Percent Expression
+	Strings Node
+}
+
 // Operation is an Expression representing an operation with two or more operands,
 // like "A or B", "A and B and C", "A + B + C", "A - B - C", etc. If there are
 // more than two operands the operation is considered left-associative, it's ok
@@ -499,6 +506,18 @@ func (o *Of) WriteSource(w io.Writer) error {
 	return err
 }
 
+// WriteSource writes the node's source into the writer w.
+func (o *PercentOf) WriteSource(w io.Writer) error {
+	err := o.Percent.WriteSource(w)
+	if err == nil {
+		_, err = io.WriteString(w, "% of ")
+	}
+	if err == nil {
+		err = o.Strings.WriteSource(w)
+	}
+	return err
+}
+
 // WriteSource writes the operation into the writer w.
 func (o *Operation) WriteSource(w io.Writer) error {
 	if len(o.Operands) < 2 {
@@ -624,6 +643,11 @@ func (f *ForOf) Children() []Node {
 // Children returns the node's child nodes.
 func (o *Of) Children() []Node {
 	return []Node{o.Quantifier, o.Strings}
+}
+
+// Children returns the node's child nodes.
+func (o *PercentOf) Children() []Node {
+	return []Node{o.Percent, o.Strings}
 }
 
 // Children returns the operation's children nodes.
@@ -1046,6 +1070,46 @@ func (o *Of) AsProto() *pb.Expression {
 			},
 		},
 	}
+}
+
+// AsProto returns the Expression serialized as a pb.Expression.
+func (o *PercentOf) AsProto() *pb.Expression {
+       var s *pb.StringSet
+       switch v := o.Strings.(type) {
+       case *Enum:
+               items := make([]*pb.StringEnumeration_StringEnumerationItem, len(v.Values))
+               for i, item := range v.Values {
+                       identifier := item.(*StringIdentifier).Identifier
+                       items[i] = &pb.StringEnumeration_StringEnumerationItem{
+                               StringIdentifier: proto.String(fmt.Sprintf("$%s", identifier)),
+                               HasWildcard:      proto.Bool(strings.HasSuffix(identifier, "*")),
+                       }
+               }
+               s = &pb.StringSet{
+                       Set: &pb.StringSet_Strings{
+                               Strings: &pb.StringEnumeration{
+                                       Items: items,
+                               },
+                       },
+               }
+       case Keyword:
+               if v != KeywordThem {
+                       panic(fmt.Sprintf(`unexpected keyword "%s"`, v))
+               }
+               s = &pb.StringSet{
+                       Set: &pb.StringSet_Keyword{
+                               Keyword: pb.StringSetKeyword_THEM,
+                       },
+               }
+       }
+       return &pb.Expression{
+               Expression: &pb.Expression_PercentOfExpression{
+                       PercentOfExpression: &pb.PercentOfExpression{
+                               Percent:   o.Percent.AsProto(),
+                               StringSet: s,
+                       },
+               },
+       }
 }
 
 // AsProto returns the Expression serialized as a pb.Expression.

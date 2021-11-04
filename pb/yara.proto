@@ -293,6 +293,17 @@ message ForOfExpression {
   optional Expression expression = 3;
 }
 
+// A PercentOfExpression is satisfied if at least "expression" precent of
+// strings in "string_set" match.
+message PercentOfExpression {
+  // expression: This can be an integer or an undefined expression (unknown at
+  // compile time. Required.
+  optional Expression percent = 1;
+
+  // String set: "($s1, $s2)". Required.
+  optional StringSet string_set = 2;
+}
+
 // Set of strings. Can be either an enumeration of strings or a keyword.
 message StringSet {
   oneof set {
@@ -370,6 +381,7 @@ message Expression {
     StringLength string_length = 18;
     Identifier identifier = 19;
     IntegerFunction integer_function = 20;
+    PercentOfExpression percent_of_expression = 21;
   }
 }
 

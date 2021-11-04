@@ -583,6 +583,8 @@ func (ys *YaraSerializer) SerializeExpression(e *pb.Expression) error {
 		return ys.serializeStringLength(e.GetStringLength())
 	case *pb.Expression_StringCount:
 		return ys.writeString(e.GetStringCount())
+	case *pb.Expression_PercentOfExpression:
+		return ys.serializePercentOfExpression(e.GetPercentOfExpression())
 	default:
 		return fmt.Errorf(`Unsupported Expression type "%T"`, val)
 	}
@@ -761,6 +763,23 @@ func (ys *YaraSerializer) serializeForOfExpression(e *pb.ForOfExpression) error 
 		if err := ys.writeString(")"); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// Serializes a percentage expression
+func (ys *YaraSerializer) serializePercentOfExpression(e *pb.PercentOfExpression) error {
+	if err := ys.SerializeExpression(e.Percent); err != nil {
+		return err
+	}
+
+	if err := ys.writeString("% of "); err != nil {
+		return err
+	}
+
+	if err := ys.serializeStringSet(e.StringSet); err != nil {
+		return err
 	}
 
 	return nil
