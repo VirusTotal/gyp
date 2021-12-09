@@ -75,12 +75,12 @@ func (r *Rule) WriteSource(w io.Writer) error {
 // WriteSource writes the ruleset's source into the writer w.
 func (r *RuleSet) WriteSource(w io.Writer) error {
 	for _, imp := range r.Imports {
-		if _, err := fmt.Fprintf(w, `import "%s"`, imp); err != nil {
+		if _, err := fmt.Fprintf(w, "import \"%s\"\n", imp); err != nil {
 			return err
 		}
 	}
 	for _, inc := range r.Includes {
-		if _, err := fmt.Fprintf(w, `include "%s"`, inc); err != nil {
+		if _, err := fmt.Fprintf(w, "include \"%s\"\n", inc); err != nil {
 			return err
 		}
 	}
