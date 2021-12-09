@@ -420,12 +420,15 @@ rule foo {
 }
 `,
 	`include "foo"
+
 rule foo {
   condition:
     true
 }
 `,
 	`import "foo"
+import "bar"
+
 rule foo {
   condition:
     true
