@@ -363,32 +363,6 @@ func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
 	}
 }
 
-func percentOfExpressionFromProto(expr *pb.PercentOfExpression) Expression {
-	var strs Node
-	switch v := expr.GetStringSet().GetSet().(type) {
-	case *pb.StringSet_Strings:
-		items := v.Strings.GetItems()
-		enum := &Enum{
-			Values: make([]Expression, len(items)),
-		}
-		for i, item := range items {
-			enum.Values[i] = &StringIdentifier{
-				Identifier: strings.TrimPrefix(item.GetStringIdentifier(), "$"),
-			}
-		}
-		strs = enum
-	case *pb.StringSet_Keyword:
-		if v.Keyword != pb.StringSetKeyword_THEM {
-			panic(fmt.Sprintf(`unexpected keyword "%T"`, v))
-		}
-		strs = KeywordThem
-	}
-	return &PercentOf{
-		Percent: expressionFromProto(expr.GetPercent()),
-		Strings:    strs,
-	}
-}
-
 func binaryExpressionFromProto(expr *pb.BinaryExpression) Expression {
 	switch op := pbToAst[expr.GetOperator()]; op {
 	// The "at" and "in" operations are represented as a binary operation
@@ -514,8 +488,10 @@ func expressionFromProto(e *pb.Expression) Expression {
 		default:
 			panic(fmt.Sprintf(`unknown keyword "%T"`, keyword))
 		}
-	case *pb.Expression_PercentOfExpression:
-		return percentOfExpressionFromProto(v.PercentOfExpression)
+	case *pb.Expression_PercentageExpression:
+		return &Percentage{
+			Expression: expressionFromProto(v.PercentageExpression.Expression),
+		}
 	default:
 		panic(fmt.Sprintf(`unexpected node "%T"`, v))
 	}

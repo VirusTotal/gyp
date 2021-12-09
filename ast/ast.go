@@ -176,6 +176,12 @@ type Quantifier struct {
 	Expression
 }
 
+// Percentage is an Expression used in evaluating string sets. Example:
+//   <expression>% of <string set>
+type Percentage struct {
+	Expression
+}
+
 // ForIn is an Expression representing a "for in" loop. Example:
 //   for <quantifier> <variables> in <iterator> : ( <condition> )
 type ForIn struct {
@@ -198,13 +204,6 @@ type ForOf struct {
 type Of struct {
 	Quantifier *Quantifier
 	Strings    Node
-}
-
-// PercentOf is an Expression representing a "percent of" operation. Example:
-//   <expression>% of <string_set>
-type PercentOf struct {
-	Percent Expression
-	Strings Node
 }
 
 // Operation is an Expression representing an operation with two or more operands,
@@ -507,13 +506,10 @@ func (o *Of) WriteSource(w io.Writer) error {
 }
 
 // WriteSource writes the node's source into the writer w.
-func (o *PercentOf) WriteSource(w io.Writer) error {
-	err := o.Percent.WriteSource(w)
+func (p *Percentage) WriteSource(w io.Writer) error {
+	err := p.Expression.WriteSource(w)
 	if err == nil {
-		_, err = io.WriteString(w, "% of ")
-	}
-	if err == nil {
-		err = o.Strings.WriteSource(w)
+		_, err = io.WriteString(w, "%")
 	}
 	return err
 }
@@ -643,11 +639,6 @@ func (f *ForOf) Children() []Node {
 // Children returns the node's child nodes.
 func (o *Of) Children() []Node {
 	return []Node{o.Quantifier, o.Strings}
-}
-
-// Children returns the node's child nodes.
-func (o *PercentOf) Children() []Node {
-	return []Node{o.Percent, o.Strings}
 }
 
 // Children returns the operation's children nodes.
@@ -917,25 +908,43 @@ func (s *Subscripting) AsProto() *pb.Expression {
 }
 
 // AsProto returns the Expression serialized as a pb.Expression.
+func (p *Percentage) AsProto() *pb.Expression {
+	return &pb.Expression{
+		Expression: &pb.Expression_PercentageExpression{
+			PercentageExpression: &pb.Percentage{
+				Expression: p.Expression.AsProto(),
+			},
+		},
+	}
+}
+
+// AsProto returns the Expression serialized as a pb.Expression.
 func (q *Quantifier) AsProto() *pb.ForExpression {
 	var expr *pb.ForExpression
-	if kw, isKeyword := q.Expression.(Keyword); isKeyword {
+	switch v := q.Expression.(type) {
+	case *Percentage:
+		expr = &pb.ForExpression{
+			For: &pb.ForExpression_Expression{
+				Expression: v.AsProto(),
+			},
+		}
+	case Keyword:
 		var pbkw pb.ForKeyword
-		if kw == KeywordAll {
+		if v == KeywordAll {
 			pbkw = pb.ForKeyword_ALL
-		} else if kw == KeywordAny {
+		} else if v == KeywordAny {
 			pbkw = pb.ForKeyword_ANY
-		} else if kw == KeywordNone {
+		} else if v == KeywordNone {
 			pbkw = pb.ForKeyword_NONE
 		} else {
-			panic(fmt.Sprintf("unexpected keyword in for: %s", kw))
+			panic(fmt.Sprintf("unexpected keyword in for: %s", v))
 		}
 		expr = &pb.ForExpression{
 			For: &pb.ForExpression_Keyword{
 				Keyword: pbkw,
 			},
 		}
-	} else {
+	default:
 		expr = &pb.ForExpression{
 			For: &pb.ForExpression_Expression{
 				Expression: q.Expression.AsProto(),
@@ -1070,46 +1079,6 @@ func (o *Of) AsProto() *pb.Expression {
 			},
 		},
 	}
-}
-
-// AsProto returns the Expression serialized as a pb.Expression.
-func (o *PercentOf) AsProto() *pb.Expression {
-       var s *pb.StringSet
-       switch v := o.Strings.(type) {
-       case *Enum:
-               items := make([]*pb.StringEnumeration_StringEnumerationItem, len(v.Values))
-               for i, item := range v.Values {
-                       identifier := item.(*StringIdentifier).Identifier
-                       items[i] = &pb.StringEnumeration_StringEnumerationItem{
-                               StringIdentifier: proto.String(fmt.Sprintf("$%s", identifier)),
-                               HasWildcard:      proto.Bool(strings.HasSuffix(identifier, "*")),
-                       }
-               }
-               s = &pb.StringSet{
-                       Set: &pb.StringSet_Strings{
-                               Strings: &pb.StringEnumeration{
-                                       Items: items,
-                               },
-                       },
-               }
-       case Keyword:
-               if v != KeywordThem {
-                       panic(fmt.Sprintf(`unexpected keyword "%s"`, v))
-               }
-               s = &pb.StringSet{
-                       Set: &pb.StringSet_Keyword{
-                               Keyword: pb.StringSetKeyword_THEM,
-                       },
-               }
-       }
-       return &pb.Expression{
-               Expression: &pb.Expression_PercentOfExpression{
-                       PercentOfExpression: &pb.PercentOfExpression{
-                               Percent:   o.Percent.AsProto(),
-                               StringSet: s,
-                       },
-               },
-       }
 }
 
 // AsProto returns the Expression serialized as a pb.Expression.
