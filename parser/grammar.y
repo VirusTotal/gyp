@@ -157,6 +157,7 @@ type stringModifiers struct {
 %type <exprs>     arguments_list
 %type <exprs>     arguments
 %type <quantifier> for_expression
+%type <percentage> percent_expression
 %type <exprs>     integer_enumeration
 %type <node>      iterator
 %type <node>      integer_set
@@ -190,6 +191,7 @@ type stringModifiers struct {
     si            *ast.StringIdentifier
     sis           []*ast.StringIdentifier
     quantifier    *ast.Quantifier
+    percentage    *ast.Percentage
 
     // lineno is not a symbol type, it's the line number where the symbol
     // appears in the source file. This is a little hack used for passing
@@ -824,6 +826,13 @@ expression
           Strings: $3,
         }
       }
+    | percent_expression _OF_ string_set
+      {
+        $$ = &ast.Of{
+          Quantifier: &ast.Quantifier{$1},
+          Strings: $3,
+        }
+      }
     | _NOT_ boolean_expression
       {
         $$ = &ast.Not{$2}
@@ -960,6 +969,14 @@ string_enumeration_item
         $$ = &ast.StringIdentifier{
           Identifier: strings.TrimPrefix($1, "$"),
         }
+      }
+    ;
+
+
+percent_expression
+    : primary_expression '%'
+      {
+        $$ = &ast.Percentage{$1}
       }
     ;
 

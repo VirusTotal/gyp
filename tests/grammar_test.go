@@ -262,6 +262,22 @@ rule KEYWORD_NONE {
   condition:
     none of them
 }
+
+rule PERCENT_OF {
+  strings:
+    $s0 = "AXSERS"
+    $s1 = "WXSMTS"
+  condition:
+    50% of them
+}
+
+rule PERCENT_OF_IDENTIFIER {
+  strings:
+    $s0 = "AXSERS"
+    $s1 = "WXSMTS"
+  condition:
+    x% of them
+}
 `
 
 func TestRulesetParsing(t *testing.T) {

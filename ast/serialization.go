@@ -488,6 +488,10 @@ func expressionFromProto(e *pb.Expression) Expression {
 		default:
 			panic(fmt.Sprintf(`unknown keyword "%T"`, keyword))
 		}
+	case *pb.Expression_PercentageExpression:
+		return &Percentage{
+			Expression: expressionFromProto(v.PercentageExpression.Expression),
+		}
 	default:
 		panic(fmt.Sprintf(`unexpected node "%T"`, v))
 	}

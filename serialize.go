@@ -533,6 +533,16 @@ func (ys *YaraSerializer) serializeHexAlternative(alt *pb.HexAlternative) error 
 	return nil
 }
 
+func (ys *YaraSerializer) serializePercentage(p *pb.Percentage) error {
+	if err := ys.SerializeExpression(p.Expression); err != nil {
+		return err
+	}
+	if err := ys.writeString("%"); err != nil {
+		return err
+	}
+	return nil
+}
+
 // SerializeExpression serializes an Expression in a YARA rule condition.
 func (ys *YaraSerializer) SerializeExpression(e *pb.Expression) error {
 	switch val := e.GetExpression().(type) {
@@ -583,6 +593,8 @@ func (ys *YaraSerializer) SerializeExpression(e *pb.Expression) error {
 		return ys.serializeStringLength(e.GetStringLength())
 	case *pb.Expression_StringCount:
 		return ys.writeString(e.GetStringCount())
+	case *pb.Expression_PercentageExpression:
+		return ys.serializePercentage(e.GetPercentageExpression())
 	default:
 		return fmt.Errorf(`Unsupported Expression type "%T"`, val)
 	}

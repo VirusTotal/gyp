@@ -271,12 +271,17 @@ message IntegerEnumeration {
   repeated Expression values = 1;
 }
 
+message Percentage {
+  optional Expression expression = 1;
+}
+
 // FOR expression, used as part of ForInExpressions and ForOrExpressions.
 // Can contain either an expression or a keyword.
 message ForExpression {
   oneof for {
     Expression expression = 1;  // Example: "for 10"
     ForKeyword keyword = 2;     // Example: "for all"
+    Percentage percentage = 3;  // Example: "x%"
   }
 }
 
@@ -370,6 +375,7 @@ message Expression {
     StringLength string_length = 18;
     Identifier identifier = 19;
     IntegerFunction integer_function = 20;
+    Percentage percentage_expression = 21;
   }
 }
 

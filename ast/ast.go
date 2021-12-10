@@ -176,6 +176,12 @@ type Quantifier struct {
 	Expression
 }
 
+// Percentage is an Expression used in evaluating string sets. Example:
+//   <expression>% of <string set>
+type Percentage struct {
+	Expression
+}
+
 // ForIn is an Expression representing a "for in" loop. Example:
 //   for <quantifier> <variables> in <iterator> : ( <condition> )
 type ForIn struct {
@@ -495,6 +501,15 @@ func (o *Of) WriteSource(w io.Writer) error {
 	}
 	if err == nil {
 		err = o.Strings.WriteSource(w)
+	}
+	return err
+}
+
+// WriteSource writes the node's source into the writer w.
+func (p *Percentage) WriteSource(w io.Writer) error {
+	err := p.Expression.WriteSource(w)
+	if err == nil {
+		_, err = io.WriteString(w, "%")
 	}
 	return err
 }
@@ -893,25 +908,43 @@ func (s *Subscripting) AsProto() *pb.Expression {
 }
 
 // AsProto returns the Expression serialized as a pb.Expression.
+func (p *Percentage) AsProto() *pb.Expression {
+	return &pb.Expression{
+		Expression: &pb.Expression_PercentageExpression{
+			PercentageExpression: &pb.Percentage{
+				Expression: p.Expression.AsProto(),
+			},
+		},
+	}
+}
+
+// AsProto returns the Expression serialized as a pb.Expression.
 func (q *Quantifier) AsProto() *pb.ForExpression {
 	var expr *pb.ForExpression
-	if kw, isKeyword := q.Expression.(Keyword); isKeyword {
+	switch v := q.Expression.(type) {
+	case *Percentage:
+		expr = &pb.ForExpression{
+			For: &pb.ForExpression_Expression{
+				Expression: v.AsProto(),
+			},
+		}
+	case Keyword:
 		var pbkw pb.ForKeyword
-		if kw == KeywordAll {
+		if v == KeywordAll {
 			pbkw = pb.ForKeyword_ALL
-		} else if kw == KeywordAny {
+		} else if v == KeywordAny {
 			pbkw = pb.ForKeyword_ANY
-		} else if kw == KeywordNone {
+		} else if v == KeywordNone {
 			pbkw = pb.ForKeyword_NONE
 		} else {
-			panic(fmt.Sprintf("unexpected keyword in for: %s", kw))
+			panic(fmt.Sprintf("unexpected keyword in for: %s", v))
 		}
 		expr = &pb.ForExpression{
 			For: &pb.ForExpression_Keyword{
 				Keyword: pbkw,
 			},
 		}
-	} else {
+	default:
 		expr = &pb.ForExpression{
 			For: &pb.ForExpression_Expression{
 				Expression: q.Expression.AsProto(),
