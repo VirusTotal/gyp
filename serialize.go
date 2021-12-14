@@ -761,6 +761,15 @@ func (ys *YaraSerializer) serializeForOfExpression(e *pb.ForOfExpression) error 
 		return err
 	}
 
+	if e.GetRange() != nil {
+		if err := ys.writeString(" in "); err != nil {
+			return err
+		}
+		if err := ys.serializeRange(e.Range); err != nil {
+			return err
+		}
+	}
+
 	if e.GetExpression() != nil {
 		if err := ys.writeString(" : ("); err != nil {
 			return err

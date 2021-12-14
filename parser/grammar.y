@@ -817,6 +817,14 @@ expression
           Condition:  $7,
         }
       }
+    | for_expression _OF_ string_set _IN_ range
+      {
+        $$ = &ast.Of{
+          Quantifier: $1,
+          Strings: $3,
+          In: $5,
+        }
+      }
     | for_expression _OF_ string_set
       {
         $$ = &ast.Of{

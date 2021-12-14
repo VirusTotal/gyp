@@ -354,6 +354,7 @@ func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
 		return &Of{
 			Quantifier: quantifierFromProto(expr.GetForExpression()),
 			Strings:    strs,
+			In:         rangeFromProto(expr.GetRange()),
 		}
 	}
 	return &ForOf{

@@ -285,6 +285,14 @@ rule STRING_COUNT_IN_RANGE {
   condition:
     #s0 in (0..100) == 2
 }
+
+rule STRING_SET_IN_RANGE {
+  strings:
+    $s0 = "AXSERS"
+    $s0 = "WXSMTS"
+  condition:
+    any of ($s0) in (0..100)
+}
 `
 
 func TestRulesetParsing(t *testing.T) {

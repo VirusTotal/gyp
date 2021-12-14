@@ -204,9 +204,12 @@ type ForOf struct {
 
 // Of is an Expression representing a "of" operation. Example:
 //   <quantifier> of <string_set>
+//   <quantifier> of <string_set> in <range>
+// If "In" is non-nil there is an "in" condition: 3 of them in (0..100)
 type Of struct {
 	Quantifier *Quantifier
 	Strings    Node
+	In         *Range
 }
 
 // Operation is an Expression representing an operation with two or more operands,
@@ -510,6 +513,12 @@ func (o *Of) WriteSource(w io.Writer) error {
 	}
 	if err == nil {
 		err = o.Strings.WriteSource(w)
+	}
+	if err == nil  && o.In != nil {
+		_, err = io.WriteString(w, " in ")
+		if err == nil {
+			err = o.In.WriteSource(w)
+		}
 	}
 	return err
 }
@@ -1096,11 +1105,19 @@ func (o *Of) AsProto() *pb.Expression {
 			},
 		}
 	}
+	var r *pb.Range = nil;
+	if o.In != nil {
+		r = &pb.Range{
+			Start: o.In.Start.AsProto(),
+			End:   o.In.End.AsProto(),
+		}
+	}
 	return &pb.Expression{
 		Expression: &pb.Expression_ForOfExpression{
 			ForOfExpression: &pb.ForOfExpression{
 				ForExpression: o.Quantifier.AsProto(),
 				StringSet:     s,
+				Range:            r,
 			},
 		},
 	}

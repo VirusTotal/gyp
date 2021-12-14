@@ -296,6 +296,9 @@ message ForOfExpression {
 
   // Expression to match: "(@$ > 10)"
   optional Expression expression = 3;
+
+  // "3 of ($s1, $s2) in (0..100)"
+  optional Range range = 4;
 }
 
 // Set of strings. Can be either an enumeration of strings or a keyword.
