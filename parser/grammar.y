@@ -1050,6 +1050,13 @@ primary_expression
 
         $$ = &ast.LiteralString{$1}
       }
+    | _STRING_COUNT_ _IN_ range
+      {
+        $$ = &ast.StringCount{
+          Identifier: strings.TrimPrefix($1, "#"),
+          In: $3,
+        }
+      }
     | _STRING_COUNT_
       {
         $$ = &ast.StringCount{

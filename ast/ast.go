@@ -127,8 +127,11 @@ type StringIdentifier struct {
 
 // StringCount is an Expression that represents a string count operation, like
 // "#a". Notice that the Identifier field doesn't contain the # prefix.
+// "In" is non-nil if the identifier is accompanied by an "in" condition, like
+// "#a in (0..100) == 2".
 type StringCount struct {
 	Identifier string
+	In         *Range
 }
 
 // StringOffset is an Expression that represents a string offset operation, like
@@ -363,6 +366,12 @@ func (s *StringIdentifier) WriteSource(w io.Writer) error {
 // WriteSource writes the node's source into the writer w.
 func (s *StringCount) WriteSource(w io.Writer) error {
 	_, err := io.WriteString(w, fmt.Sprintf("#%s", s.Identifier))
+	if err == nil && s.In != nil {
+		_, err = io.WriteString(w, " in ")
+		if err == nil {
+			err = s.In.WriteSource(w)
+		}
+	}
 	return err
 }
 
@@ -815,11 +824,27 @@ func (s *StringIdentifier) AsProto() *pb.Expression {
 
 // AsProto returns the Expression serialized as a pb.Expression.
 func (s *StringCount) AsProto() *pb.Expression {
-	return &pb.Expression{
+	expr := &pb.Expression{
 		Expression: &pb.Expression_StringCount{
 			StringCount: fmt.Sprintf("#%s", s.Identifier),
 		},
 	}
+	if s.In != nil {
+		expr = &pb.Expression{
+			Expression: &pb.Expression_BinaryExpression{
+				BinaryExpression: &pb.BinaryExpression{
+					Operator: pb.BinaryExpression_IN.Enum(),
+					Left:     expr,
+					Right: &pb.Expression{
+						Expression: &pb.Expression_Range{
+							Range: s.In.AsProto(),
+						},
+					},
+				},
+			},
+		}
+	}
+	return expr
 }
 
 // AsProto returns the Expression serialized as a pb.Expression.

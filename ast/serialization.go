@@ -374,9 +374,19 @@ func binaryExpressionFromProto(expr *pb.BinaryExpression) Expression {
 			At:         expressionFromProto(expr.GetRight()),
 		}
 	case opIn:
-		return &StringIdentifier{
-			Identifier: strings.TrimPrefix(expr.GetLeft().GetStringIdentifier(), "$"),
-			In:         rangeFromProto(expr.GetRight().GetRange()),
+		switch v := expr.GetLeft().GetExpression().(type) {
+		case *pb.Expression_StringIdentifier:
+			return &StringIdentifier{
+				Identifier: strings.TrimPrefix(expr.GetLeft().GetStringIdentifier(), "$"),
+				In:         rangeFromProto(expr.GetRight().GetRange()),
+			}
+		case *pb.Expression_StringCount:
+			return &StringCount{
+				Identifier: strings.TrimPrefix(expr.GetLeft().GetStringCount(), "#"),
+				In:         rangeFromProto(expr.GetRight().GetRange()),
+			}
+		default:
+			panic(fmt.Sprintf(`unexpected binary expression "%v"`, v))
 		}
 	default:
 		return createOperationExpression(op, expr.GetLeft(), expr.GetRight())
