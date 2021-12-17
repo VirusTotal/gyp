@@ -326,24 +326,42 @@ func forInExpressionFromProto(expr *pb.ForInExpression) *ForIn {
 }
 
 func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
+	if (expr.GetStringSet() == nil && expr.GetRuleEnumeration() == nil) || (expr.GetStringSet() != nil && expr.GetRuleEnumeration() != nil) {
+		panic("expecting one string set or rule set in \"forOf\"")
+	}
 	var strs Node
-	switch v := expr.GetStringSet().GetSet().(type) {
-	case *pb.StringSet_Strings:
-		items := v.Strings.GetItems()
+	var rules Node
+	if expr.GetStringSet() != nil {
+		switch v := expr.GetStringSet().GetSet().(type) {
+		case *pb.StringSet_Strings:
+			items := v.Strings.GetItems()
+			enum := &Enum{
+				Values: make([]Expression, len(items)),
+			}
+			for i, item := range items {
+				enum.Values[i] = &StringIdentifier{
+					Identifier: strings.TrimPrefix(item.GetStringIdentifier(), "$"),
+				}
+			}
+			strs = enum
+		case *pb.StringSet_Keyword:
+			if v.Keyword != pb.StringSetKeyword_THEM {
+				panic(fmt.Sprintf(`unexpected keyword "%T"`, v))
+			}
+			strs = KeywordThem
+		}
+	}
+	if expr.GetRuleEnumeration() != nil {
+		items := expr.GetRuleEnumeration().GetItems()
 		enum := &Enum{
 			Values: make([]Expression, len(items)),
 		}
 		for i, item := range items {
-			enum.Values[i] = &StringIdentifier{
-				Identifier: strings.TrimPrefix(item.GetStringIdentifier(), "$"),
+			enum.Values[i] = &Identifier{
+				Identifier: item.GetRuleIdentifier(),
 			}
 		}
-		strs = enum
-	case *pb.StringSet_Keyword:
-		if v.Keyword != pb.StringSetKeyword_THEM {
-			panic(fmt.Sprintf(`unexpected keyword "%T"`, v))
-		}
-		strs = KeywordThem
+		rules = enum
 	}
 	condition := expr.GetExpression()
 	// A "<quantifier> of <string_set>" expression is serialized to protobuf
@@ -354,6 +372,7 @@ func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
 		return &Of{
 			Quantifier: quantifierFromProto(expr.GetForExpression()),
 			Strings:    strs,
+			Rules:      rules,
 			In:         rangeFromProto(expr.GetRange()),
 		}
 	}

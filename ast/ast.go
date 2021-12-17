@@ -209,6 +209,7 @@ type ForOf struct {
 type Of struct {
 	Quantifier *Quantifier
 	Strings    Node
+	Rules      Node
 	In         *Range
 }
 
@@ -507,12 +508,18 @@ func (f *ForOf) WriteSource(w io.Writer) error {
 
 // WriteSource writes the node's source into the writer w.
 func (o *Of) WriteSource(w io.Writer) error {
+	if (o.Strings == nil && o.Rules == nil) || (o.Strings != nil && o.Rules != nil) {
+		panic("expecting one string set or rule set in \"of\"")
+	}
 	err := o.Quantifier.WriteSource(w)
 	if err == nil {
 		_, err = io.WriteString(w, " of ")
 	}
-	if err == nil {
+	if err == nil && o.Strings != nil {
 		err = o.Strings.WriteSource(w)
+	}
+	if err == nil && o.Rules != nil {
+		err = o.Rules.WriteSource(w)
 	}
 	if err == nil  && o.In != nil {
 		_, err = io.WriteString(w, " in ")
@@ -656,7 +663,7 @@ func (f *ForOf) Children() []Node {
 
 // Children returns the node's child nodes.
 func (o *Of) Children() []Node {
-	return []Node{o.Quantifier, o.Strings}
+	return []Node{o.Quantifier, o.Strings, o.Rules}
 }
 
 // Children returns the operation's children nodes.
@@ -1077,32 +1084,54 @@ func (f *ForOf) AsProto() *pb.Expression {
 
 // AsProto returns the Expression serialized as a pb.Expression.
 func (o *Of) AsProto() *pb.Expression {
+	if (o.Strings == nil && o.Rules == nil) || (o.Strings != nil && o.Rules != nil) {
+		panic("expecting one string set or rule set in \"of\"")
+	}
 	var s *pb.StringSet
-	switch v := o.Strings.(type) {
-	case *Enum:
-		items := make([]*pb.StringEnumeration_StringEnumerationItem, len(v.Values))
-		for i, item := range v.Values {
-			identifier := item.(*StringIdentifier).Identifier
-			items[i] = &pb.StringEnumeration_StringEnumerationItem{
-				StringIdentifier: proto.String(fmt.Sprintf("$%s", identifier)),
-				HasWildcard:      proto.Bool(strings.HasSuffix(identifier, "*")),
+	var rule_enumeration *pb.RuleEnumeration
+	if o.Strings != nil {
+		switch v := o.Strings.(type) {
+		case *Enum:
+			items := make([]*pb.StringEnumeration_StringEnumerationItem, len(v.Values))
+			for i, item := range v.Values {
+				identifier := item.(*StringIdentifier).Identifier
+				items[i] = &pb.StringEnumeration_StringEnumerationItem{
+					StringIdentifier: proto.String(fmt.Sprintf("$%s", identifier)),
+					HasWildcard:      proto.Bool(strings.HasSuffix(identifier, "*")),
+				}
+			}
+			s = &pb.StringSet{
+				Set: &pb.StringSet_Strings{
+					Strings: &pb.StringEnumeration{
+						Items: items,
+					},
+				},
+			}
+		case Keyword:
+			if v != KeywordThem {
+				panic(fmt.Sprintf(`unexpected keyword "%s"`, v))
+			}
+			s = &pb.StringSet{
+				Set: &pb.StringSet_Keyword{
+					Keyword: pb.StringSetKeyword_THEM,
+				},
 			}
 		}
-		s = &pb.StringSet{
-			Set: &pb.StringSet_Strings{
-				Strings: &pb.StringEnumeration{
-					Items: items,
-				},
-			},
-		}
-	case Keyword:
-		if v != KeywordThem {
-			panic(fmt.Sprintf(`unexpected keyword "%s"`, v))
-		}
-		s = &pb.StringSet{
-			Set: &pb.StringSet_Keyword{
-				Keyword: pb.StringSetKeyword_THEM,
-			},
+	}
+	if o.Rules != nil {
+		switch v := o.Rules.(type) {
+		case *Enum:
+			items := make([]*pb.RuleEnumeration_RuleEnumerationItem, len(v.Values))
+			for i, item := range v.Values {
+				identifier := item.(*Identifier).Identifier
+				items[i] = &pb.RuleEnumeration_RuleEnumerationItem{
+					RuleIdentifier: proto.String(fmt.Sprintf("%s", identifier)),
+					HasWildcard:    proto.Bool(strings.HasSuffix(identifier, "*")),
+				}
+			}
+			rule_enumeration = &pb.RuleEnumeration{
+				Items: items,
+			}
 		}
 	}
 	var r *pb.Range = nil;
@@ -1115,9 +1144,10 @@ func (o *Of) AsProto() *pb.Expression {
 	return &pb.Expression{
 		Expression: &pb.Expression_ForOfExpression{
 			ForOfExpression: &pb.ForOfExpression{
-				ForExpression: o.Quantifier.AsProto(),
-				StringSet:     s,
-				Range:            r,
+				ForExpression:   o.Quantifier.AsProto(),
+				StringSet:       s,
+				Range:           r,
+				RuleEnumeration: rule_enumeration,
 			},
 		},
 	}

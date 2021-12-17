@@ -299,6 +299,10 @@ message ForOfExpression {
 
   // "3 of ($s1, $s2) in (0..100)"
   optional Range range = 4;
+
+  // Rule set: "(rule1, rule2, foo*)".
+  // Only one of StringSet or RuleEnumeration is allowed.
+  optional RuleEnumeration rule_enumeration = 5;
 }
 
 // Set of strings. Can be either an enumeration of strings or a keyword.
@@ -328,6 +332,23 @@ message StringEnumeration {
 
   // Items in the strings enumeration.
   repeated StringEnumerationItem items = 1;
+}
+
+// Set of rules, referenced by their identifier.
+// A wildcard can be used to match multiple rules.
+message RuleEnumeration {
+  // An entry in the rule enumeration.
+  message RuleEnumerationItem {
+    // Identifier or part of it if a wildcard (*) is used.
+    // Includes the wildcard if present.
+    optional string rule_identifier = 1;
+
+    // Wildcard (*).
+    optional bool has_wildcard = 2;
+  }
+
+  // Items in the rule enumeration.
+  repeated RuleEnumerationItem items = 1;
 }
 
 // Keywords used in expressions of rule condition.

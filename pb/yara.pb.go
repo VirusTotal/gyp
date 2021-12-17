@@ -1950,6 +1950,9 @@ type ForOfExpression struct {
 	Expression *Expression `protobuf:"bytes,3,opt,name=expression" json:"expression,omitempty"`
 	// "3 of ($s1, $s2) in (0..100)"
 	Range *Range `protobuf:"bytes,4,opt,name=range" json:"range,omitempty"`
+	// Rule set: "(rule1, rule2, foo*)".
+	// Only one of StringSet or RuleEnumeration is allowed.
+	RuleEnumeration *RuleEnumeration `protobuf:"bytes,5,opt,name=rule_enumeration,json=ruleEnumeration" json:"rule_enumeration,omitempty"`
 }
 
 func (x *ForOfExpression) Reset() {
@@ -2008,6 +2011,13 @@ func (x *ForOfExpression) GetExpression() *Expression {
 func (x *ForOfExpression) GetRange() *Range {
 	if x != nil {
 		return x.Range
+	}
+	return nil
+}
+
+func (x *ForOfExpression) GetRuleEnumeration() *RuleEnumeration {
+	if x != nil {
+		return x.RuleEnumeration
 	}
 	return nil
 }
@@ -2146,6 +2156,56 @@ func (x *StringEnumeration) GetItems() []*StringEnumeration_StringEnumerationIte
 	return nil
 }
 
+// Set of rules, referenced by their identifier.
+// A wildcard can be used to match multiple rules.
+type RuleEnumeration struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Items in the rule enumeration.
+	Items []*RuleEnumeration_RuleEnumerationItem `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
+}
+
+func (x *RuleEnumeration) Reset() {
+	*x = RuleEnumeration{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_pb_yara_proto_msgTypes[24]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RuleEnumeration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RuleEnumeration) ProtoMessage() {}
+
+func (x *RuleEnumeration) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_yara_proto_msgTypes[24]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RuleEnumeration.ProtoReflect.Descriptor instead.
+func (*RuleEnumeration) Descriptor() ([]byte, []int) {
+	return file_pb_yara_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *RuleEnumeration) GetItems() []*RuleEnumeration_RuleEnumerationItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
 // Expression used as part of a rule condition.
 type Expression struct {
 	state         protoimpl.MessageState
@@ -2180,7 +2240,7 @@ type Expression struct {
 func (x *Expression) Reset() {
 	*x = Expression{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[24]
+		mi := &file_pb_yara_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2193,7 +2253,7 @@ func (x *Expression) String() string {
 func (*Expression) ProtoMessage() {}
 
 func (x *Expression) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[24]
+	mi := &file_pb_yara_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2206,7 +2266,7 @@ func (x *Expression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Expression.ProtoReflect.Descriptor instead.
 func (*Expression) Descriptor() ([]byte, []int) {
-	return file_pb_yara_proto_rawDescGZIP(), []int{24}
+	return file_pb_yara_proto_rawDescGZIP(), []int{25}
 }
 
 func (m *Expression) GetExpression() isExpression_Expression {
@@ -2512,7 +2572,7 @@ type StringOffset struct {
 func (x *StringOffset) Reset() {
 	*x = StringOffset{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[25]
+		mi := &file_pb_yara_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2525,7 +2585,7 @@ func (x *StringOffset) String() string {
 func (*StringOffset) ProtoMessage() {}
 
 func (x *StringOffset) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[25]
+	mi := &file_pb_yara_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2538,7 +2598,7 @@ func (x *StringOffset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StringOffset.ProtoReflect.Descriptor instead.
 func (*StringOffset) Descriptor() ([]byte, []int) {
-	return file_pb_yara_proto_rawDescGZIP(), []int{25}
+	return file_pb_yara_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *StringOffset) GetStringIdentifier() string {
@@ -2575,7 +2635,7 @@ type StringLength struct {
 func (x *StringLength) Reset() {
 	*x = StringLength{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[26]
+		mi := &file_pb_yara_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2588,7 +2648,7 @@ func (x *StringLength) String() string {
 func (*StringLength) ProtoMessage() {}
 
 func (x *StringLength) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[26]
+	mi := &file_pb_yara_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2601,7 +2661,7 @@ func (x *StringLength) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StringLength.ProtoReflect.Descriptor instead.
 func (*StringLength) Descriptor() ([]byte, []int) {
-	return file_pb_yara_proto_rawDescGZIP(), []int{26}
+	return file_pb_yara_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *StringLength) GetStringIdentifier() string {
@@ -2636,7 +2696,7 @@ type Identifier struct {
 func (x *Identifier) Reset() {
 	*x = Identifier{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[27]
+		mi := &file_pb_yara_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2649,7 +2709,7 @@ func (x *Identifier) String() string {
 func (*Identifier) ProtoMessage() {}
 
 func (x *Identifier) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[27]
+	mi := &file_pb_yara_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2662,7 +2722,7 @@ func (x *Identifier) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Identifier.ProtoReflect.Descriptor instead.
 func (*Identifier) Descriptor() ([]byte, []int) {
-	return file_pb_yara_proto_rawDescGZIP(), []int{27}
+	return file_pb_yara_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *Identifier) GetItems() []*Identifier_IdentifierItem {
@@ -2685,7 +2745,7 @@ type Expressions struct {
 func (x *Expressions) Reset() {
 	*x = Expressions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[28]
+		mi := &file_pb_yara_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2698,7 +2758,7 @@ func (x *Expressions) String() string {
 func (*Expressions) ProtoMessage() {}
 
 func (x *Expressions) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[28]
+	mi := &file_pb_yara_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2711,7 +2771,7 @@ func (x *Expressions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Expressions.ProtoReflect.Descriptor instead.
 func (*Expressions) Descriptor() ([]byte, []int) {
-	return file_pb_yara_proto_rawDescGZIP(), []int{28}
+	return file_pb_yara_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *Expressions) GetTerms() []*Expression {
@@ -2744,7 +2804,7 @@ type Rule struct {
 func (x *Rule) Reset() {
 	*x = Rule{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[29]
+		mi := &file_pb_yara_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2757,7 +2817,7 @@ func (x *Rule) String() string {
 func (*Rule) ProtoMessage() {}
 
 func (x *Rule) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[29]
+	mi := &file_pb_yara_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2770,7 +2830,7 @@ func (x *Rule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rule.ProtoReflect.Descriptor instead.
 func (*Rule) Descriptor() ([]byte, []int) {
-	return file_pb_yara_proto_rawDescGZIP(), []int{29}
+	return file_pb_yara_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *Rule) GetModifiers() *RuleModifiers {
@@ -2836,7 +2896,7 @@ type RuleSet struct {
 func (x *RuleSet) Reset() {
 	*x = RuleSet{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[30]
+		mi := &file_pb_yara_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2849,7 +2909,7 @@ func (x *RuleSet) String() string {
 func (*RuleSet) ProtoMessage() {}
 
 func (x *RuleSet) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[30]
+	mi := &file_pb_yara_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2862,7 +2922,7 @@ func (x *RuleSet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RuleSet.ProtoReflect.Descriptor instead.
 func (*RuleSet) Descriptor() ([]byte, []int) {
-	return file_pb_yara_proto_rawDescGZIP(), []int{30}
+	return file_pb_yara_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *RuleSet) GetImports() []string {
@@ -2902,7 +2962,7 @@ type StringEnumeration_StringEnumerationItem struct {
 func (x *StringEnumeration_StringEnumerationItem) Reset() {
 	*x = StringEnumeration_StringEnumerationItem{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[31]
+		mi := &file_pb_yara_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2915,7 +2975,7 @@ func (x *StringEnumeration_StringEnumerationItem) String() string {
 func (*StringEnumeration_StringEnumerationItem) ProtoMessage() {}
 
 func (x *StringEnumeration_StringEnumerationItem) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[31]
+	mi := &file_pb_yara_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2945,6 +3005,65 @@ func (x *StringEnumeration_StringEnumerationItem) GetHasWildcard() bool {
 	return false
 }
 
+// An entry in the rule enumeration.
+type RuleEnumeration_RuleEnumerationItem struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Identifier or part of it if a wildcard (*) is used.
+	// Includes the wildcard if present.
+	RuleIdentifier *string `protobuf:"bytes,1,opt,name=rule_identifier,json=ruleIdentifier" json:"rule_identifier,omitempty"`
+	// Wildcard (*).
+	HasWildcard *bool `protobuf:"varint,2,opt,name=has_wildcard,json=hasWildcard" json:"has_wildcard,omitempty"`
+}
+
+func (x *RuleEnumeration_RuleEnumerationItem) Reset() {
+	*x = RuleEnumeration_RuleEnumerationItem{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_pb_yara_proto_msgTypes[33]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *RuleEnumeration_RuleEnumerationItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RuleEnumeration_RuleEnumerationItem) ProtoMessage() {}
+
+func (x *RuleEnumeration_RuleEnumerationItem) ProtoReflect() protoreflect.Message {
+	mi := &file_pb_yara_proto_msgTypes[33]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RuleEnumeration_RuleEnumerationItem.ProtoReflect.Descriptor instead.
+func (*RuleEnumeration_RuleEnumerationItem) Descriptor() ([]byte, []int) {
+	return file_pb_yara_proto_rawDescGZIP(), []int{24, 0}
+}
+
+func (x *RuleEnumeration_RuleEnumerationItem) GetRuleIdentifier() string {
+	if x != nil && x.RuleIdentifier != nil {
+		return *x.RuleIdentifier
+	}
+	return ""
+}
+
+func (x *RuleEnumeration_RuleEnumerationItem) GetHasWildcard() bool {
+	if x != nil && x.HasWildcard != nil {
+		return *x.HasWildcard
+	}
+	return false
+}
+
 type Identifier_IdentifierItem struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2960,7 +3079,7 @@ type Identifier_IdentifierItem struct {
 func (x *Identifier_IdentifierItem) Reset() {
 	*x = Identifier_IdentifierItem{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_pb_yara_proto_msgTypes[32]
+		mi := &file_pb_yara_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2973,7 +3092,7 @@ func (x *Identifier_IdentifierItem) String() string {
 func (*Identifier_IdentifierItem) ProtoMessage() {}
 
 func (x *Identifier_IdentifierItem) ProtoReflect() protoreflect.Message {
-	mi := &file_pb_yara_proto_msgTypes[32]
+	mi := &file_pb_yara_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2986,7 +3105,7 @@ func (x *Identifier_IdentifierItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Identifier_IdentifierItem.ProtoReflect.Descriptor instead.
 func (*Identifier_IdentifierItem) Descriptor() ([]byte, []int) {
-	return file_pb_yara_proto_rawDescGZIP(), []int{27, 0}
+	return file_pb_yara_proto_rawDescGZIP(), []int{28, 0}
 }
 
 func (m *Identifier_IdentifierItem) GetItem() isIdentifier_IdentifierItem_Item {
@@ -3212,7 +3331,7 @@ var file_pb_yara_proto_rawDesc = []byte{
 	0x0a, 0x0a, 0x70, 0x65, 0x72, 0x63, 0x65, 0x6e, 0x74, 0x61, 0x67, 0x65, 0x18, 0x03, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x50, 0x65, 0x72, 0x63, 0x65, 0x6e, 0x74, 0x61, 0x67, 0x65, 0x48,
 	0x00, 0x52, 0x0a, 0x70, 0x65, 0x72, 0x63, 0x65, 0x6e, 0x74, 0x61, 0x67, 0x65, 0x42, 0x05, 0x0a,
-	0x03, 0x66, 0x6f, 0x72, 0x22, 0xbe, 0x01, 0x0a, 0x0f, 0x46, 0x6f, 0x72, 0x4f, 0x66, 0x45, 0x78,
+	0x03, 0x66, 0x6f, 0x72, 0x22, 0xfb, 0x01, 0x0a, 0x0f, 0x46, 0x6f, 0x72, 0x4f, 0x66, 0x45, 0x78,
 	0x70, 0x72, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x35, 0x0a, 0x0e, 0x66, 0x6f, 0x72, 0x5f,
 	0x65, 0x78, 0x70, 0x72, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
 	0x32, 0x0e, 0x2e, 0x46, 0x6f, 0x72, 0x45, 0x78, 0x70, 0x72, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e,
@@ -3224,23 +3343,38 @@ var file_pb_yara_proto_rawDesc = []byte{
 	0x2e, 0x45, 0x78, 0x70, 0x72, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x65, 0x78, 0x70,
 	0x72, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x1c, 0x0a, 0x05, 0x72, 0x61, 0x6e, 0x67, 0x65,
 	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x06, 0x2e, 0x52, 0x61, 0x6e, 0x67, 0x65, 0x52, 0x05,
-	0x72, 0x61, 0x6e, 0x67, 0x65, 0x22, 0x71, 0x0a, 0x09, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x53,
-	0x65, 0x74, 0x12, 0x2e, 0x0a, 0x07, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d,
-	0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52, 0x07, 0x73, 0x74, 0x72, 0x69, 0x6e,
-	0x67, 0x73, 0x12, 0x2d, 0x0a, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x0e, 0x32, 0x11, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x53, 0x65, 0x74, 0x4b,
-	0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x48, 0x00, 0x52, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72,
-	0x64, 0x42, 0x05, 0x0a, 0x03, 0x73, 0x65, 0x74, 0x22, 0xbc, 0x01, 0x0a, 0x11, 0x53, 0x74, 0x72,
-	0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x3e,
-	0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x28, 0x2e,
-	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f,
-	0x6e, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x1a, 0x67,
-	0x0a, 0x15, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x2b, 0x0a, 0x11, 0x73, 0x74, 0x72, 0x69, 0x6e,
-	0x67, 0x5f, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x10, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69,
+	0x72, 0x61, 0x6e, 0x67, 0x65, 0x12, 0x3b, 0x0a, 0x10, 0x72, 0x75, 0x6c, 0x65, 0x5f, 0x65, 0x6e,
+	0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x10, 0x2e, 0x52, 0x75, 0x6c, 0x65, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x52, 0x0f, 0x72, 0x75, 0x6c, 0x65, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x22, 0x71, 0x0a, 0x09, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x53, 0x65, 0x74, 0x12,
+	0x2e, 0x0a, 0x07, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x12, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52, 0x07, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x73, 0x12,
+	0x2d, 0x0a, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0e,
+	0x32, 0x11, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x53, 0x65, 0x74, 0x4b, 0x65, 0x79, 0x77,
+	0x6f, 0x72, 0x64, 0x48, 0x00, 0x52, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x42, 0x05,
+	0x0a, 0x03, 0x73, 0x65, 0x74, 0x22, 0xbc, 0x01, 0x0a, 0x11, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
+	0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x3e, 0x0a, 0x05, 0x69,
+	0x74, 0x65, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x53, 0x74, 0x72,
+	0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x53,
+	0x74, 0x72, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x49, 0x74, 0x65, 0x6d, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x1a, 0x67, 0x0a, 0x15, 0x53,
+	0x74, 0x72, 0x69, 0x6e, 0x67, 0x45, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x49, 0x74, 0x65, 0x6d, 0x12, 0x2b, 0x0a, 0x11, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x5f, 0x69,
+	0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x10, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65,
+	0x72, 0x12, 0x21, 0x0a, 0x0c, 0x68, 0x61, 0x73, 0x5f, 0x77, 0x69, 0x6c, 0x64, 0x63, 0x61, 0x72,
+	0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x68, 0x61, 0x73, 0x57, 0x69, 0x6c, 0x64,
+	0x63, 0x61, 0x72, 0x64, 0x22, 0xb0, 0x01, 0x0a, 0x0f, 0x52, 0x75, 0x6c, 0x65, 0x45, 0x6e, 0x75,
+	0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x3a, 0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x24, 0x2e, 0x52, 0x75, 0x6c, 0x65, 0x45, 0x6e,
+	0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x52, 0x75, 0x6c, 0x65, 0x45, 0x6e,
+	0x75, 0x6d, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x74, 0x65, 0x6d, 0x52, 0x05, 0x69,
+	0x74, 0x65, 0x6d, 0x73, 0x1a, 0x61, 0x0a, 0x13, 0x52, 0x75, 0x6c, 0x65, 0x45, 0x6e, 0x75, 0x6d,
+	0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x27, 0x0a, 0x0f, 0x72,
+	0x75, 0x6c, 0x65, 0x5f, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x72, 0x75, 0x6c, 0x65, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69,
 	0x66, 0x69, 0x65, 0x72, 0x12, 0x21, 0x0a, 0x0c, 0x68, 0x61, 0x73, 0x5f, 0x77, 0x69, 0x6c, 0x64,
 	0x63, 0x61, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x68, 0x61, 0x73, 0x57,
 	0x69, 0x6c, 0x64, 0x63, 0x61, 0x72, 0x64, 0x22, 0x99, 0x08, 0x0a, 0x0a, 0x45, 0x78, 0x70, 0x72,
@@ -3382,7 +3516,7 @@ func file_pb_yara_proto_rawDescGZIP() []byte {
 }
 
 var file_pb_yara_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_pb_yara_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_pb_yara_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_pb_yara_proto_goTypes = []interface{}{
 	(Keyword)(0),                   // 0: Keyword
 	(ForKeyword)(0),                // 1: ForKeyword
@@ -3413,15 +3547,17 @@ var file_pb_yara_proto_goTypes = []interface{}{
 	(*ForOfExpression)(nil),        // 26: ForOfExpression
 	(*StringSet)(nil),              // 27: StringSet
 	(*StringEnumeration)(nil),      // 28: StringEnumeration
-	(*Expression)(nil),             // 29: Expression
-	(*StringOffset)(nil),           // 30: StringOffset
-	(*StringLength)(nil),           // 31: StringLength
-	(*Identifier)(nil),             // 32: Identifier
-	(*Expressions)(nil),            // 33: Expressions
-	(*Rule)(nil),                   // 34: Rule
-	(*RuleSet)(nil),                // 35: RuleSet
-	(*StringEnumeration_StringEnumerationItem)(nil), // 36: StringEnumeration.StringEnumerationItem
-	(*Identifier_IdentifierItem)(nil),               // 37: Identifier.IdentifierItem
+	(*RuleEnumeration)(nil),        // 29: RuleEnumeration
+	(*Expression)(nil),             // 30: Expression
+	(*StringOffset)(nil),           // 31: StringOffset
+	(*StringLength)(nil),           // 32: StringLength
+	(*Identifier)(nil),             // 33: Identifier
+	(*Expressions)(nil),            // 34: Expressions
+	(*Rule)(nil),                   // 35: Rule
+	(*RuleSet)(nil),                // 36: RuleSet
+	(*StringEnumeration_StringEnumerationItem)(nil), // 37: StringEnumeration.StringEnumerationItem
+	(*RuleEnumeration_RuleEnumerationItem)(nil),     // 38: RuleEnumeration.RuleEnumerationItem
+	(*Identifier_IdentifierItem)(nil),               // 39: Identifier.IdentifierItem
 }
 var file_pb_yara_proto_depIdxs = []int32{
 	9,  // 0: String.text:type_name -> TextString
@@ -3435,63 +3571,65 @@ var file_pb_yara_proto_depIdxs = []int32{
 	13, // 8: HexToken.alternative:type_name -> HexAlternative
 	11, // 9: HexAlternative.tokens:type_name -> HexTokens
 	3,  // 10: BinaryExpression.operator:type_name -> BinaryExpression.Operator
-	29, // 11: BinaryExpression.left:type_name -> Expression
-	29, // 12: BinaryExpression.right:type_name -> Expression
+	30, // 11: BinaryExpression.left:type_name -> Expression
+	30, // 12: BinaryExpression.right:type_name -> Expression
 	4,  // 13: UnaryExpression.operator:type_name -> UnaryExpression.Operator
-	29, // 14: UnaryExpression.expression:type_name -> Expression
-	29, // 15: Range.start:type_name -> Expression
-	29, // 16: Range.end:type_name -> Expression
-	29, // 17: IntegerFunction.argument:type_name -> Expression
+	30, // 14: UnaryExpression.expression:type_name -> Expression
+	30, // 15: Range.start:type_name -> Expression
+	30, // 16: Range.end:type_name -> Expression
+	30, // 17: IntegerFunction.argument:type_name -> Expression
 	25, // 18: ForInExpression.for_expression:type_name -> ForExpression
 	21, // 19: ForInExpression.iterator:type_name -> Iterator
-	29, // 20: ForInExpression.expression:type_name -> Expression
+	30, // 20: ForInExpression.expression:type_name -> Expression
 	22, // 21: Iterator.integer_set:type_name -> IntegerSet
-	32, // 22: Iterator.identifier:type_name -> Identifier
+	33, // 22: Iterator.identifier:type_name -> Identifier
 	23, // 23: IntegerSet.integer_enumeration:type_name -> IntegerEnumeration
 	18, // 24: IntegerSet.range:type_name -> Range
-	29, // 25: IntegerEnumeration.values:type_name -> Expression
-	29, // 26: Percentage.expression:type_name -> Expression
-	29, // 27: ForExpression.expression:type_name -> Expression
+	30, // 25: IntegerEnumeration.values:type_name -> Expression
+	30, // 26: Percentage.expression:type_name -> Expression
+	30, // 27: ForExpression.expression:type_name -> Expression
 	1,  // 28: ForExpression.keyword:type_name -> ForKeyword
 	24, // 29: ForExpression.percentage:type_name -> Percentage
 	25, // 30: ForOfExpression.for_expression:type_name -> ForExpression
 	27, // 31: ForOfExpression.string_set:type_name -> StringSet
-	29, // 32: ForOfExpression.expression:type_name -> Expression
+	30, // 32: ForOfExpression.expression:type_name -> Expression
 	18, // 33: ForOfExpression.range:type_name -> Range
-	28, // 34: StringSet.strings:type_name -> StringEnumeration
-	2,  // 35: StringSet.keyword:type_name -> StringSetKeyword
-	36, // 36: StringEnumeration.items:type_name -> StringEnumeration.StringEnumerationItem
-	16, // 37: Expression.binary_expression:type_name -> BinaryExpression
-	17, // 38: Expression.unary_expression:type_name -> UnaryExpression
-	20, // 39: Expression.for_in_expression:type_name -> ForInExpression
-	26, // 40: Expression.for_of_expression:type_name -> ForOfExpression
-	29, // 41: Expression.not_expression:type_name -> Expression
-	33, // 42: Expression.or_expression:type_name -> Expressions
-	33, // 43: Expression.and_expression:type_name -> Expressions
-	18, // 44: Expression.range:type_name -> Range
-	10, // 45: Expression.regexp:type_name -> Regexp
-	0,  // 46: Expression.keyword:type_name -> Keyword
-	30, // 47: Expression.string_offset:type_name -> StringOffset
-	31, // 48: Expression.string_length:type_name -> StringLength
-	32, // 49: Expression.identifier:type_name -> Identifier
-	19, // 50: Expression.integer_function:type_name -> IntegerFunction
-	24, // 51: Expression.percentage_expression:type_name -> Percentage
-	29, // 52: StringOffset.index:type_name -> Expression
-	29, // 53: StringLength.index:type_name -> Expression
-	37, // 54: Identifier.items:type_name -> Identifier.IdentifierItem
-	29, // 55: Expressions.terms:type_name -> Expression
-	5,  // 56: Rule.modifiers:type_name -> RuleModifiers
-	6,  // 57: Rule.meta:type_name -> Meta
-	7,  // 58: Rule.strings:type_name -> String
-	29, // 59: Rule.condition:type_name -> Expression
-	34, // 60: RuleSet.rules:type_name -> Rule
-	29, // 61: Identifier.IdentifierItem.index:type_name -> Expression
-	33, // 62: Identifier.IdentifierItem.arguments:type_name -> Expressions
-	63, // [63:63] is the sub-list for method output_type
-	63, // [63:63] is the sub-list for method input_type
-	63, // [63:63] is the sub-list for extension type_name
-	63, // [63:63] is the sub-list for extension extendee
-	0,  // [0:63] is the sub-list for field type_name
+	29, // 34: ForOfExpression.rule_enumeration:type_name -> RuleEnumeration
+	28, // 35: StringSet.strings:type_name -> StringEnumeration
+	2,  // 36: StringSet.keyword:type_name -> StringSetKeyword
+	37, // 37: StringEnumeration.items:type_name -> StringEnumeration.StringEnumerationItem
+	38, // 38: RuleEnumeration.items:type_name -> RuleEnumeration.RuleEnumerationItem
+	16, // 39: Expression.binary_expression:type_name -> BinaryExpression
+	17, // 40: Expression.unary_expression:type_name -> UnaryExpression
+	20, // 41: Expression.for_in_expression:type_name -> ForInExpression
+	26, // 42: Expression.for_of_expression:type_name -> ForOfExpression
+	30, // 43: Expression.not_expression:type_name -> Expression
+	34, // 44: Expression.or_expression:type_name -> Expressions
+	34, // 45: Expression.and_expression:type_name -> Expressions
+	18, // 46: Expression.range:type_name -> Range
+	10, // 47: Expression.regexp:type_name -> Regexp
+	0,  // 48: Expression.keyword:type_name -> Keyword
+	31, // 49: Expression.string_offset:type_name -> StringOffset
+	32, // 50: Expression.string_length:type_name -> StringLength
+	33, // 51: Expression.identifier:type_name -> Identifier
+	19, // 52: Expression.integer_function:type_name -> IntegerFunction
+	24, // 53: Expression.percentage_expression:type_name -> Percentage
+	30, // 54: StringOffset.index:type_name -> Expression
+	30, // 55: StringLength.index:type_name -> Expression
+	39, // 56: Identifier.items:type_name -> Identifier.IdentifierItem
+	30, // 57: Expressions.terms:type_name -> Expression
+	5,  // 58: Rule.modifiers:type_name -> RuleModifiers
+	6,  // 59: Rule.meta:type_name -> Meta
+	7,  // 60: Rule.strings:type_name -> String
+	30, // 61: Rule.condition:type_name -> Expression
+	35, // 62: RuleSet.rules:type_name -> Rule
+	30, // 63: Identifier.IdentifierItem.index:type_name -> Expression
+	34, // 64: Identifier.IdentifierItem.arguments:type_name -> Expressions
+	65, // [65:65] is the sub-list for method output_type
+	65, // [65:65] is the sub-list for method input_type
+	65, // [65:65] is the sub-list for extension type_name
+	65, // [65:65] is the sub-list for extension extendee
+	0,  // [0:65] is the sub-list for field type_name
 }
 
 func init() { file_pb_yara_proto_init() }
@@ -3789,7 +3927,7 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Expression); i {
+			switch v := v.(*RuleEnumeration); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3801,7 +3939,7 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StringOffset); i {
+			switch v := v.(*Expression); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3813,7 +3951,7 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StringLength); i {
+			switch v := v.(*StringOffset); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3825,7 +3963,7 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Identifier); i {
+			switch v := v.(*StringLength); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3837,7 +3975,7 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Expressions); i {
+			switch v := v.(*Identifier); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3849,7 +3987,7 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Rule); i {
+			switch v := v.(*Expressions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3861,7 +3999,7 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RuleSet); i {
+			switch v := v.(*Rule); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3873,7 +4011,7 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StringEnumeration_StringEnumerationItem); i {
+			switch v := v.(*RuleSet); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3885,6 +4023,30 @@ func file_pb_yara_proto_init() {
 			}
 		}
 		file_pb_yara_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StringEnumeration_StringEnumerationItem); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_pb_yara_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RuleEnumeration_RuleEnumerationItem); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_pb_yara_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Identifier_IdentifierItem); i {
 			case 0:
 				return &v.state
@@ -3929,7 +4091,7 @@ func file_pb_yara_proto_init() {
 		(*StringSet_Strings)(nil),
 		(*StringSet_Keyword)(nil),
 	}
-	file_pb_yara_proto_msgTypes[24].OneofWrappers = []interface{}{
+	file_pb_yara_proto_msgTypes[25].OneofWrappers = []interface{}{
 		(*Expression_BoolValue)(nil),
 		(*Expression_BinaryExpression)(nil),
 		(*Expression_UnaryExpression)(nil),
@@ -3952,7 +4114,7 @@ func file_pb_yara_proto_init() {
 		(*Expression_IntegerFunction)(nil),
 		(*Expression_PercentageExpression)(nil),
 	}
-	file_pb_yara_proto_msgTypes[32].OneofWrappers = []interface{}{
+	file_pb_yara_proto_msgTypes[34].OneofWrappers = []interface{}{
 		(*Identifier_IdentifierItem_Identifier)(nil),
 		(*Identifier_IdentifierItem_Index)(nil),
 		(*Identifier_IdentifierItem_Arguments)(nil),
@@ -3963,7 +4125,7 @@ func file_pb_yara_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_pb_yara_proto_rawDesc,
 			NumEnums:      5,
-			NumMessages:   33,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

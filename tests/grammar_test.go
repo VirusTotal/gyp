@@ -293,6 +293,16 @@ rule STRING_SET_IN_RANGE {
   condition:
     any of ($s0) in (0..100)
 }
+
+rule RULE_SET {
+  condition:
+    any of (KEYWORD_NONE, STRING_*)
+}
+
+rule RULE_SET_PERCENT {
+  condition:
+    50% of (PERCENT*)
+}
 `
 
 func TestRulesetParsing(t *testing.T) {
