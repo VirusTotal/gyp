@@ -247,6 +247,11 @@ u?int(8|16|32)(be)? {
 }
 
 
+({letter}|_)({letter}|{digit}|_)*"*"  {
+  return yy.TokenString(_IDENTIFIER_WITH_WILDCARD_, string(yytext));
+}
+
+
 ({letter}|_)({letter}|{digit}|_)*  {
   return yy.TokenString(_IDENTIFIER_, string(yytext));
 }

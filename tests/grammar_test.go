@@ -278,6 +278,31 @@ rule PERCENT_OF_IDENTIFIER {
   condition:
     x% of them
 }
+
+rule STRING_COUNT_IN_RANGE {
+  strings:
+    $s0 = "AXSERS"
+  condition:
+    #s0 in (0..100) == 2
+}
+
+rule STRING_SET_IN_RANGE {
+  strings:
+    $s0 = "AXSERS"
+    $s0 = "WXSMTS"
+  condition:
+    any of ($s0) in (0..100)
+}
+
+rule RULE_SET {
+  condition:
+    any of (KEYWORD_NONE, STRING_*)
+}
+
+rule RULE_SET_PERCENT {
+  condition:
+    50% of (PERCENT*)
+}
 `
 
 func TestRulesetParsing(t *testing.T) {

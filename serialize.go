@@ -743,6 +743,9 @@ func (ys *YaraSerializer) serializeRange(e *pb.Range) error {
 
 // Serializes a for..of expression
 func (ys *YaraSerializer) serializeForOfExpression(e *pb.ForOfExpression) error {
+	if (e.GetStringSet() == nil && e.GetRuleEnumeration() == nil) || (e.GetStringSet() != nil && e.GetRuleEnumeration() != nil) {
+		panic("expecting one string set or rule set in \"ForOf\"")
+	}
 	if e.GetExpression() != nil {
 		if err := ys.writeString("for "); err != nil {
 			return err
@@ -757,8 +760,25 @@ func (ys *YaraSerializer) serializeForOfExpression(e *pb.ForOfExpression) error 
 		return err
 	}
 
-	if err := ys.serializeStringSet(e.StringSet); err != nil {
-		return err
+	if e.GetStringSet() != nil {
+		if err := ys.serializeStringSet(e.StringSet); err != nil {
+			return err
+		}
+	}
+
+	if e.GetRuleEnumeration() != nil {
+		if err := ys.serializeRuleEnumeration(e.RuleEnumeration); err != nil {
+			return err
+		}
+	}
+
+	if e.GetRange() != nil {
+		if err := ys.writeString(" in "); err != nil {
+			return err
+		}
+		if err := ys.serializeRange(e.Range); err != nil {
+			return err
+		}
 	}
 
 	if e.GetExpression() != nil {
@@ -818,6 +838,26 @@ func (ys *YaraSerializer) serializeKeyword(e pb.Keyword) error {
 	}
 
 	return ys.writeString(kw)
+}
+
+// Serializes a RuleEnumeration.
+func (ys *YaraSerializer) serializeRuleEnumeration(e *pb.RuleEnumeration) error {
+	if err := ys.writeString("("); err != nil {
+		return err
+	}
+
+	for i, item := range e.GetItems() {
+		if err := ys.writeString(item.GetRuleIdentifier()); err != nil {
+			return err
+		}
+		if i < len(e.GetItems())-1 {
+			if err := ys.writeString(", "); err != nil {
+				return err
+			}
+		}
+	}
+
+	return ys.writeString(")")
 }
 
 // Serializes a ForKeyword.

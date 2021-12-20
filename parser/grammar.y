@@ -79,6 +79,7 @@ type stringModifiers struct {
 %token _STRINGS_
 %token _CONDITION_
 %token <s> _IDENTIFIER_
+%token <s> _IDENTIFIER_WITH_WILDCARD_
 %token <s> _STRING_IDENTIFIER_
 %token <s> _STRING_COUNT_
 %token <s> _STRING_OFFSET_
@@ -166,6 +167,9 @@ type stringModifiers struct {
 %type <ss>        for_variables
 %type <exprs>     string_enumeration
 %type <si>        string_enumeration_item
+%type <node>      rule_set
+%type <exprs>     rule_enumeration
+%type <ident>     rule_enumeration_item
 
 
 %union {
@@ -190,6 +194,7 @@ type stringModifiers struct {
     si            *ast.StringIdentifier
     sis           []*ast.StringIdentifier
     quantifier    *ast.Quantifier
+    ident         *ast.Identifier
 
     // lineno is not a symbol type, it's the line number where the symbol
     // appears in the source file. This is a little hack used for passing
@@ -817,6 +822,14 @@ expression
           Condition:  $7,
         }
       }
+    | for_expression _OF_ string_set _IN_ range
+      {
+        $$ = &ast.Of{
+          Quantifier: $1,
+          Strings: $3,
+          In: $5,
+        }
+      }
     | for_expression _OF_ string_set
       {
         $$ = &ast.Of{
@@ -824,11 +837,25 @@ expression
           Strings: $3,
         }
       }
+    | for_expression _OF_ rule_set
+      {
+        $$ = &ast.Of{
+          Quantifier: $1,
+          Rules: $3,
+        }
+      }
     | primary_expression '%' _OF_ string_set
       {
         $$ = &ast.Of{
           Quantifier: &ast.Quantifier{&ast.Percentage{$1}},
           Strings: $4,
+        }
+      }
+    | primary_expression '%' _OF_ rule_set
+      {
+        $$ = &ast.Of{
+          Quantifier: &ast.Quantifier{&ast.Percentage{$1}},
+          Rules: $4,
         }
       }
     | _NOT_ boolean_expression
@@ -970,6 +997,39 @@ string_enumeration_item
       }
     ;
 
+
+rule_set
+    : '(' rule_enumeration ')'
+      {
+        $$ = &ast.Enum{Values: $2}
+      }
+    ;
+
+
+rule_enumeration
+    : rule_enumeration_item
+      {
+        $$ = []ast.Expression{$1}
+      }
+    | rule_enumeration ',' rule_enumeration_item
+      {
+        $$ = append($1, $3)
+      }
+    ;
+
+
+rule_enumeration_item
+    : _IDENTIFIER_
+      {
+        $$ = &ast.Identifier{Identifier: $1}
+      }
+    | _IDENTIFIER_WITH_WILDCARD_
+      {
+        $$ = &ast.Identifier{Identifier: $1}
+      }
+    ;
+
+
 for_expression
     : primary_expression
       {
@@ -1049,6 +1109,13 @@ primary_expression
          }
 
         $$ = &ast.LiteralString{$1}
+      }
+    | _STRING_COUNT_ _IN_ range
+      {
+        $$ = &ast.StringCount{
+          Identifier: strings.TrimPrefix($1, "#"),
+          In: $3,
+        }
       }
     | _STRING_COUNT_
       {

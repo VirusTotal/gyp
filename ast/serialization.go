@@ -326,24 +326,42 @@ func forInExpressionFromProto(expr *pb.ForInExpression) *ForIn {
 }
 
 func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
+	if (expr.GetStringSet() == nil && expr.GetRuleEnumeration() == nil) || (expr.GetStringSet() != nil && expr.GetRuleEnumeration() != nil) {
+		panic("expecting one string set or rule set in \"forOf\"")
+	}
 	var strs Node
-	switch v := expr.GetStringSet().GetSet().(type) {
-	case *pb.StringSet_Strings:
-		items := v.Strings.GetItems()
+	var rules Node
+	if expr.GetStringSet() != nil {
+		switch v := expr.GetStringSet().GetSet().(type) {
+		case *pb.StringSet_Strings:
+			items := v.Strings.GetItems()
+			enum := &Enum{
+				Values: make([]Expression, len(items)),
+			}
+			for i, item := range items {
+				enum.Values[i] = &StringIdentifier{
+					Identifier: strings.TrimPrefix(item.GetStringIdentifier(), "$"),
+				}
+			}
+			strs = enum
+		case *pb.StringSet_Keyword:
+			if v.Keyword != pb.StringSetKeyword_THEM {
+				panic(fmt.Sprintf(`unexpected keyword "%T"`, v))
+			}
+			strs = KeywordThem
+		}
+	}
+	if expr.GetRuleEnumeration() != nil {
+		items := expr.GetRuleEnumeration().GetItems()
 		enum := &Enum{
 			Values: make([]Expression, len(items)),
 		}
 		for i, item := range items {
-			enum.Values[i] = &StringIdentifier{
-				Identifier: strings.TrimPrefix(item.GetStringIdentifier(), "$"),
+			enum.Values[i] = &Identifier{
+				Identifier: item.GetRuleIdentifier(),
 			}
 		}
-		strs = enum
-	case *pb.StringSet_Keyword:
-		if v.Keyword != pb.StringSetKeyword_THEM {
-			panic(fmt.Sprintf(`unexpected keyword "%T"`, v))
-		}
-		strs = KeywordThem
+		rules = enum
 	}
 	condition := expr.GetExpression()
 	// A "<quantifier> of <string_set>" expression is serialized to protobuf
@@ -354,6 +372,8 @@ func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
 		return &Of{
 			Quantifier: quantifierFromProto(expr.GetForExpression()),
 			Strings:    strs,
+			Rules:      rules,
+			In:         rangeFromProto(expr.GetRange()),
 		}
 	}
 	return &ForOf{
@@ -374,9 +394,19 @@ func binaryExpressionFromProto(expr *pb.BinaryExpression) Expression {
 			At:         expressionFromProto(expr.GetRight()),
 		}
 	case opIn:
-		return &StringIdentifier{
-			Identifier: strings.TrimPrefix(expr.GetLeft().GetStringIdentifier(), "$"),
-			In:         rangeFromProto(expr.GetRight().GetRange()),
+		switch v := expr.GetLeft().GetExpression().(type) {
+		case *pb.Expression_StringIdentifier:
+			return &StringIdentifier{
+				Identifier: strings.TrimPrefix(expr.GetLeft().GetStringIdentifier(), "$"),
+				In:         rangeFromProto(expr.GetRight().GetRange()),
+			}
+		case *pb.Expression_StringCount:
+			return &StringCount{
+				Identifier: strings.TrimPrefix(expr.GetLeft().GetStringCount(), "#"),
+				In:         rangeFromProto(expr.GetRight().GetRange()),
+			}
+		default:
+			panic(fmt.Sprintf(`unexpected binary expression "%v"`, v))
 		}
 	default:
 		return createOperationExpression(op, expr.GetLeft(), expr.GetRight())
