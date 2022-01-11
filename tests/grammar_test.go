@@ -203,6 +203,26 @@ rule IEQUALS {
     some_string iequals "this string"
 }
 
+rule STARTSWITH {
+  condition:
+    some_string startswith "this string"
+}
+
+rule ISTARTSWITH {
+  condition:
+    some_string istartswith "this string"
+}
+
+rule ENDSWITH {
+  condition:
+    some_string endswith "this string"
+}
+
+rule IENDSWITH {
+  condition:
+    some_string iendswith "this string"
+}
+
 rule NOT {
   condition:
     not that_var and this_var < 500
