@@ -301,6 +301,12 @@ rule foo {
 	`
 rule foo {
   condition:
+    "foobar" iequals "foo"
+}
+`,
+	`
+rule foo {
+  condition:
     "foobar" startswith "foo"
 }
 `,

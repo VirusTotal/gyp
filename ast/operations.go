@@ -30,6 +30,7 @@ const (
 	OpIStartsWith    OperatorType = "istartswith"
 	OpEndsWith       OperatorType = "endswith"
 	OpIEndsWith      OperatorType = "iendswith"
+    OpIEquals        OperatorType = "iequals"
 	OpMatches        OperatorType = "matches"
 	// Non public operation types. This are operations that exist in the
 	// protobuf, but are not translated into an Operation node in the AST.
@@ -54,6 +55,7 @@ var OpPrecedence = map[OperatorType]int{
 	OpIStartsWith:    4,
 	OpEndsWith:       4,
 	OpIEndsWith:      4,
+	OpIEquals:        4,
 	OpMatches:        4,
 	OpBitOr:          5,
 	OpBitXor:         6,

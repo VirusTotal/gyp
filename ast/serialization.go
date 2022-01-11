@@ -78,6 +78,7 @@ var pbToAst = map[pb.BinaryExpression_Operator]OperatorType{
 	pb.BinaryExpression_ISTARTSWITH: OpIStartsWith,
 	pb.BinaryExpression_ENDSWITH:    OpEndsWith,
 	pb.BinaryExpression_IENDSWITH:   OpIEndsWith,
+	pb.BinaryExpression_IEQUALS:     OpIEquals,
 	pb.BinaryExpression_MATCHES:     OpMatches,
 	// Operations that exist in the protobuf but are not translated to an
 	// operation in the AST.
@@ -110,6 +111,7 @@ var astToPb = map[OperatorType]pb.BinaryExpression_Operator{
 	OpEndsWith:       pb.BinaryExpression_ENDSWITH,
 	OpIEndsWith:      pb.BinaryExpression_IENDSWITH,
 	OpMatches:        pb.BinaryExpression_MATCHES,
+	OpIEquals:        pb.BinaryExpression_IEQUALS,
 }
 
 // createOperationExpression creates an operation given an operator and a list of

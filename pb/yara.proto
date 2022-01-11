@@ -182,6 +182,7 @@ message BinaryExpression {
     ISTARTSWITH = 24;
     ENDSWITH = 25;
     IENDSWITH = 26;
+    IEQUALS = 27;
   }
 
   // Operator. Required.

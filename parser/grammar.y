@@ -115,6 +115,7 @@ type stringModifiers struct {
 %token _ISTARTSWITH_
 %token _ENDSWITH_
 %token _IENDSWITH_
+%token _IEQUALS_
 %token _IMPORT_
 %token _TRUE_
 %token _FALSE_
@@ -125,7 +126,7 @@ type stringModifiers struct {
 %left '|'
 %left '^'
 %left '&'
-%left _EQ_ _NEQ_
+%left _EQ_ _NEQ_ _ICONTAINS_ _STARTSWITH_ _ENDSWITH_ _ISTARTSWITH_ _IENDSWITH_ _IEQUALS_ _MATCHES_
 %left _LT_ _LE_ _GT_ _GE_
 %left _SHIFT_LEFT_ _SHIFT_RIGHT_
 %left '+' '-'
@@ -784,6 +785,13 @@ expression
            Operands: []ast.Expression{$1, $3},
          }
        }
+     | primary_expression _IEQUALS_ primary_expression
+       {
+         $$ = &ast.Operation{
+           Operator: ast.OpIEquals,
+           Operands: []ast.Expression{$1, $3},
+         }
+      }
     | _STRING_IDENTIFIER_
       {
         $$ = &ast.StringIdentifier{

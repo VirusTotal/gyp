@@ -204,6 +204,7 @@ octdigit      [0-7]
 "istartswith"           { return yy.Token(_ISTARTSWITH_); }
 "endswith"              { return yy.Token(_ENDSWITH_);    }
 "iendswith"             { return yy.Token(_IENDSWITH_);   }
+"iequals"               { return yy.Token(_IEQUALS_);     }
 "import"                { return yy.Token(_IMPORT_);      }
 "include"               { return yy.Token(_INCLUDE_);     }
 

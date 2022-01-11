@@ -1173,7 +1173,7 @@ func (o *Operation) AsProto() *pb.Expression {
 		OpLessThan, OpGreaterThan, OpLessOrEqual, OpGreaterOrEqual,
 		OpBitOr, OpBitAnd, OpBitXor, OpShiftLeft, OpShiftRight,
 		OpContains, OpIContains, OpStartsWith, OpIStartsWith,
-		OpEndsWith, OpIEndsWith, OpMatches:
+		OpEndsWith, OpIEndsWith, OpMatches, OpIEquals:
 		expr = terms[0]
 		for _, term := range terms[1:] {
 			expr = &pb.Expression{

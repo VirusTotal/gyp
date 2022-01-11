@@ -193,6 +193,11 @@ rule CONTAINS {
     some_string contains "this string"
 }
 
+rule IEQUALS {
+  condition:
+    some_string iequals "this string"
+}
+
 rule NOT {
   condition:
     not that_var and this_var < 500
