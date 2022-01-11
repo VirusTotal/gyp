@@ -193,6 +193,11 @@ rule CONTAINS {
     some_string contains "this string"
 }
 
+rule ICONTAINS {
+  condition:
+    some_string icontains "this string"
+}
+
 rule IEQUALS {
   condition:
     some_string iequals "this string"

@@ -57,6 +57,7 @@ var stringSetKeywords = map[pb.StringSetKeyword]string{
 var operators = map[pb.BinaryExpression_Operator]string{
 	pb.BinaryExpression_MATCHES:     "matches",
 	pb.BinaryExpression_CONTAINS:    "contains",
+	pb.BinaryExpression_ICONTAINS:   "icontains",
 	pb.BinaryExpression_IEQUALS:     "iequals",
 	pb.BinaryExpression_AT:          "at",
 	pb.BinaryExpression_IN:          "in",
