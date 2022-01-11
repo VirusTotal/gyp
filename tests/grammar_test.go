@@ -20,6 +20,16 @@ rule BASIC_BOOL2 {
     false
 }
 
+rule OPERATORS1 {
+  condition:
+    (1 + 1 - 1) * 2 == 4 % 2
+}
+
+rule OPERATORS2 {
+  condition:
+    -1 != 0
+}
+
 rule HEX_STRING1 {
   strings:
     $h1 = { 01 23 45 67 89 AB }

@@ -54,6 +54,11 @@ var stringSetKeywords = map[pb.StringSetKeyword]string{
 	pb.StringSetKeyword_THEM: "them",
 }
 
+var unaryOperators = map[pb.UnaryExpression_Operator]string{
+	pb.UnaryExpression_BITWISE_NOT: "~",
+	pb.UnaryExpression_UNARY_MINUS: "-",
+}
+
 var operators = map[pb.BinaryExpression_Operator]string{
 	pb.BinaryExpression_MATCHES:     "matches",
 	pb.BinaryExpression_CONTAINS:    "contains",
@@ -566,6 +571,8 @@ func (ys *YaraSerializer) SerializeExpression(e *pb.Expression) error {
 		return ys.serializeForOfExpression(e.GetForOfExpression())
 	case *pb.Expression_BinaryExpression:
 		return ys.serializeBinaryExpression(e.GetBinaryExpression())
+	case *pb.Expression_UnaryExpression:
+		return ys.serializeUnaryExpression(e.GetUnaryExpression())
 	case *pb.Expression_Text:
 		if err := ys.writeString(`"`); err != nil {
 			return err
@@ -884,6 +891,19 @@ func (ys *YaraSerializer) serializeStringSetKeyword(e pb.StringSetKeyword) error
 	}
 
 	return ys.writeString(kw)
+}
+
+func (ys *YaraSerializer) serializeUnaryExpression(e *pb.UnaryExpression) error {
+	op, ok := unaryOperators[e.GetOperator()]
+	if !ok {
+		return fmt.Errorf(`Unknown unary operator "%v"`, e.GetOperator())
+	}
+
+	if err := ys.writeString(op); err != nil {
+		return err
+	}
+
+	return ys.SerializeExpression(e.GetExpression())
 }
 
 // Serializes a BinaryExpression.
