@@ -207,6 +207,7 @@ octdigit      [0-7]
 "iequals"               { return yy.Token(_IEQUALS_);     }
 "import"                { return yy.Token(_IMPORT_);      }
 "include"               { return yy.Token(_INCLUDE_);     }
+"defined"               { return yy.Token(_DEFINED_);     }
 
 "/*"                    { BEGIN (COMMENT);       }
 <COMMENT>"*/"           { BEGIN (INITIAL);       }

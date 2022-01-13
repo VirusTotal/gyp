@@ -57,6 +57,7 @@ var stringSetKeywords = map[pb.StringSetKeyword]string{
 var unaryOperators = map[pb.UnaryExpression_Operator]string{
 	pb.UnaryExpression_BITWISE_NOT: "~",
 	pb.UnaryExpression_UNARY_MINUS: "-",
+	pb.UnaryExpression_DEFINED:     "defined",
 }
 
 var operators = map[pb.BinaryExpression_Operator]string{
@@ -901,6 +902,15 @@ func (ys *YaraSerializer) serializeUnaryExpression(e *pb.UnaryExpression) error 
 
 	if err := ys.writeString(op); err != nil {
 		return err
+	}
+
+	// If the operator is "defined" it is followed by a space. Other unary
+	// operators like "-" and "~" are immediately followed by the operand,
+	// without any spaces in between.
+	if e.GetOperator() == pb.UnaryExpression_DEFINED {
+		if err := ys.writeString(" "); err != nil {
+			return err
+		}
 	}
 
 	return ys.SerializeExpression(e.GetExpression())

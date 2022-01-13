@@ -92,6 +92,11 @@ type Not struct {
 	Expression
 }
 
+// Defined is an Expression that represents the "defined" operation.
+type Defined struct {
+	Expression
+}
+
 // BitwiseNot is an Expression that represents the bitwise not operation.
 type BitwiseNot struct {
 	Expression
@@ -285,6 +290,15 @@ func (m *Minus) WriteSource(w io.Writer) error {
 	_, err := io.WriteString(w, "-")
 	if err == nil {
 		err = m.Expression.WriteSource(w)
+	}
+	return err
+}
+
+// WriteSource writes the node's source into the writer w.
+func (d *Defined) WriteSource(w io.Writer) error {
+	_, err := io.WriteString(w, "defined ")
+	if err == nil {
+		err = d.Expression.WriteSource(w)
 	}
 	return err
 }
@@ -752,6 +766,18 @@ func (m *Minus) AsProto() *pb.Expression {
 			UnaryExpression: &pb.UnaryExpression{
 				Operator:   pb.UnaryExpression_UNARY_MINUS.Enum(),
 				Expression: m.Expression.AsProto(),
+			},
+		},
+	}
+}
+
+// AsProto returns the Expression serialized as a pb.Expression.
+func (d *Defined) AsProto() *pb.Expression {
+	return &pb.Expression{
+		Expression: &pb.Expression_UnaryExpression{
+			UnaryExpression: &pb.UnaryExpression{
+				Operator:   pb.UnaryExpression_DEFINED.Enum(),
+				Expression: d.Expression.AsProto(),
 			},
 		},
 	}

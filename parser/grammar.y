@@ -120,9 +120,11 @@ type stringModifiers struct {
 %token _TRUE_
 %token _FALSE_
 %token _INCLUDE_
+%token _DEFINED_
 
 %left _OR_
 %left _AND_
+%right _NOT_ _DEFINED_
 %left '|'
 %left '^'
 %left '&'
@@ -131,7 +133,7 @@ type stringModifiers struct {
 %left _SHIFT_LEFT_ _SHIFT_RIGHT_
 %left '+' '-'
 %left '*' '\\' '%'
-%right _NOT_ '~' UNARY_MINUS
+%right '~' UNARY_MINUS
 
 %type <s>         import
 %type <rule>      rule
@@ -869,6 +871,10 @@ expression
     | _NOT_ boolean_expression
       {
         $$ = &ast.Not{$2}
+      }
+    | _DEFINED_ boolean_expression
+      {
+        $$ = &ast.Defined{$2}
       }
     | boolean_expression _AND_ boolean_expression
       {

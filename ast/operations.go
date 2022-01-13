@@ -8,6 +8,8 @@ const (
 	OpUnknown        OperatorType = ""
 	OpOr             OperatorType = "or"
 	OpAnd            OperatorType = "and"
+	OpNot            OperatorType = "not"
+	OpDefined        OperatorType = "defined"
 	OpBitOr          OperatorType = "|"
 	OpBitXor         OperatorType = "^"
 	OpBitAnd         OperatorType = "&"
@@ -41,8 +43,9 @@ const (
 
 // OpPrecedence is the operator precedence table.
 var OpPrecedence = map[OperatorType]int{
-	OpOr:             1,
-	OpAnd:            2,
+	OpOr:             0,
+	OpAnd:            1,
+	OpNot:            2,
 	OpEqual:          3,
 	OpNotEqual:       3,
 	OpLessThan:       4,
@@ -70,5 +73,5 @@ var OpPrecedence = map[OperatorType]int{
 }
 
 // OpMaxPrecedence is the maximum possible precedence. This is also the precedence
-// for unary operators "not", "~" and "-".
+// for unary operators "~" and "-".
 const OpMaxPrecedence = 11

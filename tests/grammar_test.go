@@ -193,6 +193,21 @@ rule INTEGER_FUNCTION {
     uint8(500) == 3470 and uint16(uint32(100)) == 275
 }
 
+rule DEFINED1 {
+  condition:
+    defined some_value
+}
+
+rule DEFINED2 {
+  condition:
+    not defined some_value
+}
+
+rule DEFINED3 {
+  condition:
+    defined not some_value
+}
+
 rule MATCHES {
   condition:
     some_string matches /[a-z0-9]*/i

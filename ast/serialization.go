@@ -485,23 +485,29 @@ func expressionFromProto(e *pb.Expression) Expression {
 	case *pb.Expression_NotExpression:
 		operand := expressionFromProto(v.NotExpression)
 		// If the operand is an operation with lower precedence than "not",
-		// the operand must be enclosed in parenthesis.
-		if expressionPrecedence(operand) < OpMaxPrecedence {
+		// the operand must be enclosed in parentheses.
+		if expressionPrecedence(operand) < OpPrecedence[OpNot] {
 			operand = &Group{operand}
 		}
 		return &Not{operand}
 	case *pb.Expression_UnaryExpression:
 		operand := expressionFromProto(v.UnaryExpression.GetExpression())
-		// If the operand is an operation with lower precedence than "-" or "~",
-		// the operand must be enclosed in parenthesis.
-		if expressionPrecedence(operand) < OpMaxPrecedence {
-			operand = &Group{operand}
-		}
 		switch op := v.UnaryExpression.Operator; *op {
 		case pb.UnaryExpression_UNARY_MINUS:
+			if expressionPrecedence(operand) < OpMaxPrecedence {
+				operand = &Group{operand}
+			}
 			return &Minus{operand}
 		case pb.UnaryExpression_BITWISE_NOT:
+			if expressionPrecedence(operand) < OpMaxPrecedence {
+				operand = &Group{operand}
+			}
 			return &BitwiseNot{operand}
+		case pb.UnaryExpression_DEFINED:
+			if expressionPrecedence(operand) < OpPrecedence[OpDefined] {
+				operand = &Group{operand}
+			}
+			return &Defined{operand}
 		default:
 			panic(fmt.Sprintf(`unexpected unary operator "%v"`, op))
 		}

@@ -201,6 +201,7 @@ message UnaryExpression {
     UNKNOWN = 0;
     UNARY_MINUS = 1;  // -
     BITWISE_NOT = 2;  // ~
+    DEFINED     = 3;
   }
 
   // Operator. Required.

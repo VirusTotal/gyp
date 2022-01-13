@@ -286,6 +286,18 @@ rule foo {
     foo(1, 2 + 3, 4) == bar()
 }
 `,
+    `
+rule foo {
+  condition:
+    defined some_value
+}
+`,
+	`
+rule foo {
+  condition:
+    not defined some_value
+}
+`,
 	`
 rule foo {
   condition:
