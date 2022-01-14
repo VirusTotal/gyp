@@ -358,6 +358,11 @@ rule RULE_SET_PERCENT {
   condition:
     50% of (PERCENT*)
 }
+
+rule RULE_SET_IDENTIFIER_ISSUE_1631 {
+  condition:
+    for all a in (0..3) : (a * 0 == 0)
+}
 `
 
 func TestRulesetParsing(t *testing.T) {
