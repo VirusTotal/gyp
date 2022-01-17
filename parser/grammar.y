@@ -79,7 +79,6 @@ type stringModifiers struct {
 %token _STRINGS_
 %token _CONDITION_
 %token <s> _IDENTIFIER_
-%token <s> _IDENTIFIER_WITH_WILDCARD_
 %token <s> _STRING_IDENTIFIER_
 %token <s> _STRING_COUNT_
 %token <s> _STRING_OFFSET_
@@ -1037,9 +1036,9 @@ rule_enumeration_item
       {
         $$ = &ast.Identifier{Identifier: $1}
       }
-    | _IDENTIFIER_WITH_WILDCARD_
+    | _IDENTIFIER_ '*'
       {
-        $$ = &ast.Identifier{Identifier: $1}
+        $$ = &ast.Identifier{Identifier: $1 + "*"}
       }
     ;
 
