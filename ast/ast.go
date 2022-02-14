@@ -535,7 +535,7 @@ func (o *Of) WriteSource(w io.Writer) error {
 	if err == nil && o.Rules != nil {
 		err = o.Rules.WriteSource(w)
 	}
-	if err == nil  && o.In != nil {
+	if err == nil && o.In != nil {
 		_, err = io.WriteString(w, " in ")
 		if err == nil {
 			err = o.In.WriteSource(w)
@@ -637,12 +637,18 @@ func (s *StringCount) Children() []Node {
 
 // Children returns the Node's children.
 func (s *StringOffset) Children() []Node {
-	return []Node{s.Index}
+	if s.Index != nil {
+		return []Node{s.Index}
+	}
+	return []Node{}
 }
 
 // Children returns the Node's children.
 func (s *StringLength) Children() []Node {
-	return []Node{s.Index}
+	if s.Index != nil {
+		return []Node{s.Index}
+	}
+	return []Node{}
 }
 
 // Children returns the Node's children.
@@ -1160,7 +1166,7 @@ func (o *Of) AsProto() *pb.Expression {
 			}
 		}
 	}
-	var r *pb.Range = nil;
+	var r *pb.Range = nil
 	if o.In != nil {
 		r = &pb.Range{
 			Start: o.In.Start.AsProto(),
