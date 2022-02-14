@@ -683,7 +683,12 @@ func (f *ForOf) Children() []Node {
 
 // Children returns the node's child nodes.
 func (o *Of) Children() []Node {
-	return []Node{o.Quantifier, o.Strings, o.Rules}
+	nodes := []Node{o.Quantifier, o.Strings}
+	if o.Rules != nil {
+		nodes = append(nodes, o.Rules)
+	}
+
+	return nodes
 }
 
 // Children returns the operation's children nodes.
