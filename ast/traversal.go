@@ -1,7 +1,7 @@
 package ast
 
 // Visitor is the interface that must be implemented for getting notified about
-// nodes visited during ast tree traversal.
+// nodes visited during ast traversal.
 type Visitor interface{}
 
 // PreOrderVisitor is the interface that must be implemented by a visitor that
