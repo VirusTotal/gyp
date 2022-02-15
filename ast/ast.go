@@ -535,7 +535,7 @@ func (o *Of) WriteSource(w io.Writer) error {
 	if err == nil && o.Rules != nil {
 		err = o.Rules.WriteSource(w)
 	}
-	if err == nil  && o.In != nil {
+	if err == nil && o.In != nil {
 		_, err = io.WriteString(w, " in ")
 		if err == nil {
 			err = o.In.WriteSource(w)
@@ -632,17 +632,29 @@ func (s *StringIdentifier) Children() []Node {
 
 // Children returns the Node's children.
 func (s *StringCount) Children() []Node {
-	return []Node{}
+	nodes := []Node{}
+
+	if s.In != nil {
+		nodes = append(nodes, s.In)
+	}
+
+	return nodes
 }
 
 // Children returns the Node's children.
 func (s *StringOffset) Children() []Node {
-	return []Node{s.Index}
+	if s.Index != nil {
+		return []Node{s.Index}
+	}
+	return []Node{}
 }
 
 // Children returns the Node's children.
 func (s *StringLength) Children() []Node {
-	return []Node{s.Index}
+	if s.Index != nil {
+		return []Node{s.Index}
+	}
+	return []Node{}
 }
 
 // Children returns the Node's children.
@@ -677,7 +689,12 @@ func (f *ForOf) Children() []Node {
 
 // Children returns the node's child nodes.
 func (o *Of) Children() []Node {
-	return []Node{o.Quantifier, o.Strings, o.Rules}
+	nodes := []Node{o.Quantifier, o.Strings}
+	if o.Rules != nil {
+		nodes = append(nodes, o.Rules)
+	}
+
+	return nodes
 }
 
 // Children returns the operation's children nodes.
@@ -1160,7 +1177,7 @@ func (o *Of) AsProto() *pb.Expression {
 			}
 		}
 	}
-	var r *pb.Range = nil;
+	var r *pb.Range = nil
 	if o.In != nil {
 		r = &pb.Range{
 			Start: o.In.Start.AsProto(),
