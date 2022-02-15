@@ -632,7 +632,13 @@ func (s *StringIdentifier) Children() []Node {
 
 // Children returns the Node's children.
 func (s *StringCount) Children() []Node {
-	return []Node{}
+	nodes := []Node{}
+
+	if s.In != nil {
+		nodes = append(nodes, s.In)
+	}
+
+	return nodes
 }
 
 // Children returns the Node's children.
