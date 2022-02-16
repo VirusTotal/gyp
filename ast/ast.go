@@ -621,6 +621,9 @@ func (e *Enum) Children() []Node {
 
 // Children returns the Node's children.
 func (s *StringIdentifier) Children() []Node {
+	if s.At == nil && s.In == nil {
+		return nil
+	}
 	children := make([]Node, 0)
 	if s.At != nil {
 		children = append(children, s.At)
@@ -633,13 +636,10 @@ func (s *StringIdentifier) Children() []Node {
 
 // Children returns the Node's children.
 func (s *StringCount) Children() []Node {
-	nodes := []Node{}
-
 	if s.In != nil {
-		nodes = append(nodes, s.In)
+		return []Node{s.In}
 	}
-
-	return nodes
+	return nil
 }
 
 // Children returns the Node's children.
