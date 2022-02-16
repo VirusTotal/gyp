@@ -520,3 +520,15 @@ func TestInvalidCharacters(t *testing.T) {
 	}`)
 	assert.NoError(t, err)
 }
+
+// Test case for https://github.com/VirusTotal/gyp/issues/50
+func TestIssue50(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule TEST {
+   		strings:
+       		$a = "foo"
+   		condition:
+       		for all i in (0..10 : ($a at i))
+	}`)
+	assert.Error(t, err)
+}

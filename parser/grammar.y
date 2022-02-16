@@ -813,7 +813,6 @@ expression
           In: $3,
         }
       }
-    | _FOR_ for_expression error { }
     | _FOR_ for_expression for_variables _IN_ iterator ':' '(' boolean_expression ')'
       {
         $$ = &ast.ForIn{
