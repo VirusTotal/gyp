@@ -11,11 +11,12 @@ import (
 
 // Node is the interface implemented by all types of nodes in the AST.
 type Node interface {
-	// Writes the source of the node to a writer.
+	// WriteSource writes the source of the node to a writer.
 	WriteSource(io.Writer) error
-	// Returns the node's children. The children are returned left to right,
-	// if the node represents the operation A + B + C, the children will
-	// appear as A, B, C.
+	// Children returns the node's children. The children are returned left to
+	// right, if the node represents the operation A + B + C, the children will
+	// appear as A, B, C. The result can be nil if the Node does not have
+	// children.
 	Children() []Node
 }
 
@@ -42,9 +43,9 @@ const (
 	KeywordTrue       Keyword = "true"
 )
 
-// Group is an Expression that encloses another Expression in parenthesis.
+// Group is an Expression that encloses another Expression in parentheses.
 type Group struct {
-	Expression
+	Expression Expression
 }
 
 // LiteralInteger is an Expression that represents a literal integer.
@@ -84,22 +85,22 @@ type LiteralRegexp struct {
 
 // Minus is an Expression that represents the unary minus operation.
 type Minus struct {
-	Expression
+	Expression Expression
 }
 
 // Not is an Expression that represents the "not" operation.
 type Not struct {
-	Expression
+	Expression Expression
 }
 
 // Defined is an Expression that represents the "defined" operation.
 type Defined struct {
-	Expression
+	Expression Expression
 }
 
 // BitwiseNot is an Expression that represents the bitwise not operation.
 type BitwiseNot struct {
-	Expression
+	Expression Expression
 }
 
 // Range is a Node that represents an integer range. Example: (1..10).
@@ -178,22 +179,16 @@ type Subscripting struct {
 	Index Expression
 }
 
-// Quantifier is an Expression used in for loops, it can be either a numeric
-// expression or the keywords "any" or "all".
-type Quantifier struct {
-	Expression
-}
-
 // Percentage is an Expression used in evaluating string sets. Example:
 //   <expression>% of <string set>
 type Percentage struct {
-	Expression
+	Expression Expression
 }
 
 // ForIn is an Expression representing a "for in" loop. Example:
 //   for <quantifier> <variables> in <iterator> : ( <condition> )
 type ForIn struct {
-	Quantifier *Quantifier
+	Quantifier Expression
 	Variables  []string
 	Iterator   Node
 	Condition  Expression
@@ -202,7 +197,7 @@ type ForIn struct {
 // ForOf is an Expression representing a "for of" loop. Example:
 //   for <quantifier> of <string_set> : ( <condition> )
 type ForOf struct {
-	Quantifier *Quantifier
+	Quantifier Expression
 	Strings    Node
 	Condition  Expression
 }
@@ -212,7 +207,7 @@ type ForOf struct {
 //   <quantifier> of <string_set> in <range>
 // If "In" is non-nil there is an "in" condition: 3 of them in (0..100)
 type Of struct {
-	Quantifier *Quantifier
+	Quantifier Expression
 	Strings    Node
 	Rules      Node
 	In         *Range
@@ -573,35 +568,41 @@ func (o *Operation) WriteSource(w io.Writer) error {
 	return nil
 }
 
-// Children returns an empty list of nodes as a keyword never has children,
-// this function is required anyways in order to satisfy the Node interface.
+// Children returns nil as a keyword never has children, this function is
+// required anyways in order to satisfy the Node interface.
 func (k Keyword) Children() []Node {
-	return []Node{}
+	return nil
+}
+
+// Children returns the group's children, which is the expression inside the
+// group.
+func (g *Group) Children() []Node {
+	return []Node{g.Expression}
 }
 
 // Children returns the Node's children.
 func (l *LiteralInteger) Children() []Node {
-	return []Node{}
+	return nil
 }
 
 // Children returns the Node's children.
 func (l *LiteralFloat) Children() []Node {
-	return []Node{}
+	return nil
 }
 
 // Children returns the Node's children.
 func (l *LiteralString) Children() []Node {
-	return []Node{}
+	return nil
 }
 
 // Children returns the Node's children.
 func (l *LiteralRegexp) Children() []Node {
-	return []Node{}
+	return nil
 }
 
 // Children returns the Node's children.
 func (i *Identifier) Children() []Node {
-	return []Node{}
+	return nil
 }
 
 // Children returns the Node's children.
@@ -646,7 +647,7 @@ func (s *StringOffset) Children() []Node {
 	if s.Index != nil {
 		return []Node{s.Index}
 	}
-	return []Node{}
+	return nil
 }
 
 // Children returns the Node's children.
@@ -654,7 +655,7 @@ func (s *StringLength) Children() []Node {
 	if s.Index != nil {
 		return []Node{s.Index}
 	}
-	return []Node{}
+	return nil
 }
 
 // Children returns the Node's children.
@@ -693,7 +694,6 @@ func (o *Of) Children() []Node {
 	if o.Rules != nil {
 		nodes = append(nodes, o.Rules)
 	}
-
 	return nodes
 }
 
@@ -704,6 +704,26 @@ func (o *Operation) Children() []Node {
 		nodes[i] = o
 	}
 	return nodes
+}
+
+func (n *Not) Children() []Node {
+	return []Node{n.Expression}
+}
+
+func (m *Minus) Children() []Node {
+	return []Node{m.Expression}
+}
+
+func (b *BitwiseNot) Children() []Node {
+	return []Node{b.Expression}
+}
+
+func (d *Defined) Children() []Node {
+	return []Node{d.Expression}
+}
+
+func (p *Percentage) Children() []Node {
+	return []Node{p.Expression}
 }
 
 // AsProto returns the Expression serialized as a pb.Expression.
@@ -732,6 +752,10 @@ func (k Keyword) AsProto() *pb.Expression {
 	default:
 		panic(fmt.Sprintf(`unexpected keyword "%s"`, k))
 	}
+}
+
+func (g *Group) AsProto() *pb.Expression {
+	return g.Expression.AsProto()
 }
 
 // AsProto returns the Expression serialized as a pb.Expression.
@@ -795,6 +819,17 @@ func (d *Defined) AsProto() *pb.Expression {
 			UnaryExpression: &pb.UnaryExpression{
 				Operator:   pb.UnaryExpression_DEFINED.Enum(),
 				Expression: d.Expression.AsProto(),
+			},
+		},
+	}
+}
+
+func (b *BitwiseNot) AsProto() *pb.Expression {
+	return &pb.Expression{
+		Expression: &pb.Expression_UnaryExpression{
+			UnaryExpression: &pb.UnaryExpression{
+				Operator:   pb.UnaryExpression_BITWISE_NOT.Enum(),
+				Expression: b.Expression.AsProto(),
 			},
 		},
 	}
@@ -1003,42 +1038,6 @@ func (p *Percentage) AsProto() *pb.Expression {
 }
 
 // AsProto returns the Expression serialized as a pb.Expression.
-func (q *Quantifier) AsProto() *pb.ForExpression {
-	var expr *pb.ForExpression
-	switch v := q.Expression.(type) {
-	case *Percentage:
-		expr = &pb.ForExpression{
-			For: &pb.ForExpression_Expression{
-				Expression: v.AsProto(),
-			},
-		}
-	case Keyword:
-		var pbkw pb.ForKeyword
-		if v == KeywordAll {
-			pbkw = pb.ForKeyword_ALL
-		} else if v == KeywordAny {
-			pbkw = pb.ForKeyword_ANY
-		} else if v == KeywordNone {
-			pbkw = pb.ForKeyword_NONE
-		} else {
-			panic(fmt.Sprintf("unexpected keyword in for: %s", v))
-		}
-		expr = &pb.ForExpression{
-			For: &pb.ForExpression_Keyword{
-				Keyword: pbkw,
-			},
-		}
-	default:
-		expr = &pb.ForExpression{
-			For: &pb.ForExpression_Expression{
-				Expression: q.Expression.AsProto(),
-			},
-		}
-	}
-	return expr
-}
-
-// AsProto returns the Expression serialized as a pb.Expression.
 func (f *ForIn) AsProto() *pb.Expression {
 	var iterator *pb.Iterator
 	switch v := f.Iterator.(type) {
@@ -1075,7 +1074,7 @@ func (f *ForIn) AsProto() *pb.Expression {
 	return &pb.Expression{
 		Expression: &pb.Expression_ForInExpression{
 			ForInExpression: &pb.ForInExpression{
-				ForExpression: f.Quantifier.AsProto(),
+				ForExpression: quantifierToProto(f.Quantifier),
 				Identifiers:   f.Variables,
 				Iterator:      iterator,
 				Expression:    f.Condition.AsProto(),
@@ -1117,7 +1116,7 @@ func (f *ForOf) AsProto() *pb.Expression {
 	return &pb.Expression{
 		Expression: &pb.Expression_ForOfExpression{
 			ForOfExpression: &pb.ForOfExpression{
-				ForExpression: f.Quantifier.AsProto(),
+				ForExpression: quantifierToProto(f.Quantifier),
 				StringSet:     s,
 				Expression:    f.Condition.AsProto(),
 			},
@@ -1187,7 +1186,7 @@ func (o *Of) AsProto() *pb.Expression {
 	return &pb.Expression{
 		Expression: &pb.Expression_ForOfExpression{
 			ForOfExpression: &pb.ForOfExpression{
-				ForExpression:   o.Quantifier.AsProto(),
+				ForExpression:   quantifierToProto(o.Quantifier),
 				StringSet:       s,
 				Range:           r,
 				RuleEnumeration: rule_enumeration,
@@ -1234,3 +1233,5 @@ func (o *Operation) AsProto() *pb.Expression {
 	}
 	return expr
 }
+
+

@@ -287,7 +287,7 @@ func enumFromProto(e *pb.IntegerEnumeration) *Enum {
 	}
 }
 
-func quantifierFromProto(expr *pb.ForExpression) *Quantifier {
+func quantifierFromProto(expr *pb.ForExpression) Expression {
 	if expr == nil {
 		return nil
 	}
@@ -304,7 +304,42 @@ func quantifierFromProto(expr *pb.ForExpression) *Quantifier {
 	case *pb.ForExpression_Expression:
 		q = expressionFromProto(v.Expression)
 	}
-	return &Quantifier{q}
+	return q
+}
+
+func quantifierToProto(expr Expression) *pb.ForExpression {
+	var quantifier *pb.ForExpression
+	switch v := expr.(type) {
+	case *Percentage:
+		quantifier = &pb.ForExpression{
+			For: &pb.ForExpression_Expression{
+				Expression: v.AsProto(),
+			},
+		}
+	case Keyword:
+		var pbkw pb.ForKeyword
+		if v == KeywordAll {
+			pbkw = pb.ForKeyword_ALL
+		} else if v == KeywordAny {
+			pbkw = pb.ForKeyword_ANY
+		} else if v == KeywordNone {
+			pbkw = pb.ForKeyword_NONE
+		} else {
+			panic(fmt.Sprintf("unexpected keyword in for: %s", v))
+		}
+		quantifier = &pb.ForExpression{
+			For: &pb.ForExpression_Keyword{
+				Keyword: pbkw,
+			},
+		}
+	default:
+		quantifier = &pb.ForExpression{
+			For: &pb.ForExpression_Expression{
+				Expression: expr.AsProto(),
+			},
+		}
+	}
+	return quantifier
 }
 
 func forInExpressionFromProto(expr *pb.ForInExpression) *ForIn {
