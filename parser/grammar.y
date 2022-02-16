@@ -159,7 +159,7 @@ type stringModifiers struct {
 %type <expr>      identifier
 %type <exprs>     arguments_list
 %type <exprs>     arguments
-%type <quantifier> for_expression
+%type <expr>      for_expression
 %type <exprs>     integer_enumeration
 %type <node>      iterator
 %type <node>      integer_set
@@ -195,7 +195,6 @@ type stringModifiers struct {
     exprs         []ast.Expression
     si            *ast.StringIdentifier
     sis           []*ast.StringIdentifier
-    quantifier    *ast.Quantifier
     ident         *ast.Identifier
 
     // lineno is not a symbol type, it's the line number where the symbol
@@ -855,14 +854,14 @@ expression
     | primary_expression '%' _OF_ string_set
       {
         $$ = &ast.Of{
-          Quantifier: &ast.Quantifier{&ast.Percentage{$1}},
+          Quantifier: &ast.Percentage{$1},
           Strings: $4,
         }
       }
     | primary_expression '%' _OF_ rule_set
       {
         $$ = &ast.Of{
-          Quantifier: &ast.Quantifier{&ast.Percentage{$1}},
+          Quantifier: &ast.Percentage{$1},
           Rules: $4,
         }
       }
@@ -1045,19 +1044,19 @@ rule_enumeration_item
 for_expression
     : primary_expression
       {
-        $$ = &ast.Quantifier{$1}
+        $$ = $1
       }
     | _ALL_
       {
-        $$ = &ast.Quantifier{ast.KeywordAll}
+        $$ = ast.KeywordAll
       }
     | _ANY_
       {
-        $$ = &ast.Quantifier{ast.KeywordAny}
+        $$ = ast.KeywordAny
       }
     | _NONE_
       {
-        $$ = &ast.Quantifier{ast.KeywordNone}
+        $$ = ast.KeywordNone
       }
     ;
 
