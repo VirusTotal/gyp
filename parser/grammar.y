@@ -439,6 +439,15 @@ string_declarations
       }
     | string_declarations string_declaration
       {
+        new_ident := $2.GetIdentifier()
+        for _, ident := range $1 {
+          // Don't error if both identifiers are the empty string.
+          if old_ident := ident.GetIdentifier();  new_ident != "" && old_ident != "" && new_ident == old_ident {
+            return asLexer(yrlex).setError(
+              gyperror.DuplicateStringError,
+              `duplicate string identifier "%s"`, $2.GetIdentifier())
+          }
+        }
         $$ = append($1, $2)
       }
     ;
