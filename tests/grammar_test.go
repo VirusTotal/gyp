@@ -344,9 +344,9 @@ rule STRING_COUNT_IN_RANGE {
 rule STRING_SET_IN_RANGE {
   strings:
     $s0 = "AXSERS"
-    $s0 = "WXSMTS"
+    $s1 = "WXSMTS"
   condition:
-    any of ($s0) in (0..100)
+    any of ($s*) in (0..100)
 }
 
 rule RULE_SET {
@@ -410,13 +410,64 @@ func TestProtoSerialization(t *testing.T) {
 	assert.Equal(t, testRules, b.String())
 }
 
+func TestDuplicateRuleIdentifiers(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule DUPLICATE_RULE_IDENTIFIER { condition: true }
+	rule DUPLICATE_RULE_IDENTIFIER { condition: true }`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 3: duplicate rule "DUPLICATE_RULE_IDENTIFIER"`, err.Error())
+	}
+}
+
+func TestDuplicateStringIdentifiers(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule DUPLICATE_STRING_IDENTIFIERS {
+		strings:
+			$s0 = "AXSERS"
+			$s0 = "WXSMTS"
+		condition:
+			all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 5: rule "DUPLICATE_STRING_IDENTIFIERS": duplicate string identifier "s0"`, err.Error())
+	}
+}
+
+// Make sure anonymous strings are not caught in duplicate checks.
+func TestDuplicateStringAnonymous(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule DUPLICATE_STRING_IDENTIFIERS {
+		strings:
+			$ = "AXSERS"
+			$ = "WXSMTS"
+		condition:
+			all of them
+	}`)
+	assert.NoError(t, err)
+}
+
+func TestDuplicateStringModifiers(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule DUPLICATE_STRING_MODIFIERS {
+		strings:
+			$s0 = "AXSERS" xor xor
+		condition:
+			all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 5: duplicate modifier", err.Error())
+	}
+}
+
 func TestBase64AlphabetLength(t *testing.T) {
 	_, err := gyp.ParseString(`
 	rule BASE64 {
 		strings:
 			$foo = "foo" base64("baz")
 	}`)
-	assert.Error(t, err, "length of base64 alphabet must be 64")
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 4: length of base64 alphabet must be 64", err.Error())
+	}
 }
 
 func TestUnevenNumberOfDigits(t *testing.T) {
