@@ -280,6 +280,22 @@ rule
       }
       tags '{' meta strings
       {
+        // Check for duplicate strings.
+        m := make(map[string]bool)
+        for _, str := range $8 {
+          ident := str.GetIdentifier()
+          // Anonymous strings (no identifiers) are fine.
+          if ident == "" {
+            continue
+          }
+          if m[ident] {
+            return asLexer(yrlex).setErrorWithLineNumber(
+              gyperror.DuplicateStringError,
+              str.GetLineNo(),
+              `rule "%s" duplicate string identifier "%s"`, $<rule>4.Identifier, ident)
+          }
+          m[ident] = true
+        }
         $<rule>4.Tags = $5
         $<rule>4.Meta = $7
         $<rule>4.Strings = $8
@@ -439,15 +455,6 @@ string_declarations
       }
     | string_declarations string_declaration
       {
-        new_ident := $2.GetIdentifier()
-        for _, ident := range $1 {
-          // Don't error if both identifiers are the empty string.
-          if old_ident := ident.GetIdentifier();  new_ident != "" && old_ident != "" && new_ident == old_ident {
-            return asLexer(yrlex).setError(
-              gyperror.DuplicateStringError,
-              `duplicate string identifier "%s"`, $2.GetIdentifier())
-          }
-        }
         $$ = append($1, $2)
       }
     ;

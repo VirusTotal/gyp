@@ -429,7 +429,7 @@ func TestDuplicateStringIdentifiers(t *testing.T) {
 			all of them
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 6: duplicate string identifier "s0"`, err.Error())
+		assert.Equal(t, `line 5: rule "DUPLICATE_STRING_IDENTIFIERS" duplicate string identifier "s0"`, err.Error())
 	}
 }
 
@@ -448,7 +448,7 @@ func TestDuplicateStringAnonymous(t *testing.T) {
 
 func TestDuplicateStringModifiers(t *testing.T) {
 	_, err := gyp.ParseString(`
-	rule DUPLICATE_STRING_IDENTIFIERS {
+	rule DUPLICATE_STRING_MODIFIERS {
 		strings:
 			$s0 = "AXSERS" xor xor
 		condition:
