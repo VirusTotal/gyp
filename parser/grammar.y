@@ -271,8 +271,18 @@ rule
             }
         }
 
+        // The line number of the rule is the line number of the first
+        // modifier....
+        $<lineno>$ = $<lineno>1
+
+        // ... or the line number of the "rule" keyword if the rule doesn't
+        // have any modifiers.
+        if $<lineno>$ == -1 {
+           $<lineno>$  = $<lineno>2
+        }
+
         $$ = &ast.Rule{
-            LineNo: $<lineno>2,
+            LineNo: $<lineno>$,
             Global: $1 & ModGlobal == ModGlobal,
             Private: $1 & ModPrivate == ModPrivate,
             Identifier: $3,
@@ -328,10 +338,17 @@ rule_modifiers
     : /* empty */
       {
         $$ = 0
+        $<lineno>$ = -1
       }
     | rule_modifiers rule_modifier
       {
         $$ = $1 | $2
+
+        if $<lineno>1 == -1 {
+          $<lineno>$ = $<lineno>2
+        } else {
+          $<lineno>$ = $<lineno>1
+        }
       }
     ;
 
@@ -340,10 +357,12 @@ rule_modifier
     : _PRIVATE_
       {
         $$ = ModPrivate
+        $<lineno>$ = $<lineno>1
       }
     | _GLOBAL_
       {
         $$ = ModGlobal
+        $<lineno>$ = $<lineno>1
       }
     ;
 
