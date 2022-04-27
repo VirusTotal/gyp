@@ -912,7 +912,7 @@ yrdefault:
 					return asLexer(yrlex).setErrorWithLineNumber(
 						gyperror.DuplicateStringError,
 						str.GetLineNo(),
-						`rule "%s" duplicate string identifier "%s"`, yrDollar[4].rule.Identifier, ident)
+						`rule "%s": duplicate string identifier "%s"`, yrDollar[4].rule.Identifier, ident)
 				}
 				m[ident] = true
 			}

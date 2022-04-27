@@ -429,7 +429,7 @@ func TestDuplicateStringIdentifiers(t *testing.T) {
 			all of them
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 5: rule "DUPLICATE_STRING_IDENTIFIERS" duplicate string identifier "s0"`, err.Error())
+		assert.Equal(t, `line 5: rule "DUPLICATE_STRING_IDENTIFIERS": duplicate string identifier "s0"`, err.Error())
 	}
 }
 

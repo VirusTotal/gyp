@@ -292,7 +292,7 @@ rule
             return asLexer(yrlex).setErrorWithLineNumber(
               gyperror.DuplicateStringError,
               str.GetLineNo(),
-              `rule "%s" duplicate string identifier "%s"`, $<rule>4.Identifier, ident)
+              `rule "%s": duplicate string identifier "%s"`, $<rule>4.Identifier, ident)
           }
           m[ident] = true
         }
