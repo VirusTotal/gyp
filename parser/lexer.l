@@ -47,46 +47,66 @@ import (
     gyperror "github.com/VirusTotal/gyp/error"
 )
 
-type YYcontext struct {}
+type YYcontext struct {
+    Token     string
+}
 
-// YYtype is the structure returned by the lexer every time the scanner asks
-// for the next token. Each token may have an associated value, for example,
-// the _IDENTIFIER_ token has an associated string with the identifier's name.
-// If the lexer wants to return an error to the scanner it
-// sets the Error field and leaves the Token and Value empty.
+// YYtype is a structure that represents a token. The lexer/scanner returns an
+// instance of this structure every time parser asks for the next token. Each
+// token may have an associated value, for example, the _IDENTIFIER_ token has
+// an associated string with the identifier's name. If the lexer/scanner wants
+// to return an error to the parser it sets the Error field and leaves the
+// Token and Value empty. This structure also stores information about the
+// token's position within the original source code.
 type YYtype struct {
-  Token int
-  Lineno int
-  Value *yrSymType
-  Error gyperror.Error
+  Token    int  // One of the constants defined in grammar.y via the %token directive.
+  Lineno   int  // Line number where the token is found.
+  StartPos int  // Position within the parsed source code where the token starts (inclusive).
+  EndPos   int  // Position within the parsed source code where the token ends (exclusive).
+  Value    *yrSymType // Value associated with the toke.
+  Error    gyperror.Error
 }
 
 // Token creates a YYtype struct for the given token type with no associated
 // value.
-func (s *Scanner) Token(t int) YYtype {
-  return YYtype{Token: t, Lineno: s.Lineno}
+func (s *Scanner) Token(tokenType int) YYtype {
+  return YYtype{
+    Token: tokenType,
+    Lineno: s.Lineno,
+    StartPos: s.textPtr,
+    EndPos: s.textPtr + len(s.Context.Token)}
 }
 
 // TokenString creates a YYtype struct for the given token type with an
 // associated string.
-func (s *Scanner) TokenString(t int, v string) YYtype {
-  return YYtype{Token: t, Lineno: s.Lineno, Value: &yrSymType{s: v}}
+func (s *Scanner) TokenString(tokenType int, v string) YYtype {
+  t := s.Token(tokenType)
+  t.Value = &yrSymType{s: v}
+  return t
 }
 
-func (s *Scanner) TokenInt64(t int, v int64) YYtype {
-  return YYtype{Token: t, Lineno: s.Lineno, Value: &yrSymType{i64: v}}
+func (s *Scanner) TokenInt64(tokenType int, v int64) YYtype {
+  t := s.Token(tokenType)
+  t.Value = &yrSymType{i64: v}
+  return t
 }
 
-func (s *Scanner) TokenFloat64(t int, v float64) YYtype {
-  return YYtype{Token: t, Lineno: s.Lineno, Value: &yrSymType{f64: v}}
+func (s *Scanner) TokenFloat64(tokenType int, v float64) YYtype {
+  t := s.Token(tokenType)
+  t.Value = &yrSymType{f64: v}
+  return t
 }
 
 func (s *Scanner) TokenRegExp(reg *ast.LiteralRegexp) YYtype {
-  return YYtype{Token: _REGEXP_, Lineno: s.Lineno, Value: &yrSymType{reg: reg}}
+  t := s.Token(_REGEXP_)
+  t.Value = &yrSymType{reg: reg}
+  return t
 }
 
 func (s *Scanner) TokenHexString(hexTokens []ast.HexToken) YYtype {
-  return YYtype{Token: _HEX_STRING_, Lineno: s.Lineno, Value: &yrSymType{hexTokens: hexTokens}}
+  t := s.Token(_HEX_STRING_)
+  t.Value = &yrSymType{hexTokens: hexTokens}
+  return t
 }
 
 func Error(c gyperror.Code, msg string) YYtype {
@@ -128,12 +148,16 @@ YY_USER_DATA(
   var (
     str      []byte
     regexp   []byte
-    YYtext   string  // each action sets this to the current yytext
   )
 )
 
+YY_USER_INIT(
+  // code to run inside Lex() when it is called the first time
+)
+
 YY_USER_ACTION(
-  YYtext = string(yytext)
+  // This code is executed before every lexer action.
+  yy.Context.Token = string(yytext)
 )
 
 // Define a constant for end-of-file
@@ -220,61 +244,61 @@ octdigit      [0-7]
 
 
 $({letter}|{digit}|_)*"*"  {
-  return yy.TokenString(_STRING_IDENTIFIER_WITH_WILDCARD_, string(yytext));
+  return yy.TokenString(_STRING_IDENTIFIER_WITH_WILDCARD_, yy.Context.Token);
 }
 
 
 $({letter}|{digit}|_)*  {
-  return yy.TokenString(_STRING_IDENTIFIER_, string(yytext));
+  return yy.TokenString(_STRING_IDENTIFIER_, yy.Context.Token);
 }
 
 
 #({letter}|{digit}|_)*  {
-  return yy.TokenString(_STRING_COUNT_, string(yytext));
+  return yy.TokenString(_STRING_COUNT_, yy.Context.Token);
 }
 
 
 @({letter}|{digit}|_)*  {
-  return yy.TokenString(_STRING_OFFSET_, string(yytext));
+  return yy.TokenString(_STRING_OFFSET_, yy.Context.Token);
 }
 
 
 !({letter}|{digit}|_)*  {
-  return yy.TokenString(_STRING_LENGTH_, string(yytext));
+  return yy.TokenString(_STRING_LENGTH_, yy.Context.Token);
 }
 
 
 u?int(8|16|32)(be)? {
-  return yy.TokenString(_INTEGER_FUNCTION_, string(yytext));
+  return yy.TokenString(_INTEGER_FUNCTION_, yy.Context.Token);
 }
 
 
 ({letter}|_)({letter}|{digit}|_)*  {
-  return yy.TokenString(_IDENTIFIER_, string(yytext));
+  return yy.TokenString(_IDENTIFIER_, yy.Context.Token);
 }
 
 
 {digit}+(MB|KB){0,1}  {
-  s := strings.TrimRight(YYtext, "MKB")
+  s := strings.TrimRight(yy.Context.Token, "MKB")
   v, err := strconv.ParseInt(s, 10, 64)
   if err != nil {
     return Error(
       gyperror.NumberConversionError,
       fmt.Sprintf("%s", err))
   }
-  if strings.HasSuffix(YYtext, "KB") {
+  if strings.HasSuffix(yy.Context.Token, "KB") {
       if v > math.MaxInt64 / 1024 {
         return Error(
           gyperror.IntegerOverflowError,
-          fmt.Sprintf("Found %s; Max: %d", YYtext, int64(math.MaxInt64)))
+          fmt.Sprintf("Found %s; Max: %d", yy.Context.Token, int64(math.MaxInt64)))
       } else {
         v *= 1024
       }
-  } else if strings.HasSuffix(YYtext, "MB") {
+  } else if strings.HasSuffix(yy.Context.Token, "MB") {
       if v > math.MaxInt64 / 1048576 {
         return Error(
           gyperror.IntegerOverflowError,
-          fmt.Sprintf("Found %s; Max: %d", YYtext, int64(math.MaxInt64)))
+          fmt.Sprintf("Found %s; Max: %d", yy.Context.Token, int64(math.MaxInt64)))
       } else {
           v *= 1048576
       }
@@ -283,7 +307,7 @@ u?int(8|16|32)(be)? {
 }
 
 {digit}+"."{digit}+  {
-  v, err := strconv.ParseFloat(YYtext, 64)
+  v, err := strconv.ParseFloat(yy.Context.Token, 64)
   if err != nil {
     return Error(
       gyperror.NumberConversionError,
@@ -293,7 +317,7 @@ u?int(8|16|32)(be)? {
 }
 
 0x{hexdigit}+  {
-  v, err := strconv.ParseInt(YYtext, 0, 64)
+  v, err := strconv.ParseInt(yy.Context.Token, 0, 64)
   if err != nil {
     return Error(
       gyperror.NumberConversionError,
@@ -303,7 +327,7 @@ u?int(8|16|32)(be)? {
 }
 
 0o{octdigit}+  {
-  s := strings.TrimLeft(YYtext, "0o")
+  s := strings.TrimLeft(yy.Context.Token, "0o")
   v, err := strconv.ParseInt(s, 8, 64)
   if err != nil {
     return Error(
@@ -375,7 +399,7 @@ u?int(8|16|32)(be)? {
   }
 
   var mods ast.RegexpModifiers
-  for _, c := range YYtext {
+  for _, c := range yy.Context.Token {
       switch c {
       case 'i':
           mods = mods | ast.RegexpCaseInsensitive
@@ -440,7 +464,7 @@ u?int(8|16|32)(be)? {
   // NOTE: The above comment may not apply. We plan to not use hex_lexer.l
 
   // No need to collect like str and regexp start conditions
-  hexTokens, err := hex.Parse(strings.NewReader(YYtext))
+  hexTokens, err := hex.Parse(strings.NewReader(yy.Context.Token))
   if err != nil {
     return YYtype{Error: err.(gyperror.Error)}
   }

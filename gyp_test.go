@@ -48,28 +48,31 @@ func TestNonAscii(t *testing.T) {
 
 func TestLineNo(t *testing.T) {
 	rs, err := ParseString(`
-rule foo {
-  strings:
-    $a = "foo"
-    // Intentional blank line
-    $b = "bar"
-    $c = "baz"
-  condition:
-    all of them
-}
-rule bar {
-  strings:
-    $a = "foo"
-  condition:
-    all of them
-}`)
+rule foo {                        //  2
+  strings:                        //  3
+    $a = "foo"                    //  4
+    // Intentional blank line     //  5
+    $b = "bar"                    //  6
+    $c = "baz"                    //  7
+  condition:                      //  8
+    all of them                   //  9
+}                                 // 10
+global                            // 11
+private                           // 12
+rule bar {                        // 13
+  strings:                        // 14
+    $a = "foo"                    // 15
+  condition:                      // 16
+    all of them                   // 17
+}                                 // 18
+`)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, rs.Rules[0].LineNo)
 	assert.Equal(t, 4, rs.Rules[0].Strings[0].GetLineNo())
 	assert.Equal(t, 6, rs.Rules[0].Strings[1].GetLineNo())
 	assert.Equal(t, 7, rs.Rules[0].Strings[2].GetLineNo())
 	assert.Equal(t, 11, rs.Rules[1].LineNo)
-	assert.Equal(t, 13, rs.Rules[1].Strings[0].GetLineNo())
+	assert.Equal(t, 15, rs.Rules[1].Strings[0].GetLineNo())
 
 }
 
