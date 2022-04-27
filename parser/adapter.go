@@ -87,10 +87,21 @@ func (l *lexer) Error(msg string) {
 // it's intended to be used by Parse as:
 //   return lexer.setError(...)
 // By returning 1 from Parse the parsing is aborted.
+// This uses whatever the current line the scanner is on. If you want to use
+// a specific line number use the setErrorWithLineNumber variant.
 func (l *lexer) setError(code gyperror.Code, format string, a ...interface{}) int {
+    return l.setErrorWithLineNumber(code, l.scanner.Lineno, format, a...)
+}
+
+// setErrorWithLineNumber sets the lexer error. The error message can be built
+// by passing a format string and arguments as fmt.Sprintf. This function
+// returns 1 as it's intended to be used by Parse as:
+//   return lexer.setErrorWithLineNumber(...)
+// By returning 1 from Parse the parsing is aborted.
+func (l *lexer) setErrorWithLineNumber(code gyperror.Code, lineno int, format string, a ...interface{}) int {
 	l.err = gyperror.Error{
 		Code:    code,
-		Line:    l.scanner.Lineno,
+		Line:    lineno,
 		Message: fmt.Sprintf(format, a...),
 	}
 	return 1

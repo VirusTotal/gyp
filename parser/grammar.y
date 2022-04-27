@@ -290,6 +290,22 @@ rule
       }
       tags '{' meta strings
       {
+        // Check for duplicate strings.
+        m := make(map[string]bool)
+        for _, str := range $8 {
+          ident := str.GetIdentifier()
+          // Anonymous strings (no identifiers) are fine.
+          if ident == "" {
+            continue
+          }
+          if m[ident] {
+            return asLexer(yrlex).setErrorWithLineNumber(
+              gyperror.DuplicateStringError,
+              str.GetLineNo(),
+              `rule "%s": duplicate string identifier "%s"`, $<rule>4.Identifier, ident)
+          }
+          m[ident] = true
+        }
         $<rule>4.Tags = $5
         $<rule>4.Meta = $7
         $<rule>4.Strings = $8
