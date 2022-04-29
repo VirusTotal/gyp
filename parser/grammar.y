@@ -271,6 +271,23 @@ rule
             }
         }
 
+        // Forbid any rule which matches our rules wildcard table. This ensures
+        // the following is a syntax error:
+        //
+        // rule a { condition: true }
+        // rule b { condition: any of (a*) }
+        // rule a2 { condition: true }
+        //
+        // This must be a syntax error because the "a2" rule is defined _AFTER_
+        // the (a*) expansion.
+        for i, _ := range lexer.rule_wildcards {
+          if strings.HasPrefix($3, i) {
+            return lexer.setError(
+              gyperror.UndefinedRuleIdentifierError,
+              `rule identifier "%s" matches previously used wildcard rule set`, $3)
+          }
+        }
+
         // The line number of the rule is the line number of the first
         // modifier....
         $<lineno>$ = $<lineno>1
@@ -280,6 +297,10 @@ rule
         if $<lineno>$ == -1 {
            $<lineno>$  = $<lineno>2
         }
+
+        // Store the rule identifier for lookup to ensure rule references are
+        // always defined.
+        lexer.rules[$3] = true
 
         $$ = &ast.Rule{
             LineNo: $<lineno>$,
@@ -1142,10 +1163,43 @@ rule_enumeration
 rule_enumeration_item
     : _IDENTIFIER_
       {
+        lexer := asLexer(yrlex)
+        match := false
+        for r, _ := range lexer.rules {
+          if r == $1 {
+            match = true
+            break
+          }
+        }
+        if !match {
+          return lexer.setError(
+            gyperror.UndefinedRuleIdentifierError,
+            `undefined rule identifier: %s`, $1)
+        }
+
         $$ = &ast.Identifier{Identifier: $1}
       }
     | _IDENTIFIER_ '*'
       {
+        // There must be at least one rule which matches this wildcard
+        lexer := asLexer(yrlex)
+        match := false
+        for r, _ := range lexer.rules {
+          if strings.HasPrefix(r, $1) {
+            match = true
+            break
+          }
+        }
+        if !match {
+          return lexer.setError(
+            gyperror.UndefinedRuleIdentifierError,
+            `undefined rule identifier: %s`, $1 + "*")
+        }
+
+        // Store the identifier without the asterisk for lookup later. When a
+        // new rule is created it must not be a prefix match for anything in
+        // this table.
+        lexer.rule_wildcards[$1] = true
         $$ = &ast.Identifier{Identifier: $1 + "*"}
       }
     ;

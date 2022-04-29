@@ -692,6 +692,47 @@ func TestUndefinedStringEnumerationAnonymous(t *testing.T) {
 	}
 }
 
+func TestUndefinedRuleIdentifier(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_RULE_IDENTIFIER {
+		condition:
+			any of (NON_EXISTENT_RULE)
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 4: undefined rule identifier: NON_EXISTENT_RULE", err.Error())
+	}
+}
+
+func TestUndefinedRuleIdentifierWildcard(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_RULE_IDENTIFIER_WILDCARD {
+		condition:
+			any of (NON_EXISTENT_RULE*)
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 4: undefined rule identifier: NON_EXISTENT_RULE*", err.Error())
+	}
+}
+
+// Special case where someone does:
+//
+// rule a { condition: true }
+// rule b { condition: any of (a*) }
+// rule a2 { condition: true }
+//
+// This is an error because they have defined a rule (a2) that matches a
+// previously defined rule with wildcards.
+func TestUndefinedRuleIdentifierWildcardRuleAfter(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule a { condition: true }
+	rule b { condition: any of (a*) }
+	rule a2 { condition : true }
+	`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: rule identifier "a2" matches previously used wildcard rule set`, err.Error())
+	}
+}
+
 func TestBase64AlphabetLength(t *testing.T) {
 	_, err := gyp.ParseString(`
 	rule BASE64 {
