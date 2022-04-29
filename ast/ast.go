@@ -690,9 +690,14 @@ func (f *ForOf) Children() []Node {
 
 // Children returns the node's child nodes.
 func (o *Of) Children() []Node {
-	nodes := []Node{o.Quantifier, o.Strings}
+	// Because this node can have children that are exclusively rules or
+	// strings we need to only add them if they are non-nil.
+	nodes := []Node{o.Quantifier}
 	if o.Rules != nil {
 		nodes = append(nodes, o.Rules)
+	}
+	if o.Strings != nil {
+		nodes = append(nodes, o.Strings)
 	}
 	return nodes
 }
@@ -1233,5 +1238,3 @@ func (o *Operation) AsProto() *pb.Expression {
 	}
 	return expr
 }
-
-
