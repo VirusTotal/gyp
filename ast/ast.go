@@ -28,10 +28,6 @@ type Expression interface {
 	AsProto() *pb.Expression
 }
 
-type StringExpression interface {
-	GetIdentifier() string
-}
-
 // Keyword is a Node that represents a keyword.
 type Keyword string
 
@@ -1242,20 +1238,3 @@ func (o *Operation) AsProto() *pb.Expression {
 	}
 	return expr
 }
-
-func (s *StringIdentifier) GetIdentifier() string {
-	return s.Identifier
-}
-
-func (s *StringOffset) GetIdentifier() string {
-	return s.Identifier
-}
-
-func (s *StringCount) GetIdentifier() string {
-	return s.Identifier
-}
-
-func (s *StringLength) GetIdentifier() string {
-	return s.Identifier
-}
-

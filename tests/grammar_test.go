@@ -467,21 +467,21 @@ func TestUndefinedStringIdentifier(t *testing.T) {
 		strings:
 			$a = "AXSERS"
 		condition:
-			$s and $t
+			$s
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 7: rule "UNDEFINED_STRING_IDENTIFIER": undefined string identifiers: s, t`, err.Error())
+		assert.Equal(t, `line 7: undefined string identifier: $s`, err.Error())
 	}
 }
 
-func TestUndefinedStringIdentifierEnumeration(t *testing.T) {
+func TestUndefinedStringKeywordNoStrings(t *testing.T) {
 	_, err := gyp.ParseString(`
-	rule UNDEFINED_STRING_IDENTIFIER_IN_STRING_ENUMERATION {
+	rule UNDEFINED_STRING_KEYWORD_NO_STRINGS {
 		condition:
 			1 of them
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_IN_STRING_ENUMERATION": undefined string identifiers: them`, err.Error())
+		assert.Equal(t, `line 4: undefined string identifier: them`, err.Error())
 	}
 }
 
@@ -492,11 +492,11 @@ func TestUndefinedStringIdentifierWildcard(t *testing.T) {
 			1 of ($s*)
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_WITH_WILDCARD": undefined string identifiers: s*`, err.Error())
+		assert.Equal(t, `line 4: undefined string identifier: $s*`, err.Error())
 	}
 }
 
-// Make sure wildcard expansion works!
+// Make sure wildcard expansion still works.
 func TestUndefinedStringIdentifierWildcardExpansion(t *testing.T) {
 	_, err := gyp.ParseString(`
 	rule UNDEFINED_STRING_IDENTIFIER_WITH_WILDCARD_2 {
@@ -506,40 +506,189 @@ func TestUndefinedStringIdentifierWildcardExpansion(t *testing.T) {
 			1 of ($s*) and $x
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 7: rule "UNDEFINED_STRING_IDENTIFIER_WITH_WILDCARD_2": undefined string identifiers: x`, err.Error())
+		assert.Equal(t, `line 7: undefined string identifier: $x`, err.Error())
 	}
 }
 
 func TestUndefinedStringCount(t *testing.T) {
 	_, err := gyp.ParseString(`
-	rule UNDEFINED_STRING_IDENTIFIER_COUNT {
+	rule UNDEFINED_STRING_COUNT {
 		condition:
 			#s > 0
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_COUNT": undefined string identifiers: s`, err.Error())
+		assert.Equal(t, `line 4: undefined string identifier: #s`, err.Error())
 	}
+}
+
+// Make sure anonymous string counts are allowed.
+func TestUndefinedStringCountAnonymous(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_COUNT_ANONYMOUS {
+		strings:
+			$s = "AXSERS"
+		condition:
+			for any of them: (# > 10)
+	}`)
+	assert.NoError(t, err)
 }
 
 func TestUndefinedStringOffset(t *testing.T) {
 	_, err := gyp.ParseString(`
-	rule UNDEFINED_STRING_IDENTIFIER_OFFSET {
+	rule UNDEFINED_STRING_OFFSET {
 		condition:
 			@s[0] > 0
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_OFFSET": undefined string identifiers: s`, err.Error())
+		assert.Equal(t, `line 4: undefined string identifier: @s`, err.Error())
 	}
+}
+
+// Make sure anonymous string offsets are allowed.
+func TestUndefinedStringOffsetAnonymous(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_OFFSET_ANONYMOUS {
+		strings:
+			$s = "AXSERS"
+		condition:
+			for any of them: (@ > 10)
+	}`)
+	assert.NoError(t, err)
+}
+
+func TestUndefinedStringOffsetAnonymousExpression(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_OFFSET_ANONYMOUS_EXPRESSION {
+		strings:
+			$s = "AXSERS"
+		condition:
+			for any of them: (@[1] > 10)
+	}`)
+	assert.NoError(t, err)
 }
 
 func TestUndefinedStringLength(t *testing.T) {
 	_, err := gyp.ParseString(`
-	rule UNDEFINED_STRING_IDENTIFIER_LENGTH {
+	rule UNDEFINED_STRING_LENGTH {
 		condition:
 			!s == 40
 	}`)
 	if assert.Error(t, err) {
-		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_LENGTH": undefined string identifiers: s`, err.Error())
+		assert.Equal(t, `line 4: undefined string identifier: !s`, err.Error())
+	}
+}
+
+// Make sure anonymous string lengths are allowed.
+func TestUndefinedStringLengthAnonymous(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_LENGTH_ANONYMOUS {
+		strings:
+			$s = "AXSERS"
+		condition:
+			for any of them: (! > 5)
+	}`)
+	assert.NoError(t, err)
+}
+
+func TestUndefinedStringLengthAnonymousExpression(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_LENGTH_ANONYMOUS_EXPRESSION {
+		strings:
+			$s = "AXSERS"
+		condition:
+			for any of them: (![1] > 5)
+	}`)
+	assert.NoError(t, err)
+}
+
+func TestUndefinedStringAt(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_AT {
+		condition:
+			$s at 10
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 5: undefined string identifier: $s`, err.Error())
+	}
+}
+
+// Make sure anonymous string at are allowed.
+func TestUndefinedStringAtAnonymous(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_AT_ANONYMOUS {
+		strings:
+			$s = "AXSERS"
+		condition:
+			for any of them: ($ at 5)
+	}`)
+	assert.NoError(t, err)
+}
+
+func TestUndefinedStringInRange(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IN_RANGE {
+		condition:
+			$s in (0..10)
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: undefined string identifier: $s`, err.Error())
+	}
+}
+
+// Make sure anonymous string in range is allowed.
+func TestUndefinedStringInRangeAnonymous(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IN_RANGE_ANONYMOUS {
+		strings:
+		  $s = "AXSERS"
+		condition:
+		    for any of them: ($ in (0..10))
+	}`)
+	assert.NoError(t, err)
+}
+
+func TestUndefinedStringInRangeAnonymousExpression(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IN_RANGE_ANONYMOUS_EXPRESSION {
+		strings:
+			$s = "AXSERS"
+		condition:
+			for any of them: ($ in (0..10))
+	}`)
+	assert.NoError(t, err)
+}
+
+func TestUndefinedStringCountInRange(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_COUNT_IN_RANGE {
+		condition:
+			#s in (0..10) == 2
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: undefined string identifier: #s`, err.Error())
+	}
+}
+
+// Make sure anonymous string count in range is allowed.
+func TestUndefinedStringCountInRangeAnonymous(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_COUNT_IN_RANGE_ANONYMOUS {
+		strings:
+			$s = "AXSERS"
+		condition:
+			for any of them: (# in (0..10) == 2)
+	}`)
+	assert.NoError(t, err)
+}
+
+func TestUndefinedStringEnumerationAnonymous(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_ENUMERATION_ANONYMOUS {
+		condition:
+			any of ($)
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: undefined string identifier: $`, err.Error())
 	}
 }
 
