@@ -30,6 +30,7 @@ const (
 	UnevenNumberOfDigitsError
 	InvalidAsciiError
 	InvalidUTF8Error
+	UndefinedStringIdentifierError
 )
 
 type Error struct {

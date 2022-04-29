@@ -28,6 +28,10 @@ type Expression interface {
 	AsProto() *pb.Expression
 }
 
+type StringExpression interface {
+	GetIdentifier() string
+}
+
 // Keyword is a Node that represents a keyword.
 type Keyword string
 
@@ -690,9 +694,14 @@ func (f *ForOf) Children() []Node {
 
 // Children returns the node's child nodes.
 func (o *Of) Children() []Node {
-	nodes := []Node{o.Quantifier, o.Strings}
+	// Because this node can have children that are exclusively rules or
+	// strings we need to only add them if they are non-nil.
+	nodes := []Node{o.Quantifier}
 	if o.Rules != nil {
 		nodes = append(nodes, o.Rules)
+	}
+	if o.Strings != nil {
+		nodes = append(nodes, o.Strings)
 	}
 	return nodes
 }
@@ -1234,4 +1243,19 @@ func (o *Operation) AsProto() *pb.Expression {
 	return expr
 }
 
+func (s *StringIdentifier) GetIdentifier() string {
+	return s.Identifier
+}
+
+func (s *StringOffset) GetIdentifier() string {
+	return s.Identifier
+}
+
+func (s *StringCount) GetIdentifier() string {
+	return s.Identifier
+}
+
+func (s *StringLength) GetIdentifier() string {
+	return s.Identifier
+}
 

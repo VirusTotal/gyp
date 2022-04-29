@@ -286,6 +286,7 @@ rule AND_OR_PRECEDENCE_NO_PARENS {
     $foo1 = "foo1"
     $foo2 = /foo2/
     $foo3 = { AA BB CC }
+    $foo4 = "I AM A STRING! ;)"
   condition:
     $foo1 or $foo2 or $foo3 and $foo4
 }
@@ -295,6 +296,7 @@ rule AND_OR_PRECEDENCE_PARENS {
     $foo1 = "foo1"
     $foo2 = /foo2/
     $foo3 = { AA BB CC }
+    $foo4 = "I AM A STRING! ;)"
   condition:
     ($foo1 or $foo2 or $foo3) and $foo4
 }
@@ -456,6 +458,88 @@ func TestDuplicateStringModifiers(t *testing.T) {
 	}`)
 	if assert.Error(t, err) {
 		assert.Equal(t, "line 5: duplicate modifier", err.Error())
+	}
+}
+
+func TestUndefinedStringIdentifier(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IDENTIFIER {
+		strings:
+			$a = "AXSERS"
+		condition:
+			$s and $t
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 7: rule "UNDEFINED_STRING_IDENTIFIER": undefined string identifiers: s, t`, err.Error())
+	}
+}
+
+func TestUndefinedStringIdentifierEnumeration(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IDENTIFIER_IN_STRING_ENUMERATION {
+		condition:
+			1 of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_IN_STRING_ENUMERATION": undefined string identifiers: them`, err.Error())
+	}
+}
+
+func TestUndefinedStringIdentifierWildcard(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IDENTIFIER_WITH_WILDCARD {
+		condition:
+			1 of ($s*)
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_WITH_WILDCARD": undefined string identifiers: s*`, err.Error())
+	}
+}
+
+// Make sure wildcard expansion works!
+func TestUndefinedStringIdentifierWildcardExpansion(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IDENTIFIER_WITH_WILDCARD_2 {
+		strings:
+			$s0 = "AXSERS"
+		condition:
+			1 of ($s*) and $x
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 7: rule "UNDEFINED_STRING_IDENTIFIER_WITH_WILDCARD_2": undefined string identifiers: x`, err.Error())
+	}
+}
+
+func TestUndefinedStringCount(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IDENTIFIER_COUNT {
+		condition:
+			#s > 0
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_COUNT": undefined string identifiers: s`, err.Error())
+	}
+}
+
+func TestUndefinedStringOffset(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IDENTIFIER_OFFSET {
+		condition:
+			@s[0] > 0
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_OFFSET": undefined string identifiers: s`, err.Error())
+	}
+}
+
+func TestUndefinedStringLength(t *testing.T) {
+	_, err := gyp.ParseString(`
+	rule UNDEFINED_STRING_IDENTIFIER_LENGTH {
+		condition:
+			!s == 40
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 5: rule "UNDEFINED_STRING_IDENTIFIER_LENGTH": undefined string identifiers: s`, err.Error())
 	}
 }
 

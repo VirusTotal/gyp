@@ -57,7 +57,6 @@ type stringModifiers struct {
   XorMax int32
   Base64Alphabet string
 }
-
 %}
 
 // yara-parser: we have 'const eof = 0' in lexer.l
@@ -312,6 +311,15 @@ rule
       }
       condition '}'
       {
+        // Walk the condition AST looking for string identifiers that are not
+        // defined in the strings section.
+        missing_idents := checkStringIdentifiers($10, $<rule>4)
+        if len(missing_idents) > 0 {
+          return asLexer(yrlex).setError(
+            gyperror.UndefinedStringIdentifierError,
+            `rule "%s": undefined string identifiers: %s`,
+            $<rule>4.Identifier, strings.Join(missing_idents[:], ", "))
+        }
         $<rule>4.Condition = $10
         $$ = $<rule>4
       }
@@ -1272,4 +1280,55 @@ func operation(operator ast.OperatorType, left, right ast.Expression) (n ast.Exp
     }
   }
   return n
+}
+
+// Given the starting node of the AST and the rule to which the AST belongs,
+// walk all the children and find any string identifiers which are not defined.
+func checkStringIdentifiers(node ast.Node, rule *ast.Rule) ([]string) {
+  missing_idents := []string{}
+  typecheck: switch v := node.(type) {
+    case ast.StringExpression:
+      // Anonymous strings allowed here as they are only allowed in loops and
+      // that is enforced by the parser already.
+      if v.GetIdentifier() == "" {
+        break
+      }
+
+      // Check for wildcards and use prefix matches.
+      if strings.HasSuffix(v.GetIdentifier(), "*") {
+        trimmed_ident := strings.TrimSuffix(v.GetIdentifier(), "*")
+        // Handle the case of "$*", there must be at least one defined string.
+        if len(trimmed_ident) == 0 && len(rule.Strings) == 0 {
+            missing_idents = append(missing_idents, "$*")
+            break
+        }
+
+        for _, s := range rule.Strings {
+          if strings.HasPrefix(s.GetIdentifier(), trimmed_ident) {
+            break typecheck
+          }
+        }
+      } else {
+        // Not a wildcard identifier, just see if it matches regularly.
+        for _, s := range rule.Strings {
+          if s.GetIdentifier() == v.GetIdentifier() {
+            break typecheck
+          }
+        }
+      }
+
+      // No defined string matches, it is an undefined string.
+      missing_idents = append(missing_idents, v.GetIdentifier())
+    case ast.Keyword:
+      // Special case of "them" with no strings defined.
+      if v == ast.KeywordThem && len(rule.Strings) == 0 {
+        missing_idents = append(missing_idents, string(v))
+      }
+  }
+
+  for _, child := range node.Children() {
+    missing_idents = append(missing_idents, checkStringIdentifiers(child, rule)...)
+  }
+
+  return missing_idents
 }
