@@ -31,6 +31,7 @@ const (
 	InvalidAsciiError
 	InvalidUTF8Error
 	UndefinedStringIdentifierError
+	UndefinedRuleIdentifierError
 )
 
 type Error struct {
