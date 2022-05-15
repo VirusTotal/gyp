@@ -237,7 +237,7 @@ const yrEofCode = 1
 const yrErrCode = 2
 const yrInitialStackSize = 16
 
-//line parser/grammar.y:1256
+//line parser/grammar.y:1439
 
 // This function takes an operator and two operands and returns a Expression
 // representing the operation. If the left operand is an operation of the
@@ -889,6 +889,23 @@ yrdefault:
 				}
 			}
 
+			// Forbid any rule which matches our rules wildcard table. This ensures
+			// the following is a syntax error:
+			//
+			// rule a { condition: true }
+			// rule b { condition: any of (a*) }
+			// rule a2 { condition: true }
+			//
+			// This must be a syntax error because the "a2" rule is defined _AFTER_
+			// the (a*) expansion.
+			for i, _ := range lexer.rule_wildcards {
+				if strings.HasPrefix(yrDollar[3].s, i) {
+					return lexer.setError(
+						gyperror.UndefinedRuleIdentifierError,
+						`rule identifier "%s" matches previously used wildcard rule set`, yrDollar[3].s)
+				}
+			}
+
 			// The line number of the rule is the line number of the first
 			// modifier....
 			yrVAL.lineno = yrDollar[1].lineno
@@ -899,6 +916,10 @@ yrdefault:
 				yrVAL.lineno = yrDollar[2].lineno
 			}
 
+			// Store the rule identifier for lookup to ensure rule references are
+			// always defined.
+			lexer.rules[yrDollar[3].s] = true
+
 			yrVAL.rule = &ast.Rule{
 				LineNo:     yrVAL.lineno,
 				Global:     yrDollar[1].mod&ModGlobal == ModGlobal,
@@ -908,7 +929,7 @@ yrdefault:
 		}
 	case 8:
 		yrDollar = yrS[yrpt-8 : yrpt+1]
-//line parser/grammar.y:292
+//line parser/grammar.y:313
 		{
 			// Check for duplicate strings.
 			m := make(map[string]bool)
@@ -932,51 +953,54 @@ yrdefault:
 		}
 	case 9:
 		yrDollar = yrS[yrpt-11 : yrpt+1]
-//line parser/grammar.y:314
+//line parser/grammar.y:335
 		{
 			yrDollar[4].rule.Condition = yrDollar[10].expr
 			yrVAL.rule = yrDollar[4].rule
+
+			// Clear the strings map for the next rule being parsed.
+			asLexer(yrlex).strings = make(map[string]bool)
 		}
 	case 10:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line parser/grammar.y:323
+//line parser/grammar.y:347
 		{
 			yrVAL.metas = []*ast.Meta{}
 		}
 	case 11:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:327
+//line parser/grammar.y:351
 		{
 			yrVAL.metas = yrDollar[3].metas
 		}
 	case 12:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line parser/grammar.y:335
+//line parser/grammar.y:359
 		{
 			yrVAL.yss = []ast.String{}
 		}
 	case 13:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:339
+//line parser/grammar.y:363
 		{
 			yrVAL.yss = yrDollar[3].yss
 		}
 	case 14:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:347
+//line parser/grammar.y:371
 		{
 			yrVAL.expr = yrDollar[3].expr
 		}
 	case 15:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line parser/grammar.y:355
+//line parser/grammar.y:379
 		{
 			yrVAL.mod = 0
 			yrVAL.lineno = -1
 		}
 	case 16:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:360
+//line parser/grammar.y:384
 		{
 			yrVAL.mod = yrDollar[1].mod | yrDollar[2].mod
 
@@ -988,39 +1012,39 @@ yrdefault:
 		}
 	case 17:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:374
+//line parser/grammar.y:398
 		{
 			yrVAL.mod = ModPrivate
 			yrVAL.lineno = yrDollar[1].lineno
 		}
 	case 18:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:379
+//line parser/grammar.y:403
 		{
 			yrVAL.mod = ModGlobal
 			yrVAL.lineno = yrDollar[1].lineno
 		}
 	case 19:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line parser/grammar.y:388
+//line parser/grammar.y:412
 		{
 			yrVAL.ss = []string{}
 		}
 	case 20:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:392
+//line parser/grammar.y:416
 		{
 			yrVAL.ss = yrDollar[2].ss
 		}
 	case 21:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:400
+//line parser/grammar.y:424
 		{
 			yrVAL.ss = []string{yrDollar[1].s}
 		}
 	case 22:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:404
+//line parser/grammar.y:428
 		{
 			lexer := asLexer(yrlex)
 
@@ -1035,19 +1059,19 @@ yrdefault:
 		}
 	case 23:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:421
+//line parser/grammar.y:445
 		{
 			yrVAL.metas = []*ast.Meta{yrDollar[1].meta}
 		}
 	case 24:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:425
+//line parser/grammar.y:449
 		{
 			yrVAL.metas = append(yrDollar[1].metas, yrDollar[2].meta)
 		}
 	case 25:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:433
+//line parser/grammar.y:457
 		{
 			yrVAL.meta = &ast.Meta{
 				Key:   yrDollar[1].s,
@@ -1056,7 +1080,7 @@ yrdefault:
 		}
 	case 26:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:440
+//line parser/grammar.y:464
 		{
 			yrVAL.meta = &ast.Meta{
 				Key:   yrDollar[1].s,
@@ -1065,7 +1089,7 @@ yrdefault:
 		}
 	case 27:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:447
+//line parser/grammar.y:471
 		{
 			yrVAL.meta = &ast.Meta{
 				Key:   yrDollar[1].s,
@@ -1074,7 +1098,7 @@ yrdefault:
 		}
 	case 28:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:454
+//line parser/grammar.y:478
 		{
 			yrVAL.meta = &ast.Meta{
 				Key:   yrDollar[1].s,
@@ -1083,7 +1107,7 @@ yrdefault:
 		}
 	case 29:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:461
+//line parser/grammar.y:485
 		{
 			yrVAL.meta = &ast.Meta{
 				Key:   yrDollar[1].s,
@@ -1092,19 +1116,23 @@ yrdefault:
 		}
 	case 30:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:472
+//line parser/grammar.y:496
 		{
+			lexer := asLexer(yrlex)
+			lexer.strings[yrDollar[1].ys.GetIdentifier()] = true
 			yrVAL.yss = []ast.String{yrDollar[1].ys}
 		}
 	case 31:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:476
+//line parser/grammar.y:502
 		{
+			lexer := asLexer(yrlex)
+			lexer.strings[yrDollar[2].ys.GetIdentifier()] = true
 			yrVAL.yss = append(yrDollar[1].yss, yrDollar[2].ys)
 		}
 	case 32:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:484
+//line parser/grammar.y:512
 		{
 			if err := validateUTF8(yrDollar[3].s); err != nil {
 				return asLexer(yrlex).setError(
@@ -1113,7 +1141,7 @@ yrdefault:
 		}
 	case 33:
 		yrDollar = yrS[yrpt-5 : yrpt+1]
-//line parser/grammar.y:491
+//line parser/grammar.y:519
 		{
 			yrVAL.ys = &ast.TextString{
 				BaseString: ast.BaseString{
@@ -1136,7 +1164,7 @@ yrdefault:
 		}
 	case 34:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:512
+//line parser/grammar.y:540
 		{
 			yrVAL.ys = &ast.RegexpString{
 				BaseString: ast.BaseString{
@@ -1153,7 +1181,7 @@ yrdefault:
 		}
 	case 35:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:527
+//line parser/grammar.y:555
 		{
 			yrVAL.ys = &ast.HexString{
 				BaseString: ast.BaseString{
@@ -1166,13 +1194,13 @@ yrdefault:
 		}
 	case 36:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line parser/grammar.y:542
+//line parser/grammar.y:570
 		{
 			yrVAL.smod = stringModifiers{}
 		}
 	case 37:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:546
+//line parser/grammar.y:574
 		{
 			if yrDollar[1].smod.modifiers&yrDollar[2].smod.modifiers != 0 {
 				return asLexer(yrlex).setError(
@@ -1194,49 +1222,49 @@ yrdefault:
 		}
 	case 38:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:569
+//line parser/grammar.y:597
 		{
 			yrVAL.smod = stringModifiers{modifiers: ModWide}
 		}
 	case 39:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:570
+//line parser/grammar.y:598
 		{
 			yrVAL.smod = stringModifiers{modifiers: ModASCII}
 		}
 	case 40:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:571
+//line parser/grammar.y:599
 		{
 			yrVAL.smod = stringModifiers{modifiers: ModNocase}
 		}
 	case 41:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:572
+//line parser/grammar.y:600
 		{
 			yrVAL.smod = stringModifiers{modifiers: ModFullword}
 		}
 	case 42:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:573
+//line parser/grammar.y:601
 		{
 			yrVAL.smod = stringModifiers{modifiers: ModPrivate}
 		}
 	case 43:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:574
+//line parser/grammar.y:602
 		{
 			yrVAL.smod = stringModifiers{modifiers: ModBase64}
 		}
 	case 44:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:575
+//line parser/grammar.y:603
 		{
 			yrVAL.smod = stringModifiers{modifiers: ModBase64Wide}
 		}
 	case 45:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:577
+//line parser/grammar.y:605
 		{
 			if err := validateAscii(yrDollar[3].s); err != nil {
 				return asLexer(yrlex).setError(
@@ -1256,7 +1284,7 @@ yrdefault:
 		}
 	case 46:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:595
+//line parser/grammar.y:623
 		{
 			if err := validateAscii(yrDollar[3].s); err != nil {
 				return asLexer(yrlex).setError(
@@ -1276,7 +1304,7 @@ yrdefault:
 		}
 	case 47:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:613
+//line parser/grammar.y:641
 		{
 			yrVAL.smod = stringModifiers{
 				modifiers: ModXor,
@@ -1286,7 +1314,7 @@ yrdefault:
 		}
 	case 48:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:621
+//line parser/grammar.y:649
 		{
 			yrVAL.smod = stringModifiers{
 				modifiers: ModXor,
@@ -1296,7 +1324,7 @@ yrdefault:
 		}
 	case 49:
 		yrDollar = yrS[yrpt-6 : yrpt+1]
-//line parser/grammar.y:629
+//line parser/grammar.y:657
 		{
 			lexer := asLexer(yrlex)
 
@@ -1326,73 +1354,73 @@ yrdefault:
 		}
 	case 50:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line parser/grammar.y:661
+//line parser/grammar.y:689
 		{
 			yrVAL.mod = 0
 		}
 	case 51:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:665
+//line parser/grammar.y:693
 		{
 			yrVAL.mod = yrDollar[1].mod | yrDollar[2].mod
 		}
 	case 52:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:672
+//line parser/grammar.y:700
 		{
 			yrVAL.mod = ModWide
 		}
 	case 53:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:673
+//line parser/grammar.y:701
 		{
 			yrVAL.mod = ModASCII
 		}
 	case 54:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:674
+//line parser/grammar.y:702
 		{
 			yrVAL.mod = ModNocase
 		}
 	case 55:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:675
+//line parser/grammar.y:703
 		{
 			yrVAL.mod = ModFullword
 		}
 	case 56:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:676
+//line parser/grammar.y:704
 		{
 			yrVAL.mod = ModPrivate
 		}
 	case 57:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line parser/grammar.y:682
+//line parser/grammar.y:710
 		{
 			yrVAL.mod = 0
 		}
 	case 58:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:686
+//line parser/grammar.y:714
 		{
 			yrVAL.mod = yrDollar[1].mod | yrDollar[2].mod
 		}
 	case 59:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:693
+//line parser/grammar.y:721
 		{
 			yrVAL.mod = ModPrivate
 		}
 	case 60:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:699
+//line parser/grammar.y:727
 		{
 			yrVAL.expr = &ast.Identifier{Identifier: yrDollar[1].s}
 		}
 	case 61:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:703
+//line parser/grammar.y:731
 		{
 			yrVAL.expr = &ast.MemberAccess{
 				Container: yrDollar[1].expr,
@@ -1401,7 +1429,7 @@ yrdefault:
 		}
 	case 62:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:710
+//line parser/grammar.y:738
 		{
 			yrVAL.expr = &ast.Subscripting{
 				Array: yrDollar[1].expr,
@@ -1410,7 +1438,7 @@ yrdefault:
 		}
 	case 63:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:717
+//line parser/grammar.y:745
 		{
 			yrVAL.expr = &ast.FunctionCall{
 				Callable:  yrDollar[1].expr,
@@ -1419,55 +1447,55 @@ yrdefault:
 		}
 	case 64:
 		yrDollar = yrS[yrpt-0 : yrpt+1]
-//line parser/grammar.y:728
+//line parser/grammar.y:756
 		{
 			yrVAL.exprs = []ast.Expression{}
 		}
 	case 65:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:732
+//line parser/grammar.y:760
 		{
 			yrVAL.exprs = yrDollar[1].exprs
 		}
 	case 66:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:739
+//line parser/grammar.y:767
 		{
 			yrVAL.exprs = []ast.Expression{yrDollar[1].expr}
 		}
 	case 67:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:743
+//line parser/grammar.y:771
 		{
 			yrVAL.exprs = append(yrDollar[1].exprs, yrDollar[3].expr)
 		}
 	case 68:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:751
+//line parser/grammar.y:779
 		{
 			yrVAL.reg = yrDollar[1].reg
 		}
 	case 69:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:759
+//line parser/grammar.y:787
 		{
 			yrVAL.expr = yrDollar[1].expr
 		}
 	case 70:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:767
+//line parser/grammar.y:795
 		{
 			yrVAL.expr = ast.KeywordTrue
 		}
 	case 71:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:771
+//line parser/grammar.y:799
 		{
 			yrVAL.expr = ast.KeywordFalse
 		}
 	case 72:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:775
+//line parser/grammar.y:803
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpMatches,
@@ -1476,7 +1504,7 @@ yrdefault:
 		}
 	case 73:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:782
+//line parser/grammar.y:810
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpContains,
@@ -1485,7 +1513,7 @@ yrdefault:
 		}
 	case 74:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:789
+//line parser/grammar.y:817
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpIContains,
@@ -1494,7 +1522,7 @@ yrdefault:
 		}
 	case 75:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:796
+//line parser/grammar.y:824
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpStartsWith,
@@ -1503,7 +1531,7 @@ yrdefault:
 		}
 	case 76:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:803
+//line parser/grammar.y:831
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpIStartsWith,
@@ -1512,7 +1540,7 @@ yrdefault:
 		}
 	case 77:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:810
+//line parser/grammar.y:838
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpEndsWith,
@@ -1521,7 +1549,7 @@ yrdefault:
 		}
 	case 78:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:817
+//line parser/grammar.y:845
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpIEndsWith,
@@ -1530,7 +1558,7 @@ yrdefault:
 		}
 	case 79:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:824
+//line parser/grammar.y:852
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpIEquals,
@@ -1539,33 +1567,63 @@ yrdefault:
 		}
 	case 80:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:831
+//line parser/grammar.y:859
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "$")
+			// Exclude anonymous ($) strings.
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringIdentifier{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "$"),
+				Identifier: identifier,
 			}
 		}
 	case 81:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:837
+//line parser/grammar.y:875
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "$")
+			// Exclude anonymous ($) strings.
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringIdentifier{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "$"),
+				Identifier: identifier,
 				At:         yrDollar[3].expr,
 			}
 		}
 	case 82:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:844
+//line parser/grammar.y:892
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "$")
+			// Exclude anonymous ($) strings.
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringIdentifier{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "$"),
+				Identifier: identifier,
 				In:         yrDollar[3].rng,
 			}
 		}
 	case 83:
 		yrDollar = yrS[yrpt-9 : yrpt+1]
-//line parser/grammar.y:851
+//line parser/grammar.y:909
 		{
 			yrVAL.expr = &ast.ForIn{
 				Quantifier: yrDollar[2].expr,
@@ -1576,7 +1634,7 @@ yrdefault:
 		}
 	case 84:
 		yrDollar = yrS[yrpt-8 : yrpt+1]
-//line parser/grammar.y:860
+//line parser/grammar.y:918
 		{
 			yrVAL.expr = &ast.ForOf{
 				Quantifier: yrDollar[2].expr,
@@ -1586,7 +1644,7 @@ yrdefault:
 		}
 	case 85:
 		yrDollar = yrS[yrpt-5 : yrpt+1]
-//line parser/grammar.y:868
+//line parser/grammar.y:926
 		{
 			yrVAL.expr = &ast.Of{
 				Quantifier: yrDollar[1].expr,
@@ -1596,7 +1654,7 @@ yrdefault:
 		}
 	case 86:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:876
+//line parser/grammar.y:934
 		{
 			yrVAL.expr = &ast.Of{
 				Quantifier: yrDollar[1].expr,
@@ -1605,7 +1663,7 @@ yrdefault:
 		}
 	case 87:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:883
+//line parser/grammar.y:941
 		{
 			yrVAL.expr = &ast.Of{
 				Quantifier: yrDollar[1].expr,
@@ -1614,7 +1672,7 @@ yrdefault:
 		}
 	case 88:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:890
+//line parser/grammar.y:948
 		{
 			yrVAL.expr = &ast.Of{
 				Quantifier: &ast.Percentage{yrDollar[1].expr},
@@ -1623,7 +1681,7 @@ yrdefault:
 		}
 	case 89:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:897
+//line parser/grammar.y:955
 		{
 			yrVAL.expr = &ast.Of{
 				Quantifier: &ast.Percentage{yrDollar[1].expr},
@@ -1632,31 +1690,31 @@ yrdefault:
 		}
 	case 90:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:904
+//line parser/grammar.y:962
 		{
 			yrVAL.expr = &ast.Not{yrDollar[2].expr}
 		}
 	case 91:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:908
+//line parser/grammar.y:966
 		{
 			yrVAL.expr = &ast.Defined{yrDollar[2].expr}
 		}
 	case 92:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:912
+//line parser/grammar.y:970
 		{
 			yrVAL.expr = operation(ast.OpAnd, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 93:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:916
+//line parser/grammar.y:974
 		{
 			yrVAL.expr = operation(ast.OpOr, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 94:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:920
+//line parser/grammar.y:978
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpLessThan,
@@ -1665,7 +1723,7 @@ yrdefault:
 		}
 	case 95:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:927
+//line parser/grammar.y:985
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpGreaterThan,
@@ -1674,7 +1732,7 @@ yrdefault:
 		}
 	case 96:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:934
+//line parser/grammar.y:992
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpLessOrEqual,
@@ -1683,7 +1741,7 @@ yrdefault:
 		}
 	case 97:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:941
+//line parser/grammar.y:999
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpGreaterOrEqual,
@@ -1692,7 +1750,7 @@ yrdefault:
 		}
 	case 98:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:948
+//line parser/grammar.y:1006
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpEqual,
@@ -1701,7 +1759,7 @@ yrdefault:
 		}
 	case 99:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:955
+//line parser/grammar.y:1013
 		{
 			yrVAL.expr = &ast.Operation{
 				Operator: ast.OpNotEqual,
@@ -1710,31 +1768,31 @@ yrdefault:
 		}
 	case 100:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:962
+//line parser/grammar.y:1020
 		{
 			yrVAL.expr = yrDollar[1].expr
 		}
 	case 101:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:966
+//line parser/grammar.y:1024
 		{
 			yrVAL.expr = &ast.Group{yrDollar[2].expr}
 		}
 	case 102:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:974
+//line parser/grammar.y:1032
 		{
 			yrVAL.node = &ast.Enum{Values: yrDollar[2].exprs}
 		}
 	case 103:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:978
+//line parser/grammar.y:1036
 		{
 			yrVAL.node = yrDollar[1].rng
 		}
 	case 104:
 		yrDollar = yrS[yrpt-5 : yrpt+1]
-//line parser/grammar.y:986
+//line parser/grammar.y:1044
 		{
 			yrVAL.rng = &ast.Range{
 				Start: yrDollar[2].expr,
@@ -1743,155 +1801,226 @@ yrdefault:
 		}
 	case 105:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:997
+//line parser/grammar.y:1055
 		{
 			yrVAL.exprs = []ast.Expression{yrDollar[1].expr}
 		}
 	case 106:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1001
+//line parser/grammar.y:1059
 		{
 			yrVAL.exprs = append(yrDollar[1].exprs, yrDollar[3].expr)
 		}
 	case 107:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1009
+//line parser/grammar.y:1067
 		{
 			yrVAL.node = &ast.Enum{Values: yrDollar[2].exprs}
 		}
 	case 108:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1013
+//line parser/grammar.y:1071
 		{
+			lexer := asLexer(yrlex)
+			if len(lexer.strings) == 0 {
+				return lexer.setError(
+					gyperror.UndefinedStringIdentifierError,
+					`undefined string identifier: %s`, ast.KeywordThem)
+			}
 			yrVAL.node = ast.KeywordThem
 		}
 	case 109:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1021
+//line parser/grammar.y:1085
 		{
 			yrVAL.exprs = []ast.Expression{yrDollar[1].si}
 		}
 	case 110:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1025
+//line parser/grammar.y:1089
 		{
 			yrVAL.exprs = append(yrDollar[1].exprs, yrDollar[3].si)
 		}
 	case 111:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1033
+//line parser/grammar.y:1097
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "$")
+			lexer := asLexer(yrlex)
+			// Anonymous strings ($) in string enumerations are an error.
+			if _, ok := lexer.strings[identifier]; !ok || identifier == "" {
+				return lexer.setError(
+					gyperror.UndefinedStringIdentifierError,
+					`undefined string identifier: %s`, yrDollar[1].s)
+			}
 			yrVAL.si = &ast.StringIdentifier{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "$"),
+				Identifier: identifier,
 			}
 		}
 	case 112:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1039
+//line parser/grammar.y:1111
 		{
+			identifier := strings.TrimSuffix(yrDollar[1].s, "*")
+			lexer := asLexer(yrlex)
+			// There must be at least one defined string.
+			if len(identifier) == 0 && len(lexer.strings) == 0 {
+				return lexer.setError(
+					gyperror.UndefinedStringIdentifierError,
+					`undefined string identifier: %s`, yrDollar[1].s)
+			}
+
+			// There must be at least one string that will match the wildcard.
+			identifier = strings.TrimPrefix(identifier, "$")
+			match := false
+			for s, _ := range lexer.strings {
+				if strings.HasPrefix(s, identifier) {
+					match = true
+					break
+				}
+			}
+			if !match {
+				return lexer.setError(
+					gyperror.UndefinedStringIdentifierError,
+					`undefined string identifier: %s`, yrDollar[1].s)
+			}
+			// Can't use "identifier" here as that has the asterisk stripped already.
 			yrVAL.si = &ast.StringIdentifier{
 				Identifier: strings.TrimPrefix(yrDollar[1].s, "$"),
 			}
 		}
 	case 113:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1049
+//line parser/grammar.y:1145
 		{
 			yrVAL.node = &ast.Enum{Values: yrDollar[2].exprs}
 		}
 	case 114:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1057
+//line parser/grammar.y:1153
 		{
 			yrVAL.exprs = []ast.Expression{yrDollar[1].ident}
 		}
 	case 115:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1061
+//line parser/grammar.y:1157
 		{
 			yrVAL.exprs = append(yrDollar[1].exprs, yrDollar[3].ident)
 		}
 	case 116:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1069
+//line parser/grammar.y:1165
 		{
+			lexer := asLexer(yrlex)
+			match := false
+			for r, _ := range lexer.rules {
+				if r == yrDollar[1].s {
+					match = true
+					break
+				}
+			}
+			if !match {
+				return lexer.setError(
+					gyperror.UndefinedRuleIdentifierError,
+					`undefined rule identifier: %s`, yrDollar[1].s)
+			}
+
 			yrVAL.ident = &ast.Identifier{Identifier: yrDollar[1].s}
 		}
 	case 117:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:1073
+//line parser/grammar.y:1183
 		{
+			// There must be at least one rule which matches this wildcard
+			lexer := asLexer(yrlex)
+			match := false
+			for r, _ := range lexer.rules {
+				if strings.HasPrefix(r, yrDollar[1].s) {
+					match = true
+					break
+				}
+			}
+			if !match {
+				return lexer.setError(
+					gyperror.UndefinedRuleIdentifierError,
+					`undefined rule identifier: %s`, yrDollar[1].s+"*")
+			}
+
+			// Store the identifier without the asterisk for lookup later. When a
+			// new rule is created it must not be a prefix match for anything in
+			// this table.
+			lexer.rule_wildcards[yrDollar[1].s] = true
 			yrVAL.ident = &ast.Identifier{Identifier: yrDollar[1].s + "*"}
 		}
 	case 118:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1081
+//line parser/grammar.y:1210
 		{
 			yrVAL.expr = yrDollar[1].expr
 		}
 	case 119:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1085
+//line parser/grammar.y:1214
 		{
 			yrVAL.expr = ast.KeywordAll
 		}
 	case 120:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1089
+//line parser/grammar.y:1218
 		{
 			yrVAL.expr = ast.KeywordAny
 		}
 	case 121:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1093
+//line parser/grammar.y:1222
 		{
 			yrVAL.expr = ast.KeywordNone
 		}
 	case 122:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1101
+//line parser/grammar.y:1230
 		{
 			yrVAL.ss = []string{yrDollar[1].s}
 		}
 	case 123:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1105
+//line parser/grammar.y:1234
 		{
 			yrVAL.ss = append(yrDollar[1].ss, yrDollar[3].s)
 		}
 	case 124:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1112
+//line parser/grammar.y:1241
 		{
 			yrVAL.node = yrDollar[1].expr
 		}
 	case 125:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1116
+//line parser/grammar.y:1245
 		{
 			yrVAL.node = yrDollar[1].node
 		}
 	case 126:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1124
+//line parser/grammar.y:1253
 		{
 			yrVAL.expr = &ast.Group{yrDollar[2].expr}
 		}
 	case 127:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1128
+//line parser/grammar.y:1257
 		{
 			yrVAL.expr = ast.KeywordFilesize
 		}
 	case 128:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1132
+//line parser/grammar.y:1261
 		{
 			yrVAL.expr = ast.KeywordEntrypoint
 		}
 	case 129:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:1136
+//line parser/grammar.y:1265
 		{
 			yrVAL.expr = &ast.FunctionCall{
 				Callable:  &ast.Identifier{Identifier: yrDollar[1].s},
@@ -1900,19 +2029,19 @@ yrdefault:
 		}
 	case 130:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1143
+//line parser/grammar.y:1272
 		{
 			yrVAL.expr = &ast.LiteralInteger{yrDollar[1].i64}
 		}
 	case 131:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1147
+//line parser/grammar.y:1276
 		{
 			yrVAL.expr = &ast.LiteralFloat{yrDollar[1].f64}
 		}
 	case 132:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1151
+//line parser/grammar.y:1280
 		{
 			if err := validateUTF8(yrDollar[1].s); err != nil {
 				return asLexer(yrlex).setError(
@@ -1923,136 +2052,190 @@ yrdefault:
 		}
 	case 133:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1160
+//line parser/grammar.y:1289
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "#")
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringCount{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "#"),
+				Identifier: identifier,
 				In:         yrDollar[3].rng,
 			}
 		}
 	case 134:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1167
+//line parser/grammar.y:1305
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "#")
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringCount{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "#"),
+				Identifier: identifier,
 			}
 		}
 	case 135:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:1173
+//line parser/grammar.y:1320
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "@")
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringOffset{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "@"),
+				Identifier: identifier,
 				Index:      yrDollar[3].expr,
 			}
 		}
 	case 136:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1180
+//line parser/grammar.y:1336
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "@")
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringOffset{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "@"),
+				Identifier: identifier,
 			}
 		}
 	case 137:
 		yrDollar = yrS[yrpt-4 : yrpt+1]
-//line parser/grammar.y:1186
+//line parser/grammar.y:1351
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "!")
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringLength{
-				Identifier: strings.TrimPrefix(yrDollar[1].s, "!"),
+				Identifier: identifier,
 				Index:      yrDollar[3].expr,
 			}
 		}
 	case 138:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1193
+//line parser/grammar.y:1367
 		{
+			identifier := strings.TrimPrefix(yrDollar[1].s, "!")
+			if identifier != "" {
+				lexer := asLexer(yrlex)
+				if _, ok := lexer.strings[identifier]; !ok {
+					return lexer.setError(
+						gyperror.UndefinedStringIdentifierError,
+						`undefined string identifier: %s`, yrDollar[1].s)
+				}
+			}
 			yrVAL.expr = &ast.StringLength{
 				Identifier: strings.TrimPrefix(yrDollar[1].s, "!"),
 			}
 		}
 	case 139:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1199
+//line parser/grammar.y:1382
 		{
 			yrVAL.expr = yrDollar[1].expr
 		}
 	case 140:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:1203
+//line parser/grammar.y:1386
 		{
 			yrVAL.expr = &ast.Minus{yrDollar[2].expr}
 		}
 	case 141:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1207
+//line parser/grammar.y:1390
 		{
 			yrVAL.expr = operation(ast.OpAdd, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 142:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1211
+//line parser/grammar.y:1394
 		{
 			yrVAL.expr = operation(ast.OpSub, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 143:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1215
+//line parser/grammar.y:1398
 		{
 			yrVAL.expr = operation(ast.OpMul, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 144:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1219
+//line parser/grammar.y:1402
 		{
 			yrVAL.expr = operation(ast.OpDiv, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 145:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1223
+//line parser/grammar.y:1406
 		{
 			yrVAL.expr = operation(ast.OpMod, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 146:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1227
+//line parser/grammar.y:1410
 		{
 			yrVAL.expr = operation(ast.OpBitXor, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 147:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1231
+//line parser/grammar.y:1414
 		{
 			yrVAL.expr = operation(ast.OpBitAnd, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 148:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1235
+//line parser/grammar.y:1418
 		{
 			yrVAL.expr = operation(ast.OpBitOr, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 149:
 		yrDollar = yrS[yrpt-2 : yrpt+1]
-//line parser/grammar.y:1239
+//line parser/grammar.y:1422
 		{
 			yrVAL.expr = &ast.BitwiseNot{yrDollar[2].expr}
 		}
 	case 150:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1243
+//line parser/grammar.y:1426
 		{
 			yrVAL.expr = operation(ast.OpShiftLeft, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 151:
 		yrDollar = yrS[yrpt-3 : yrpt+1]
-//line parser/grammar.y:1247
+//line parser/grammar.y:1430
 		{
 			yrVAL.expr = operation(ast.OpShiftRight, yrDollar[1].expr, yrDollar[3].expr)
 		}
 	case 152:
 		yrDollar = yrS[yrpt-1 : yrpt+1]
-//line parser/grammar.y:1251
+//line parser/grammar.y:1434
 		{
 			yrVAL.expr = yrDollar[1].reg
 		}

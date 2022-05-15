@@ -271,6 +271,23 @@ rule
             }
         }
 
+        // Forbid any rule which matches our rules wildcard table. This ensures
+        // the following is a syntax error:
+        //
+        // rule a { condition: true }
+        // rule b { condition: any of (a*) }
+        // rule a2 { condition: true }
+        //
+        // This must be a syntax error because the "a2" rule is defined _AFTER_
+        // the (a*) expansion.
+        for i, _ := range lexer.rule_wildcards {
+          if strings.HasPrefix($3, i) {
+            return lexer.setError(
+              gyperror.UndefinedRuleIdentifierError,
+              `rule identifier "%s" matches previously used wildcard rule set`, $3)
+          }
+        }
+
         // The line number of the rule is the line number of the first
         // modifier....
         $<lineno>$ = $<lineno>1
@@ -280,6 +297,10 @@ rule
         if $<lineno>$ == -1 {
            $<lineno>$  = $<lineno>2
         }
+
+        // Store the rule identifier for lookup to ensure rule references are
+        // always defined.
+        lexer.rules[$3] = true
 
         $$ = &ast.Rule{
             LineNo: $<lineno>$,
@@ -314,6 +335,9 @@ rule
       {
         $<rule>4.Condition = $10
         $$ = $<rule>4
+
+        // Clear the strings map for the next rule being parsed.
+        asLexer(yrlex).strings = make(map[string]bool)
       }
     ;
 
@@ -470,10 +494,14 @@ meta_declaration
 string_declarations
     : string_declaration
       {
+        lexer := asLexer(yrlex)
+        lexer.strings[$1.GetIdentifier()] = true
         $$ = []ast.String{$1}
       }
     | string_declarations string_declaration
       {
+        lexer := asLexer(yrlex)
+        lexer.strings[$2.GetIdentifier()] = true
         $$ = append($1, $2)
       }
     ;
@@ -829,21 +857,51 @@ expression
       }
     | _STRING_IDENTIFIER_
       {
+        identifier := strings.TrimPrefix($1, "$")
+        // Exclude anonymous ($) strings.
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringIdentifier{
-          Identifier: strings.TrimPrefix($1, "$"),
+          Identifier: identifier,
         }
       }
     | _STRING_IDENTIFIER_ _AT_ primary_expression
       {
+        identifier := strings.TrimPrefix($1, "$")
+        // Exclude anonymous ($) strings.
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringIdentifier{
-          Identifier: strings.TrimPrefix($1, "$"),
+          Identifier: identifier,
           At: $3,
         }
       }
     | _STRING_IDENTIFIER_ _IN_ range
       {
+        identifier := strings.TrimPrefix($1, "$")
+        // Exclude anonymous ($) strings.
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringIdentifier{
-          Identifier: strings.TrimPrefix($1, "$"),
+          Identifier: identifier,
           In: $3,
         }
       }
@@ -1011,6 +1069,12 @@ string_set
       }
     | _THEM_
       {
+        lexer := asLexer(yrlex)
+        if len(lexer.strings) == 0 {
+          return lexer.setError(
+            gyperror.UndefinedStringIdentifierError,
+            `undefined string identifier: %s`, ast.KeywordThem)
+        }
         $$ = ast.KeywordThem
       }
     ;
@@ -1031,16 +1095,48 @@ string_enumeration
 string_enumeration_item
     : _STRING_IDENTIFIER_
       {
+        identifier := strings.TrimPrefix($1, "$")
+        lexer := asLexer(yrlex)
+        // Anonymous strings ($) in string enumerations are an error.
+        if _, ok := lexer.strings[identifier]; !ok || identifier == "" {
+          return lexer.setError(
+            gyperror.UndefinedStringIdentifierError,
+            `undefined string identifier: %s`, $1)
+        }
         $$ = &ast.StringIdentifier{
-          Identifier: strings.TrimPrefix($1, "$"),
+          Identifier: identifier,
         }
       }
     | _STRING_IDENTIFIER_WITH_WILDCARD_
-      {
-        $$ = &ast.StringIdentifier{
-          Identifier: strings.TrimPrefix($1, "$"),
+    {
+      identifier := strings.TrimSuffix($1, "*")
+      lexer := asLexer(yrlex)
+      // There must be at least one defined string.
+      if len(identifier) == 0 && len(lexer.strings) == 0 {
+          return lexer.setError(
+            gyperror.UndefinedStringIdentifierError,
+            `undefined string identifier: %s`, $1)
+      }
+
+      // There must be at least one string that will match the wildcard.
+      identifier = strings.TrimPrefix(identifier, "$")
+      match := false
+      for s, _ := range lexer.strings {
+        if strings.HasPrefix(s, identifier) {
+          match = true
+          break
         }
       }
+      if !match {
+        return lexer.setError(
+          gyperror.UndefinedStringIdentifierError,
+          `undefined string identifier: %s`, $1)
+      }
+      // Can't use "identifier" here as that has the asterisk stripped already.
+      $$ = &ast.StringIdentifier{
+        Identifier: strings.TrimPrefix($1, "$"),
+      }
+    }
     ;
 
 
@@ -1067,10 +1163,43 @@ rule_enumeration
 rule_enumeration_item
     : _IDENTIFIER_
       {
+        lexer := asLexer(yrlex)
+        match := false
+        for r, _ := range lexer.rules {
+          if r == $1 {
+            match = true
+            break
+          }
+        }
+        if !match {
+          return lexer.setError(
+            gyperror.UndefinedRuleIdentifierError,
+            `undefined rule identifier: %s`, $1)
+        }
+
         $$ = &ast.Identifier{Identifier: $1}
       }
     | _IDENTIFIER_ '*'
       {
+        // There must be at least one rule which matches this wildcard
+        lexer := asLexer(yrlex)
+        match := false
+        for r, _ := range lexer.rules {
+          if strings.HasPrefix(r, $1) {
+            match = true
+            break
+          }
+        }
+        if !match {
+          return lexer.setError(
+            gyperror.UndefinedRuleIdentifierError,
+            `undefined rule identifier: %s`, $1 + "*")
+        }
+
+        // Store the identifier without the asterisk for lookup later. When a
+        // new rule is created it must not be a prefix match for anything in
+        // this table.
+        lexer.rule_wildcards[$1] = true
         $$ = &ast.Identifier{Identifier: $1 + "*"}
       }
     ;
@@ -1158,39 +1287,93 @@ primary_expression
       }
     | _STRING_COUNT_ _IN_ range
       {
+        identifier := strings.TrimPrefix($1, "#")
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringCount{
-          Identifier: strings.TrimPrefix($1, "#"),
+          Identifier: identifier,
           In: $3,
         }
       }
     | _STRING_COUNT_
       {
+        identifier := strings.TrimPrefix($1, "#")
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringCount{
-          Identifier: strings.TrimPrefix($1, "#"),
+          Identifier: identifier,
         }
       }
     | _STRING_OFFSET_ '[' primary_expression ']'
       {
+        identifier := strings.TrimPrefix($1, "@")
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringOffset{
-          Identifier: strings.TrimPrefix($1, "@"),
+          Identifier: identifier,
           Index: $3,
         }
       }
     | _STRING_OFFSET_
       {
+        identifier := strings.TrimPrefix($1, "@")
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringOffset{
-          Identifier: strings.TrimPrefix($1, "@"),
+          Identifier: identifier,
         }
       }
     | _STRING_LENGTH_ '[' primary_expression ']'
       {
+        identifier := strings.TrimPrefix($1, "!")
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringLength{
-          Identifier: strings.TrimPrefix($1, "!"),
+          Identifier: identifier,
           Index: $3,
         }
       }
     | _STRING_LENGTH_
       {
+        identifier := strings.TrimPrefix($1, "!")
+        if identifier != "" {
+          lexer := asLexer(yrlex)
+          if _, ok := lexer.strings[identifier]; !ok {
+            return lexer.setError(
+              gyperror.UndefinedStringIdentifierError,
+              `undefined string identifier: %s`, $1)
+          }
+        }
         $$ = &ast.StringLength{
           Identifier: strings.TrimPrefix($1, "!"),
         }

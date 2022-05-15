@@ -32,6 +32,9 @@ func Parse(input io.Reader) (rs *ast.RuleSet, err error) {
 			Imports: make([]string, 0),
 			Rules:   make([]*ast.Rule, 0),
 		},
+		strings: make(map[string]bool),
+		rules: make(map[string]bool),
+		rule_wildcards: make(map[string]bool),
 	}
 	lexer.scanner.In = input
 	lexer.scanner.Out = ioutil.Discard
@@ -50,7 +53,17 @@ func Parse(input io.Reader) (rs *ast.RuleSet, err error) {
 type lexer struct {
 	scanner Scanner
 	err     gyperror.Error
+	// This stores the compiled rules.
 	ruleSet *ast.RuleSet
+	// Used to collect the strings as they are parsed on a per-rule basis.
+	// When the condition is parsed this is used as a lookup table to check
+	// for undefined strings.
+	strings map[string]bool
+	// Used as a lookup for rule identifiers only.
+	rules map[string]bool
+	// Used as a lookup for rule identifiers with wildcards to check if
+	// a rule is defined _AFTER_ a rule uses it in a wildcard expansion.
+	rule_wildcards map[string]bool
 }
 
 // Lex provides the interface expected by the goyacc parser. This function is
