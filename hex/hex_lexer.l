@@ -148,7 +148,10 @@ hexdigit      [a-fA-F0-9]
   return yy.Token(_LBRACKET_);
 }
 
-"/*"(.|\n)*"*/"    // skip comments
+"/*"                    { BEGIN (comment);    }
+<comment>"*/"           { BEGIN (INITIAL);    }
+<comment>(.|\n)         { /* skip comments */ }
+
 
 "//".*             // skip single-line comments
 
