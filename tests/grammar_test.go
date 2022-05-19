@@ -1,11 +1,11 @@
 package tests
 
 import (
-	"github.com/VirusTotal/gyp/ast"
 	"strings"
 	"testing"
 
 	"github.com/VirusTotal/gyp"
+	"github.com/VirusTotal/gyp/ast"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -856,4 +856,19 @@ func TestIssue50(t *testing.T) {
        		for all i in (0..10 : ($a at i))
 	}`)
 	assert.Error(t, err)
+}
+
+// Test case for https://github.com/VirusTotal/gyp/issues/57
+func TestIssue57(t *testing.T) {
+	_, err := gyp.ParseString(`
+  rule TEST {
+    strings:
+      $ = {
+            01 [5]    /* comment */
+            02        /* comment */
+      }
+    condition:
+      all of them
+	}`)
+	assert.NoError(t, err)
 }

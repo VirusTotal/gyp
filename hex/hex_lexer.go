@@ -143,13 +143,13 @@ const yyInteractiveDefault = false
 // SKEL ----------------------------------------------------------------
 
 // [4.0] data tables for the DFA go here -------------------------------
-const yyNumRules = 21
-const yyEndOfBuffer = 22
-var yyAccept = [39]int16{   0,
-        0,    0,    0,    0,    0,    0,   22,   20,   16,   16,
-       17,   18,   20,    7,   20,    8,    1,   19,    2,   21,
-       15,   14,   14,   11,   12,   13,    0,   10,    3,    4,
-        5,    6,   12,    0,    0,   10,    9,    0,
+const yyNumRules = 23
+const yyEndOfBuffer = 24
+var yyAccept = [38]int16{   0,
+        0,    0,    0,    0,    0,    0,   24,   22,   18,   18,
+       19,   20,   22,    7,   22,    8,    1,   21,    2,   11,
+       11,   17,   16,   16,   13,   14,   15,    9,   12,    3,
+        4,    5,    6,   10,   14,   12,    0,
     }
 
 var yyEc = [256]byte{    0,
@@ -188,46 +188,46 @@ var yyMeta = [17]byte{    0,
         3,    1,    1,    1,    1,    1,
     }
 
-var yyBase = [45]uint16{   0,
-        0,    0,    0,    0,   15,   27,   39,   53,   53,   53,
-       53,   53,   13,   28,   27,   53,   53,   53,   53,   53,
-       53,   53,   53,   53,   26,   53,   27,    0,   53,   53,
-       53,   53,   23,   25,   17,    0,   21,   53,   40,   43,
-       23,   17,   46,   49,
+var yyBase = [43]uint16{   0,
+        0,    0,   31,   29,   15,   27,   33,   50,   50,   50,
+       50,   50,   13,   22,   21,   50,   50,   50,   50,   50,
+       19,   50,   50,   50,   50,   17,   50,   50,    0,   50,
+       50,   50,   50,   50,   16,    0,   50,   40,   43,   20,
+       17,   46,
     }
 
-var yyDef = [45]int16{   0,
-       38,    1,   39,   39,   40,   40,   38,   38,   38,   38,
-       38,   38,   38,   41,   42,   38,   38,   38,   38,   38,
-       38,   38,   38,   38,   38,   38,   43,   44,   38,   38,
-       38,   38,   38,   43,   43,   44,   43,    0,   38,   38,
-       38,   38,   38,   38,
+var yyDef = [43]int16{   0,
+       37,    1,   38,   38,   39,   39,   37,   37,   37,   37,
+       37,   37,   37,   40,   41,   37,   37,   37,   37,   37,
+       37,   37,   37,   37,   37,   37,   37,   37,   42,   37,
+       37,   37,   37,   37,   37,   42,    0,   37,   37,   37,
+       37,   37,
     }
 
-var yyNxt = [70]uint16{   0,
+var yyNxt = [67]uint16{   0,
         8,    9,   10,   11,   12,    8,    8,   13,   14,   15,
-       14,   16,    8,   17,   18,   19,   22,   23,   27,   31,
-       28,   24,   35,   25,   37,   29,   35,   26,   22,   23,
-       35,   33,   35,   24,   33,   25,   32,   30,   38,   26,
-       20,   20,   20,   21,   21,   21,   34,   34,   34,   36,
-       38,   36,    7,   38,   38,   38,   38,   38,   38,   38,
-       38,   38,   38,   38,   38,   38,   38,   38,   38,
+       14,   16,    8,   17,   18,   19,   23,   24,   28,   32,
+       29,   25,   30,   26,   35,   35,   34,   27,   23,   24,
+       33,   31,   37,   25,   21,   26,   21,   37,   37,   27,
+       20,   20,   20,   22,   22,   22,   36,   37,   36,    7,
+       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
+       37,   37,   37,   37,   37,   37,
     }
 
-var yyChk = [70]int16{   0,
+var yyChk = [67]int16{   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    5,    5,   13,   42,
-       13,    5,   35,    5,   35,   41,   37,    5,    6,    6,
-       34,   33,   27,    6,   25,    6,   15,   14,    7,    6,
-       39,   39,   39,   40,   40,   40,   43,   43,   43,   44,
-        0,   44,   38,   38,   38,   38,   38,   38,   38,   38,
-       38,   38,   38,   38,   38,   38,   38,   38,   38,
+        1,    1,    1,    1,    1,    1,    5,    5,   13,   41,
+       13,    5,   40,    5,   35,   26,   21,    5,    6,    6,
+       15,   14,    7,    6,    4,    6,    3,    0,    0,    6,
+       38,   38,   38,   39,   39,   39,   42,    0,   42,   37,
+       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
+       37,   37,   37,   37,   37,   37,
     }
 
 /* Table of booleans, true if rule could match eol. */
-var yyRuleCanMatchEol = [22]int32{   0,
-0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 
-    0, 0,     };
+var yyRuleCanMatchEol = [24]int32{   0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 
+    0, 0, 0, 0,     };
 
 //line hex/hex_lexer.l:1
 /*
@@ -371,13 +371,13 @@ yyMatch:
 			}
 			for int(yyChk[int(yyBase[yyCurrentState])+yyC]) != yyCurrentState {
 				yyCurrentState = int(yyDef[yyCurrentState])
-				if yyCurrentState >= 39 {
+				if yyCurrentState >= 38 {
 					yyC = int(yyMeta[yyC])
 				}
 			}
 			yyCurrentState = int(yyNxt[int(yyBase[yyCurrentState])+yyC])
 			yyCp++
-			if yyCurrentState == 38 {
+			if yyCurrentState == 37 {
 				break
 			}
 		}
@@ -528,35 +528,49 @@ case 8:
   return yy.Token(_LBRACKET_);
 }
 case 9:
-/* rule 9 can match eol */
 
 	yylineno = yy.Lineno
 	
 
 //line hex/hex_lexer.l:151
-// skip comments
+{ yy.start = 1 + 2*  (comment);    }
 case 10:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:153
-// skip single-line comments
+//line hex/hex_lexer.l:152
+{ yy.start = 1 + 2*  (yyInitial );    }
 case 11:
+/* rule 11 can match eol */
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:155
-{
-  return yy.Token(_HYPHEN_);
-}
+//line hex/hex_lexer.l:153
+{ /* skip comments */ }
 case 12:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:159
+//line hex/hex_lexer.l:156
+// skip single-line comments
+case 13:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:158
+{
+  return yy.Token(_HYPHEN_);
+}
+case 14:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:162
 {
   val, err := strconv.ParseInt(string(yytext), 10, 32)
   if err != nil {
@@ -565,34 +579,15 @@ case 12:
   }
   return yy.TokenInteger(_NUMBER_, int(val));
 }
-case 13:
-
-	yylineno = yy.Lineno
-	
-
-//line hex/hex_lexer.l:168
-{
-  yy.start = 1 + 2*  (yyInitial );
-  return yy.Token(_RBRACKET_);
-}
-case 14:
-/* rule 14 can match eol */
-
-	yylineno = yy.Lineno
-	
-
-//line hex/hex_lexer.l:173
-// skip whitespaces
 case 15:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:175
+//line hex/hex_lexer.l:171
 {
-  return Error(
-    gyperror.InvalidCharInHexStringError,
-    fmt.Sprintf(`invalid character in hex string range: %c (0x%02x)`, yytext[0], yytext[0]))
+  yy.start = 1 + 2*  (yyInitial );
+  return yy.Token(_RBRACKET_);
 }
 case 16:
 /* rule 16 can match eol */
@@ -600,54 +595,73 @@ case 16:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:181
+//line hex/hex_lexer.l:176
 // skip whitespaces
 case 17:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:183
+//line hex/hex_lexer.l:178
 {
-  return yy.Token(_LPARENS_)
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf(`invalid character in hex string range: %c (0x%02x)`, yytext[0], yytext[0]))
 }
 case 18:
+/* rule 18 can match eol */
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:187
-{
-  return yy.Token(_RPARENS_)
-}
+//line hex/hex_lexer.l:184
+// skip whitespaces
 case 19:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:191
+//line hex/hex_lexer.l:186
 {
-  return yy.Token(_PIPE_)
+  return yy.Token(_LPARENS_)
 }
 case 20:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:195
-{               // reject all other characters
-  return Error(
-    gyperror.InvalidCharInHexStringError,
-    fmt.Sprintf(`invalid character in hex string:  %c (0x%02x)`, yytext[0], yytext[0]))
+//line hex/hex_lexer.l:190
+{
+  return yy.Token(_RPARENS_)
 }
 case 21:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:201
+//line hex/hex_lexer.l:194
+{
+  return yy.Token(_PIPE_)
+}
+case 22:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:198
+{               // reject all other characters
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf(`invalid character in hex string:  %c (0x%02x)`, yytext[0], yytext[0]))
+}
+case 23:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:204
 yyout.Write(yytext) 
-//line hex/hex_lexer.go:651
+//line hex/hex_lexer.go:665
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -894,7 +908,7 @@ func (yy *Scanner) getPreviousState() int {
 		}
 		for int(yyChk[int(yyBase[yyCurrentState])+yyC]) != yyCurrentState {
 			yyCurrentState = int(yyDef[yyCurrentState])
-			if yyCurrentState >= 39 {
+			if yyCurrentState >= 38 {
 				yyC = int(yyMeta[yyC])
 			}
 		}
@@ -926,12 +940,12 @@ func (yy *Scanner) tryNulTrans(yyCurrentState int) int {
 	}
 	for int(yyChk[int(yyBase[yyCurrentState])+yyC]) != yyCurrentState {
 		yyCurrentState = int(yyDef[yyCurrentState])
-		if yyCurrentState >= 39 {
+		if yyCurrentState >= 38 {
 			yyC = int(yyMeta[yyC])
 		}
 	}
 	yyCurrentState = int(yyNxt[int(yyBase[yyCurrentState])+yyC])
-	if yyCurrentState == 38 {
+	if yyCurrentState == 37 {
 		yyIsJam = true
 	}
 // SKEL ----------------------------------------------------------------
@@ -1108,7 +1122,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line hex/hex_lexer.l:201
+//line hex/hex_lexer.l:204
 
 
 
