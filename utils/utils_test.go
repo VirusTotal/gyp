@@ -249,16 +249,6 @@ func TestGetDependencyChainErr(t *testing.T) {
 	}
 }
 
-func TestGetDependenciesForRulesDupsInRuleset(t *testing.T) {
-	var dupRules []*ast.Rule
-	dupRules = append(dupRules, &ast.Rule{Identifier: "a"}, &ast.Rule{Identifier: "a"})
-	ruleset := ast.RuleSet{Rules: dupRules}
-	_, err := GetDependenciesForRules(ruleset, "a")
-	if err.Error() != "ruleset contains a duplicate rule" {
-		t.Fatalf(err.Error())
-	}
-}
-
 func TestAddNilNodeToQue(t *testing.T) {
 	nkr := `
 	rule foo_x {

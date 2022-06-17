@@ -116,14 +116,6 @@ func GetDependenciesForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.Rule
 	if len(ruleset.Rules) == 0 {
 		return ast.RuleSet{}, fmt.Errorf("ruleset does not contain any rules")
 	}
-	// Make sure there are no duplicates in ruleset
-	var rulesetIdents []string
-	for _, rule := range ruleset.Rules {
-		if sliceContains(rule.Identifier, rulesetIdents) {
-			return ast.RuleSet{}, fmt.Errorf("ruleset contains a duplicate rule")
-		}
-		rulesetIdents = append(rulesetIdents, rule.Identifier)
-	}
 
 	// Ensure ruleNames are unique
 	ruleNamesM := make(map[string]struct{})
