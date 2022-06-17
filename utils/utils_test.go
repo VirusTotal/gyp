@@ -42,13 +42,13 @@ func TestLotsOfIdents(t *testing.T) {
 }
 
 func TestThreeDupIdents(t *testing.T) {
-	condition := `foo_zz and (2 of ($asdf*)) and (2 of ($asdf2*)) and (all of ($wo*)) or foo_zz or foo_zz`
+	condition := `foo_zz or foo_zz or foo_zz or $a`
 	expected := map[string]int{"foo_zz": 2}
 	testGetYARARuleDependencies(t, condition, expected)
 }
 
 func TestOneIdents(t *testing.T) {
-	condition := `foo_zz and (2 of ($asdf*)) and (2 of ($asdf2*)) and (all of ($wo*))`
+	condition := `foo_zz or $a`
 	expected := map[string]int{"foo_zz": 0}
 	testGetYARARuleDependencies(t, condition, expected)
 }
@@ -60,7 +60,7 @@ func TestStrOffsetImport(t *testing.T) {
 }
 
 func TestNoIdents(t *testing.T) {
-	condition := `all of ($asdf*) and ($asdf2 or $asdf3)`
+	condition := `all of ($a*) and ($a or $a)`
 	expected := map[string]int{}
 	testGetYARARuleDependencies(t, condition, expected)
 }
@@ -72,8 +72,8 @@ func TestNotIdent(t *testing.T) {
 }
 
 func TestNestedIdents(t *testing.T) {
-	condition := `(foo_zz or foo_zz) and $woo or ($foo_yy and (foo_xx or foo_yy))`
-	expected := map[string]int{"foo_zz": 1, "foo_xx": 0, "foo_yy": 0}
+	condition := `(foo_zz or foo_zz) and $a or ($a and (foo_xx or a))`
+	expected := map[string]int{"foo_zz": 1, "foo_xx": 0, "a": 0}
 	testGetYARARuleDependencies(t, condition, expected)
 }
 
@@ -96,7 +96,8 @@ func TestSingleIdent(t *testing.T) {
 }
 
 func testGetYARARuleDependencies(t *testing.T, condition string, expected map[string]int) {
-	ruleset, err := gyp.ParseString("rule foo {condition:" + condition + "}")
+	rulestr := "rule foo {strings:$a = \"test\" condition:" + condition + "}"
+	ruleset, err := gyp.ParseString(rulestr)
 	if err != nil {
 		t.Errorf("Unable to parse rule")
 	}
@@ -177,8 +178,11 @@ func TestSliceContains(t *testing.T) {
 }
 
 func TestGetDependenciesForRules(t *testing.T) {
-	rulestr := `rule woo {condition:false} rule test {condition:foo_zz or $wooo} rule test2 {condition: wxs or pe.imports and wxs or wxs or wxs or foo and $gazunder or test or woo}`
-	ruleset, _ := gyp.ParseString(rulestr)
+	rulestr := `rule woo {condition:false} rule test {strings: $wooo = "1" condition:foo_zz or $wooo} rule test2 {strings: $gazunder = "woo" condition: wxs or pe.imports and wxs or wxs or wxs or foo and $gazunder or test or woo}`
+	ruleset, err := gyp.ParseString(rulestr)
+	if err != nil {
+		t.Fatalf("Unable to parse rules: %s", err)
+	}
 	dependencies, err := GetDependenciesForRules(*ruleset, "test2")
 	if err != nil {
 		t.Fatalf("GetDependenciesForRules returned an error (%s)", err.Error())
