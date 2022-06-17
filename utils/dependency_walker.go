@@ -144,7 +144,8 @@ func GetDependenciesForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.Rule
 				// Get Rules
 				for _, rule := range ruleset.Rules {
 					if rule.Identifier == ident {
-						dependencies.Rules = append(dependencies.Rules, rule)
+						rule := *rule
+						dependencies.Rules = append(dependencies.Rules, &rule)
 						break
 					}
 				}
