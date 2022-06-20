@@ -1,11 +1,11 @@
 package tests
 
 import (
-	"github.com/VirusTotal/gyp/ast"
 	"strings"
 	"testing"
 
 	"github.com/VirusTotal/gyp"
+	"github.com/VirusTotal/gyp/ast"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -765,6 +765,26 @@ func TestUnevenNumberOfDigits(t *testing.T) {
 	if assert.Error(t, err) {
 		assert.Equal(t, "line 4: uneven number of digits in hex string", err.Error())
 	}
+}
+
+func TestBuiltInFuncCall(t *testing.T) {
+	ruleset, err := gyp.ParseString(`
+	rule RULE_BUILTIN_FUNC_CALL {
+		condition:
+		  uint32(400)
+	}`)
+	assert.NoError(t, err)
+	assert.Equal(t, true, ruleset.Rules[0].Condition.(*ast.FunctionCall).Builtin)
+}
+
+func TestNonBuiltInFuncCall(t *testing.T) {
+	ruleset, err := gyp.ParseString(`
+	rule RULE_BUILTIN_FUNC_CALL {
+		condition:
+		  foo(400)
+	}`)
+	assert.NoError(t, err)
+	assert.Equal(t, false, ruleset.Rules[0].Condition.(*ast.FunctionCall).Builtin)
 }
 
 func TestInvalidCharacters(t *testing.T) {
