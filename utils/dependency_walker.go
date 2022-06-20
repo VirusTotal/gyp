@@ -47,12 +47,12 @@ func GetDependencyChainForRules(ruleset ast.RuleSet, returnDepAsPrivate bool, ru
 			delete(queue, k)
 		}
 	}
-	final := OrderRules(results)
+	final := SortRules(results)
 	return final, nil
 }
 
-// OrderRules will take in a ruleset and ensure the order of the rules is correct
-func OrderRules(rs ast.RuleSet) ast.RuleSet {
+// SortRules will take in a ruleset and ensure the order of the rules is correct
+func SortRules(rs ast.RuleSet) ast.RuleSet {
 	var goodOrder []*ast.Rule
 	type nodeT struct {
 		rule         *ast.Rule
