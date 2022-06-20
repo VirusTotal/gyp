@@ -210,7 +210,7 @@ func TestGetDependencyChainForRules(t *testing.T) {
 	expectedRules := []string{"z", "c", "a"}
 	rules := `rule a {condition:false or c} rule b {condition:false or a} rule c {condition:false and pe.exports and z} rule d {condition:false or b} rule z {condition:true}`
 	ruleset, _ := gyp.ParseString(rules)
-	rChain, err := GetDependencyChainForRules(*ruleset, true, "b")
+	rChain, err := GetDependencyChainForRules(*ruleset, "b")
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -220,9 +220,6 @@ func TestGetDependencyChainForRules(t *testing.T) {
 	ruleNames := []string{}
 	for _, rules := range rChain.Rules {
 		ruleNames = append(ruleNames, rules.Identifier)
-		if rules.Private != true {
-			t.Fatalf("Expected private rule")
-		}
 	}
 	if !cmp.Equal(ruleNames, expectedRules) {
 		t.Fatalf("Expected %v, but got %v", expectedRules, ruleNames)
@@ -232,7 +229,7 @@ func TestGetDependencyChainForRules(t *testing.T) {
 func TestGetDependencyChainErr(t *testing.T) {
 	rules := `rule a {condition:false or c} rule b {condition:false or a} rule c {condition:false or b and pe.exports} rule d {condition:false or b}`
 	ruleset, _ := gyp.ParseString(rules)
-	_, err := GetDependencyChainForRules(*ruleset, false, "woo")
+	_, err := GetDependencyChainForRules(*ruleset, "woo")
 	if err.Error() != "woo does not exist in the ruleset" {
 		t.Fatalf("Empty ruleset was provied to GetDependenciesForRules, but no error was thrown")
 	}
@@ -255,7 +252,7 @@ func TestAddNilNodeToQue(t *testing.T) {
 		  )
 	  }`
 	nrs, _ := gyp.ParseString(string(nkr))
-	results, _ := GetDependencyChainForRules(*nrs, true, "foo_y")
+	results, _ := GetDependencyChainForRules(*nrs, "foo_y")
 	expected := "foo_x"
 	if results.Rules[0].Identifier != expected {
 		t.Fatalf("Did not get expected value (%s)", expected)
