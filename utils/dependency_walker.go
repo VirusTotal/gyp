@@ -34,7 +34,7 @@ func GetDependencyChainForRules(ruleset ast.RuleSet, returnDepAsPrivate bool, ru
 					if returnDepAsPrivate {
 						rule.Private = true
 					}
-					results.Rules = append(results.Rules, rule)
+					results.Rules = append([]*ast.Rule{rule}, results.Rules...)
 					queue[rule.Identifier] = struct{}{}
 				}
 			}
@@ -47,8 +47,7 @@ func GetDependencyChainForRules(ruleset ast.RuleSet, returnDepAsPrivate bool, ru
 			delete(queue, k)
 		}
 	}
-	final := SortRules(results)
-	return final, nil
+	return results, nil
 }
 
 // SortRules will take in a ruleset and ensure the order of the rules is correct
