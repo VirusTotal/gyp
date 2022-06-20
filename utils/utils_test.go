@@ -107,17 +107,6 @@ func testGetYARARuleDependencies(t *testing.T, condition string, expected map[st
 	}
 }
 
-func TestAddToIdentMapWithConditionKeyword(t *testing.T) {
-	expected := map[string]int{}
-	ident := ast.Identifier{Identifier: "int8"}
-	ruleIdentifiers := make(map[string]int)
-	ignoreList := []string{}
-	addToIdentMap(&ident, ruleIdentifiers, ignoreList)
-	if ok := cmp.Equal(ruleIdentifiers, expected); ok == false {
-		t.Errorf("Expected %v but got %v", expected, ruleIdentifiers)
-	}
-}
-
 func TestAddToIdentMapWithIgnoreList(t *testing.T) {
 	expected := map[string]int{}
 	ident := ast.Identifier{Identifier: "foo"}

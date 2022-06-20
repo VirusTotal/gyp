@@ -6,7 +6,6 @@ import (
 	"github.com/VirusTotal/gyp/ast"
 )
 
-var conditionKeywords = []string{"int8", "int16", "int32", "uint8", "uint16", "uint32", "int8be", "int16be", "int32be", "uint8be", "uint16be", "uint32be"}
 var yaraModules = []string{"pe", "elf", "cuckoo", "magic", "hash", "math", "dotnet", "time"}
 
 type queueT struct {
@@ -155,8 +154,9 @@ func GetDependenciesForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.Rule
 	return dependencies, nil
 }
 
-// GetRuleIdentifiers will find all the identifiers (excluding ForLoop variables)
-// and the number of times each identifier is seen for a given YARA rule
+// GetRuleIdentifiers will find all the identifiers (excluding ForLoop
+// variables and Builtin FuncCalls) and the number of times each identifier is
+// seen for a given YARA rule
 func GetRuleIdentifiers(rule ast.Rule) map[string]int {
 	ruleIdentifiers := make(map[string]int)                   // ruleIdentifiers contains [identifier]numOfTimesSeen
 	queue := append([]queueT{}, queueT{node: rule.Condition}) // queue contains all the nodes to be processed
@@ -166,6 +166,13 @@ func GetRuleIdentifiers(rule ast.Rule) map[string]int {
 			// ForIn node found, extract loop variables and add them to the ignoreList
 			varsToIgnore := queueItem.node.(*ast.ForIn).Variables
 			queueItem.ignoreList = append(queueItem.ignoreList, varsToIgnore...)
+		}
+		if funcCall, ok := queueItem.node.(*ast.FunctionCall); ok {
+			if funcCall.Builtin {
+				// Builtin FunctionCall node found, add it's identifier to the ignoreList
+				x := funcCall.Callable.(*ast.Identifier).Identifier
+				queueItem.ignoreList = append(queueItem.ignoreList, x)
+			}
 		}
 		addNodeIdentifierToIdentifiersMap(&queue, ruleIdentifiers)
 		addNodeChildrenToQue(&queue)
@@ -194,9 +201,9 @@ func addNodeIdentifierToIdentifiersMap(queue *[]queueT, ruleIdentifiers map[stri
 	}
 }
 
-// addToIdentMap will record the Ident to the Ident map (assuming it is not a keyword or in the nodes ignoreList)
+// addToIdentMap will record the Ident to the Ident map (assuming it is not in the nodes ignoreList)
 func addToIdentMap(ident *ast.Identifier, ruleIdentifiers map[string]int, ignoreList []string) {
-	if sliceContains(ident.Identifier, conditionKeywords) || sliceContains(ident.Identifier, ignoreList) {
+	if sliceContains(ident.Identifier, ignoreList) {
 		return
 	}
 	if v, ok := ruleIdentifiers[ident.Identifier]; ok {
