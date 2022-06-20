@@ -108,8 +108,9 @@ func SortRules(rs ast.RuleSet) ast.RuleSet {
 	return rs
 }
 
-// GetDependenciesForRules will find all the dependencies (rules & modules)
-// for a slice of YARA rules
+// GetDependenciesForRules will find all the dependencies (rules & imports)
+// for rules listed in ruleNames. The returned ruleset will only contain rules
+// listed in ruleNames along with their dependencies (direct & indirect).
 func GetDependenciesForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.RuleSet, error) {
 	// Make sure ruleNames and ruleset are not empty
 	if len(ruleset.Rules) == 0 {
@@ -181,7 +182,8 @@ func GetRuleIdentifiers(rule ast.Rule) map[string]int {
 	return ruleIdentifiers
 }
 
-// addNodeChildrenToQue adds a nodes children to the queue
+// addNodeChildrenToQue checks to see if the first node in the queue has a child
+// node. If a child node is found it is added to the queue.
 func addNodeChildrenToQue(queue *[]queueT) {
 	queueItem := &(*queue)[0]
 	if queueItem.node == nil {
