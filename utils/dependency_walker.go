@@ -154,25 +154,25 @@ func GetDependenciesForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.Rule
 // variables and Builtin FuncCalls) and the number of times each identifier is
 // seen for a given YARA rule
 func GetRuleIdentifiers(rule ast.Rule) map[string]int {
-	ruleIdentifiers := make(map[string]int)                   // ruleIdentifiers contains [identifier]numOfTimesSeen
-	queue := append([]queueT{}, queueT{node: rule.Condition}) // queue contains all the nodes to be processed
-	for len(queue) > 0 {
-		queueItem := &queue[0]
-		if _, ok := queueItem.node.(*ast.ForIn); ok {
+	ruleIdentifiers := make(map[string]int)                          // ruleIdentifiers contains [identifier]numOfTimesSeen
+	pendingRules := append([]queueT{}, queueT{node: rule.Condition}) // pendingRules contains all the nodes to be processed
+	for len(pendingRules) > 0 {
+		pendingRule := &pendingRules[0]
+		if _, ok := pendingRule.node.(*ast.ForIn); ok {
 			// ForIn node found, extract loop variables and add them to the ignoreList
-			varsToIgnore := queueItem.node.(*ast.ForIn).Variables
-			queueItem.ignoreList = append(queueItem.ignoreList, varsToIgnore...)
+			varsToIgnore := pendingRule.node.(*ast.ForIn).Variables
+			pendingRule.ignoreList = append(pendingRule.ignoreList, varsToIgnore...)
 		}
-		if funcCall, ok := queueItem.node.(*ast.FunctionCall); ok {
+		if funcCall, ok := pendingRule.node.(*ast.FunctionCall); ok {
 			if funcCall.Builtin {
 				// Builtin FunctionCall node found, add it's identifier to the ignoreList
 				x := funcCall.Callable.(*ast.Identifier).Identifier
-				queueItem.ignoreList = append(queueItem.ignoreList, x)
+				pendingRule.ignoreList = append(pendingRule.ignoreList, x)
 			}
 		}
-		addNodeIdentifierToIdentifiersMap(&queue, ruleIdentifiers)
-		addNodeChildrenToQue(&queue)
-		queue = append(queue[:0], queue[1:]...) // Delete node from queue
+		addNodeIdentifierToIdentifiersMap(&pendingRules, ruleIdentifiers)
+		addNodeChildrenToQue(&pendingRules)
+		pendingRules = append(pendingRules[:0], pendingRules[1:]...) // Delete node from pendingRules
 	}
 	return ruleIdentifiers
 }
