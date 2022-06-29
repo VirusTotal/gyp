@@ -101,7 +101,7 @@ func testGetYARARuleDependencies(t *testing.T, condition string, expected map[st
 	if err != nil {
 		t.Errorf("Unable to parse rule")
 	}
-	results := GetRuleIdentifiers(*ruleset.Rules[0])
+	results := GetUsedIdentifiers(*ruleset.Rules[0])
 	if ok := cmp.Equal(results, expected); ok == false {
 		t.Errorf("Condition not extracted correctly. Expected %v, but got %v", expected, results)
 	}
@@ -135,7 +135,7 @@ func TestAddNodeGrpIdentifierToIdentifiersMap(t *testing.T) {
 		t.Fatalf("Unable to parse rule")
 	}
 	expected := map[string]int{"foo": 0}
-	ruleIdentifiers := GetRuleIdentifiers(*ruleset.Rules[0])
+	ruleIdentifiers := GetUsedIdentifiers(*ruleset.Rules[0])
 	if ok := cmp.Equal(ruleIdentifiers, expected); ok == false {
 		t.Errorf("Expected %v but got %v", expected, ruleIdentifiers)
 	}

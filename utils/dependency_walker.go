@@ -130,7 +130,7 @@ func GetDependenciesForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.Rule
 		if rule.Identifier == "" {
 			return ast.RuleSet{}, fmt.Errorf("%s does not exist in the ruleset", ruleName)
 		}
-		ruleIdents := GetRuleIdentifiers(rule)
+		ruleIdents := GetUsedIdentifiers(rule)
 		for ident := range ruleIdents {
 			// Get Imports
 			if sliceContains(ident, yaraModules) {
@@ -150,10 +150,10 @@ func GetDependenciesForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.Rule
 	return dependencies, nil
 }
 
-// GetRuleIdentifiers will find all the identifiers (excluding ForLoop
+// GetUsedIdentifiers will find all the identifiers (excluding ForLoop
 // variables and Builtin FuncCalls) and the number of times each identifier is
 // seen for a given YARA rule
-func GetRuleIdentifiers(rule ast.Rule) map[string]int {
+func GetUsedIdentifiers(rule ast.Rule) map[string]int {
 	ruleIdentifiers := make(map[string]int)                          // ruleIdentifiers contains [identifier]numOfTimesSeen
 	pendingRules := append([]queueT{}, queueT{node: rule.Condition}) // pendingRules contains all the nodes to be processed
 	for len(pendingRules) > 0 {
