@@ -46,7 +46,10 @@ func GetRulesSubset(ruleset ast.RuleSet, ruleNames ...string) (ast.RuleSet, erro
 	return results, nil
 }
 
-// SortRules will take in a ruleset and ensure the order of the rules is correct
+// SortRules will iterate through ruleset. For each rule it will check to see
+// if the rule has dependencies. If dependencies are found they will be moved
+// in the ruleset to before the rule that depends of them. If the ruleset
+// does not contain rules with dependencies the order of the rules will not change.
 func SortRules(rs ast.RuleSet) ast.RuleSet {
 	var goodOrder []*ast.Rule
 	type nodeT struct {

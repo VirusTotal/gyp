@@ -166,6 +166,20 @@ func TestSliceContains(t *testing.T) {
 	}
 }
 
+func TestSortRules(t *testing.T) {
+	rules := `rule a {condition:c} rule b {condition:false} rule c {condition:b}`
+	ruleset, err := gyp.ParseString(rules)
+	if err != nil {
+		t.Fatalf("Unable to parse rules: %s", err)
+	}
+	results := SortRules(*ruleset)
+	expectedResults := []string{"b", "c", "a"}
+	for i := range results.Rules {
+		if results.Rules[i].Identifier != expectedResults[i] {
+			t.Fatalf("SortRules did not correctly sort the ruleset")
+		}
+	}
+}
 func TestGetDependenciesForRules(t *testing.T) {
 	rulestr := `rule woo {condition:false} rule test {strings: $wooo = "1" condition:foo_zz or $wooo} rule test2 {strings: $gazunder = "woo" condition: wxs or pe.imports and wxs or wxs or wxs or foo and $gazunder or test or woo}`
 	ruleset, err := gyp.ParseString(rulestr)
