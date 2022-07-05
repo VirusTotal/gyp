@@ -13,8 +13,8 @@ type queueT struct {
 	ignoreList []string
 }
 
-// GetDependencyChainForRules will recursively find dependencies for a list of rules
-func GetDependencyChainForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.RuleSet, error) {
+// GetRulesSubset will recursively find dependencies for a list of rules
+func GetRulesSubset(ruleset ast.RuleSet, ruleNames ...string) (ast.RuleSet, error) {
 	queue := make(map[string]struct{}) // List of rules to get dependencies for
 	processed := []string{}            // List of rules where dependencies have already been found
 	results := ast.RuleSet{}
