@@ -206,7 +206,7 @@ func TestGetDependenciesForRules(t *testing.T) {
 func TestGetDependenciesForRulesEmptyRuleset(t *testing.T) {
 	_, err := GetDependenciesForRules(ast.RuleSet{}, "test2")
 	if err.Error() != "ruleset does not contain any rules" {
-		t.Fatalf("Empty ruleset was provied to GetDependenciesForRules, but no error was thrown")
+		t.Fatalf("Empty ruleset was provided to GetDependenciesForRules, but no error was thrown")
 	}
 }
 
@@ -215,7 +215,7 @@ func TestGetDependenciesForRulesMissingFromRuleset(t *testing.T) {
 	ruleset, _ := gyp.ParseString(rulestr)
 	_, err := GetDependenciesForRules(*ruleset, "foo")
 	if err.Error() != "foo does not exist in the ruleset" {
-		t.Fatalf("Empty ruleset was provied to GetDependenciesForRules, but no error was thrown")
+		t.Fatalf("Empty ruleset was provided to GetDependenciesForRules, but no error was thrown")
 	}
 }
 
@@ -245,7 +245,7 @@ func TestGetDependencyChainErr(t *testing.T) {
 	ruleset, _ := gyp.ParseString(rules)
 	_, err := GetRulesSubset(*ruleset, "woo")
 	if err.Error() != "woo does not exist in the ruleset" {
-		t.Fatalf("Empty ruleset was provied to GetDependenciesForRules, but no error was thrown")
+		t.Fatalf("Empty ruleset was provided to GetDependenciesForRules, but no error was thrown")
 	}
 }
 
