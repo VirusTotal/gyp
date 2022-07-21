@@ -746,6 +746,7 @@ identifier
         $$ = &ast.FunctionCall{
           Callable: $1,
           Arguments: $3,
+          Builtin: false,
         }
       }
     ;
@@ -1266,6 +1267,7 @@ primary_expression
         $$ = &ast.FunctionCall{
           Callable: &ast.Identifier{Identifier: $1},
           Arguments: []ast.Expression{$3},
+          Builtin: true,
         }
       }
     | _NUMBER_

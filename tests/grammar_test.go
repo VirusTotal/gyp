@@ -767,6 +767,26 @@ func TestUnevenNumberOfDigits(t *testing.T) {
 	}
 }
 
+func TestBuiltInFuncCall(t *testing.T) {
+	ruleset, err := gyp.ParseString(`
+	rule RULE_BUILTIN_FUNC_CALL {
+		condition:
+		  uint32(400)
+	}`)
+	assert.NoError(t, err)
+	assert.Equal(t, true, ruleset.Rules[0].Condition.(*ast.FunctionCall).Builtin)
+}
+
+func TestNonBuiltInFuncCall(t *testing.T) {
+	ruleset, err := gyp.ParseString(`
+	rule RULE_BUILTIN_FUNC_CALL {
+		condition:
+		  foo(400)
+	}`)
+	assert.NoError(t, err)
+	assert.Equal(t, false, ruleset.Rules[0].Condition.(*ast.FunctionCall).Builtin)
+}
+
 func TestInvalidCharacters(t *testing.T) {
 	// Non-UTF8 characters are NOT accepted in text strings.
 	_, err := gyp.ParseString(`

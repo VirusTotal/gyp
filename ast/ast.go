@@ -160,6 +160,7 @@ type StringLength struct {
 type FunctionCall struct {
 	Callable  Expression
 	Arguments []Expression
+	Builtin   bool
 }
 
 // MemberAccess is an Expression that represents a member access operation (.). For
