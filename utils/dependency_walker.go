@@ -106,9 +106,7 @@ func SortRules(rs ast.RuleSet) ast.RuleSet {
 	return rs
 }
 
-// GetDependenciesForRules will find all the dependencies (rules & imports)
-// for rules listed in ruleNames. The returned ruleset will only contain rules
-// listed in ruleNames along with their dependencies (direct & indirect).
+// GetDependenciesForRules returns a ruleset containing dependencies (direct/indirect) for a list of given rules
 func GetDependenciesForRules(ruleset ast.RuleSet, ruleNames ...string) (ast.RuleSet, error) {
 	// Make sure ruleNames and ruleset are not empty
 	if len(ruleset.Rules) == 0 {
