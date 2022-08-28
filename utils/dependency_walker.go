@@ -6,7 +6,7 @@ import (
 	"github.com/VirusTotal/gyp/ast"
 )
 
-var yaraModules = []string{"pe", "elf", "cuckoo", "magic", "hash", "math", "dotnet", "time", "dex"}
+var yaraModules = []string{"pe", "elf", "cuckoo", "magic", "hash", "math", "dotnet", "time", "dex", "console"}
 
 type queueT struct {
 	node       ast.Node
