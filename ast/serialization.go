@@ -229,6 +229,7 @@ func hexTokensFromProto(pbTokens *pb.HexTokens) HexTokens {
 			tokens[i] = &HexBytes{
 				Bytes: v.Sequence.GetValue(),
 				Masks: v.Sequence.GetMask(),
+				Nots: v.Sequence.GetNots(),
 			}
 		case *pb.HexToken_Alternative:
 			alternatives := make(HexTokens, len(v.Alternative.GetTokens()))

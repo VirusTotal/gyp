@@ -61,11 +61,11 @@ func (s *Scanner) TokenInteger(t int, i int) YYtype {
   return YYtype{Token: t, Value: &hexSymType{integer: i}}
 }
 
-func (s *Scanner) TokenByte(t int, value, mask byte) YYtype {
+func (s *Scanner) TokenByte(t int, value, mask byte, not bool) YYtype {
   return YYtype{
     Token: t,
     Value: &hexSymType{
-        bm:  byteWithMask{ Mask: byte(mask), Value: byte(value) },
+        bm:  byteWithMask{ Mask: byte(mask), Value: byte(value), Not: not },
     },
   }
 }
@@ -110,7 +110,16 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  return yy.TokenByte(_BYTE_, byte(val), byte(0xFF));
+  return yy.TokenByte(_BYTE_, byte(val), byte(0xFF), false);
+}
+
+<INITIAL>\~{hexdigit}{2}  {
+  val, err := strconv.ParseInt(string(yytext[1:]), 16, 16)
+  if err != nil {
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing byte: %s\n", err))
+  }
+  return yy.TokenByte(_NOT_BYTE_, byte(val), byte(0xFF), true);
 }
 
 <INITIAL>{hexdigit}\?  {
@@ -120,7 +129,7 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0xF0));
+  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0xF0), false);
 }
 
 \?{hexdigit}  {
@@ -130,17 +139,21 @@ hexdigit      [a-fA-F0-9]
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0x0F));
+  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0x0F), false);
 }
 
 \?\? {
-  return yy.TokenByte(_MASKED_BYTE_, byte(0x00), byte(0x00));
+  return yy.TokenByte(_MASKED_BYTE_, byte(0x00), byte(0x00), false);
 }
 
 {hexdigit} {
   return Error(
     gyperror.UnevenNumberOfDigitsError,
     fmt.Sprintf(`uneven number of digits in hex string`))
+}
+
+\~ {
+  panic(fmt.Sprintf("invalid not operator (~) in hex string"))
 }
 
 \[ {

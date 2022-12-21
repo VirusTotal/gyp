@@ -141,6 +141,9 @@ message BytesSequence {
   // F0 -> Nibble-wise wildcard (v?).
   // FF -> No wildcard (vv).
   optional bytes mask = 2;
+
+  // List of which values are using the ~ operator.
+  repeated bool nots = 3;
 }
 
 // Sequence of arbitrary content and variable length.

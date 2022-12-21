@@ -49,6 +49,13 @@ rule HEX_STRING2 {
     any of ($h*)
 }
 
+rule HEX_STRING3 {
+  strings:
+    $a = { AA BB ~CC DD }
+  condition:
+    $a
+}
+
 rule REGEX1 {
   strings:
     $r1 = /first regex/

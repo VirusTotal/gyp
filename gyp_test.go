@@ -419,7 +419,7 @@ rule foo {
 	`
 rule foo {
   strings:
-    $a = { 01 02 03 04 ?? AA B? ?C }
+    $a = { 01 02 ~03 04 ?? AA B? ?C }
   condition:
     $a
 }

@@ -31,11 +31,11 @@ func (s *Scanner) TokenInteger(t int, i int) YYtype {
   return YYtype{Token: t, Value: &hexSymType{integer: i}}
 }
 
-func (s *Scanner) TokenByte(t int, value, mask byte) YYtype {
+func (s *Scanner) TokenByte(t int, value, mask byte, not bool) YYtype {
   return YYtype{
     Token: t,
     Value: &hexSymType{
-        bm:  byteWithMask{ Mask: byte(mask), Value: byte(value) },
+        bm:  byteWithMask{ Mask: byte(mask), Value: byte(value), Not: not },
     },
   }
 }
@@ -143,13 +143,13 @@ const yyInteractiveDefault = false
 // SKEL ----------------------------------------------------------------
 
 // [4.0] data tables for the DFA go here -------------------------------
-const yyNumRules = 23
-const yyEndOfBuffer = 24
-var yyAccept = [38]int16{   0,
-        0,    0,    0,    0,    0,    0,   24,   22,   18,   18,
-       19,   20,   22,    7,   22,    8,    1,   21,    2,   11,
-       11,   17,   16,   16,   13,   14,   15,    9,   12,    3,
-        4,    5,    6,   10,   14,   12,    0,
+const yyNumRules = 25
+const yyEndOfBuffer = 26
+var yyAccept = [41]int16{   0,
+        0,    0,    0,    0,    0,    0,   26,   24,   20,   20,
+       21,   22,   24,    8,   24,   10,    1,   23,    2,    9,
+       13,   13,   19,   18,   18,   15,   16,   17,   11,   14,
+        3,    5,    6,    7,    0,   12,   16,   14,    4,    0,
     }
 
 var yyEc = [256]byte{    0,
@@ -166,7 +166,7 @@ var yyEc = [256]byte{    0,
 
        11,   11,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,   14,   15,   16,    1,    1,    1,    1,    1,
+        1,    1,   14,   15,   16,   17,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -183,51 +183,51 @@ var yyEc = [256]byte{    0,
         1,    1,    1,    1,    1,
     }
 
-var yyMeta = [17]byte{    0,
+var yyMeta = [18]byte{    0,
         1,    1,    2,    1,    1,    1,    1,    1,    3,    3,
-        3,    1,    1,    1,    1,    1,
+        3,    1,    1,    1,    1,    1,    1,
     }
 
-var yyBase = [43]uint16{   0,
-        0,    0,   31,   29,   15,   27,   33,   50,   50,   50,
-       50,   50,   13,   22,   21,   50,   50,   50,   50,   50,
-       19,   50,   50,   50,   50,   17,   50,   50,    0,   50,
-       50,   50,   50,   50,   16,    0,   50,   40,   43,   20,
-       17,   46,
+var yyBase = [46]uint16{   0,
+        0,    0,   45,   43,   16,   28,   40,   52,   52,   52,
+       52,   52,   14,   29,   28,   52,   52,   52,   52,   15,
+       52,   28,   52,   52,   52,   52,   24,   52,   52,    0,
+       52,   52,   52,   52,   23,   52,   19,    0,   52,   52,
+       41,   44,   24,   18,   47,
     }
 
-var yyDef = [43]int16{   0,
-       37,    1,   38,   38,   39,   39,   37,   37,   37,   37,
-       37,   37,   37,   40,   41,   37,   37,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,   37,   37,   42,   37,
-       37,   37,   37,   37,   37,   42,    0,   37,   37,   37,
-       37,   37,
+var yyDef = [46]int16{   0,
+       40,    1,   41,   41,   42,   42,   40,   40,   40,   40,
+       40,   40,   40,   43,   44,   40,   40,   40,   40,   40,
+       40,   40,   40,   40,   40,   40,   40,   40,   40,   45,
+       40,   40,   40,   40,   40,   40,   40,   45,   40,    0,
+       40,   40,   40,   40,   40,
     }
 
-var yyNxt = [67]uint16{   0,
+var yyNxt = [70]uint16{   0,
         8,    9,   10,   11,   12,    8,    8,   13,   14,   15,
-       14,   16,    8,   17,   18,   19,   23,   24,   28,   32,
-       29,   25,   30,   26,   35,   35,   34,   27,   23,   24,
-       33,   31,   37,   25,   21,   26,   21,   37,   37,   27,
-       20,   20,   20,   22,   22,   22,   36,   37,   36,    7,
-       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,
+       14,   16,    8,   17,   18,   19,   20,   24,   25,   29,
+       33,   30,   26,   35,   27,   35,   31,   37,   28,   24,
+       25,   39,   37,   39,   26,   36,   27,   34,   32,   40,
+       28,   21,   21,   21,   23,   23,   23,   38,   22,   38,
+       22,    7,   40,   40,   40,   40,   40,   40,   40,   40,
+       40,   40,   40,   40,   40,   40,   40,   40,   40,
     }
 
-var yyChk = [67]int16{   0,
+var yyChk = [70]int16{   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    5,    5,   13,   41,
-       13,    5,   40,    5,   35,   26,   21,    5,    6,    6,
-       15,   14,    7,    6,    4,    6,    3,    0,    0,    6,
-       38,   38,   38,   39,   39,   39,   42,    0,   42,   37,
-       37,   37,   37,   37,   37,   37,   37,   37,   37,   37,
-       37,   37,   37,   37,   37,   37,
+        1,    1,    1,    1,    1,    1,    1,    5,    5,   13,
+       44,   13,    5,   20,    5,   20,   43,   37,    5,    6,
+        6,   35,   27,   35,    6,   22,    6,   15,   14,    7,
+        6,   41,   41,   41,   42,   42,   42,   45,    4,   45,
+        3,   40,   40,   40,   40,   40,   40,   40,   40,   40,
+       40,   40,   40,   40,   40,   40,   40,   40,   40,
     }
 
 /* Table of booleans, true if rule could match eol. */
-var yyRuleCanMatchEol = [24]int32{   0,
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 
-    0, 0, 0, 0,     };
+var yyRuleCanMatchEol = [26]int32{   0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 
+    1, 0, 0, 0, 0, 0,     };
 
 //line hex/hex_lexer.l:1
 /*
@@ -371,13 +371,13 @@ yyMatch:
 			}
 			for int(yyChk[int(yyBase[yyCurrentState])+yyC]) != yyCurrentState {
 				yyCurrentState = int(yyDef[yyCurrentState])
-				if yyCurrentState >= 38 {
+				if yyCurrentState >= 41 {
 					yyC = int(yyMeta[yyC])
 				}
 			}
 			yyCurrentState = int(yyNxt[int(yyBase[yyCurrentState])+yyC])
 			yyCp++
-			if yyCurrentState == 37 {
+			if yyCurrentState == 40 {
 				break
 			}
 		}
@@ -465,7 +465,7 @@ case 3:
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  return yy.TokenByte(_BYTE_, byte(val), byte(0xFF));
+  return yy.TokenByte(_BYTE_, byte(val), byte(0xFF), false);
 }
 case 4:
 
@@ -474,20 +474,34 @@ case 4:
 
 //line hex/hex_lexer.l:116
 {
-  yytext[1] = '0'  // Replace ? with 0
-  val, err := strconv.ParseInt(string(yytext), 16, 16)
+  val, err := strconv.ParseInt(string(yytext[1:]), 16, 16)
   if err != nil {
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0xF0));
+  return yy.TokenByte(_NOT_BYTE_, byte(val), byte(0xFF), true);
 }
 case 5:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:126
+//line hex/hex_lexer.l:125
+{
+  yytext[1] = '0'  // Replace ? with 0
+  val, err := strconv.ParseInt(string(yytext), 16, 16)
+  if err != nil {
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing byte: %s\n", err))
+  }
+  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0xF0), false);
+}
+case 6:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:135
 {
   yytext[0] = '0'
   val, err := strconv.ParseInt(string(yytext), 16, 16)
@@ -495,82 +509,91 @@ case 5:
     // This shouldn't happen.
     panic(fmt.Sprintf("error parsing byte: %s\n", err))
   }
-  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0x0F));
-}
-case 6:
-
-	yylineno = yy.Lineno
-	
-
-//line hex/hex_lexer.l:136
-{
-  return yy.TokenByte(_MASKED_BYTE_, byte(0x00), byte(0x00));
+  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0x0F), false);
 }
 case 7:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:140
+//line hex/hex_lexer.l:145
 {
-  return Error(
-    gyperror.UnevenNumberOfDigitsError,
-    fmt.Sprintf(`uneven number of digits in hex string`))
+  return yy.TokenByte(_MASKED_BYTE_, byte(0x00), byte(0x00), false);
 }
 case 8:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:146
+//line hex/hex_lexer.l:149
 {
-  yy.start = 1 + 2*  (yrange);
-  return yy.Token(_LBRACKET_);
+  return Error(
+    gyperror.UnevenNumberOfDigitsError,
+    fmt.Sprintf(`uneven number of digits in hex string`))
 }
 case 9:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:151
-{ yy.start = 1 + 2*  (comment);    }
+//line hex/hex_lexer.l:155
+{
+  panic(fmt.Sprintf("invalid not operator (~) in hex string"))
+}
 case 10:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:152
-{ yy.start = 1 + 2*  (yyInitial );    }
+//line hex/hex_lexer.l:159
+{
+  yy.start = 1 + 2*  (yrange);
+  return yy.Token(_LBRACKET_);
+}
 case 11:
-/* rule 11 can match eol */
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:153
-{ /* skip comments */ }
+//line hex/hex_lexer.l:164
+{ yy.start = 1 + 2*  (comment);    }
 case 12:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:156
-// skip single-line comments
+//line hex/hex_lexer.l:165
+{ yy.start = 1 + 2*  (yyInitial );    }
 case 13:
+/* rule 13 can match eol */
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:158
-{
-  return yy.Token(_HYPHEN_);
-}
+//line hex/hex_lexer.l:166
+{ /* skip comments */ }
 case 14:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:162
+//line hex/hex_lexer.l:169
+// skip single-line comments
+case 15:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:171
+{
+  return yy.Token(_HYPHEN_);
+}
+case 16:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:175
 {
   val, err := strconv.ParseInt(string(yytext), 10, 32)
   if err != nil {
@@ -579,34 +602,15 @@ case 14:
   }
   return yy.TokenInteger(_NUMBER_, int(val));
 }
-case 15:
-
-	yylineno = yy.Lineno
-	
-
-//line hex/hex_lexer.l:171
-{
-  yy.start = 1 + 2*  (yyInitial );
-  return yy.Token(_RBRACKET_);
-}
-case 16:
-/* rule 16 can match eol */
-
-	yylineno = yy.Lineno
-	
-
-//line hex/hex_lexer.l:176
-// skip whitespaces
 case 17:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:178
+//line hex/hex_lexer.l:184
 {
-  return Error(
-    gyperror.InvalidCharInHexStringError,
-    fmt.Sprintf(`invalid character in hex string range: %c (0x%02x)`, yytext[0], yytext[0]))
+  yy.start = 1 + 2*  (yyInitial );
+  return yy.Token(_RBRACKET_);
 }
 case 18:
 /* rule 18 can match eol */
@@ -614,54 +618,73 @@ case 18:
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:184
+//line hex/hex_lexer.l:189
 // skip whitespaces
 case 19:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:186
+//line hex/hex_lexer.l:191
 {
-  return yy.Token(_LPARENS_)
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf(`invalid character in hex string range: %c (0x%02x)`, yytext[0], yytext[0]))
 }
 case 20:
+/* rule 20 can match eol */
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:190
-{
-  return yy.Token(_RPARENS_)
-}
+//line hex/hex_lexer.l:197
+// skip whitespaces
 case 21:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:194
+//line hex/hex_lexer.l:199
 {
-  return yy.Token(_PIPE_)
+  return yy.Token(_LPARENS_)
 }
 case 22:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:198
-{               // reject all other characters
-  return Error(
-    gyperror.InvalidCharInHexStringError,
-    fmt.Sprintf(`invalid character in hex string:  %c (0x%02x)`, yytext[0], yytext[0]))
+//line hex/hex_lexer.l:203
+{
+  return yy.Token(_RPARENS_)
 }
 case 23:
 
 	yylineno = yy.Lineno
 	
 
-//line hex/hex_lexer.l:204
+//line hex/hex_lexer.l:207
+{
+  return yy.Token(_PIPE_)
+}
+case 24:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:211
+{               // reject all other characters
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf(`invalid character in hex string:  %c (0x%02x)`, yytext[0], yytext[0]))
+}
+case 25:
+
+	yylineno = yy.Lineno
+	
+
+//line hex/hex_lexer.l:217
 yyout.Write(yytext) 
-//line hex/hex_lexer.go:665
+//line hex/hex_lexer.go:688
 // SKEL ----------------------------------------------------------------
 
 		case yyEndOfBuffer:
@@ -908,7 +931,7 @@ func (yy *Scanner) getPreviousState() int {
 		}
 		for int(yyChk[int(yyBase[yyCurrentState])+yyC]) != yyCurrentState {
 			yyCurrentState = int(yyDef[yyCurrentState])
-			if yyCurrentState >= 38 {
+			if yyCurrentState >= 41 {
 				yyC = int(yyMeta[yyC])
 			}
 		}
@@ -940,12 +963,12 @@ func (yy *Scanner) tryNulTrans(yyCurrentState int) int {
 	}
 	for int(yyChk[int(yyBase[yyCurrentState])+yyC]) != yyCurrentState {
 		yyCurrentState = int(yyDef[yyCurrentState])
-		if yyCurrentState >= 38 {
+		if yyCurrentState >= 41 {
 			yyC = int(yyMeta[yyC])
 		}
 	}
 	yyCurrentState = int(yyNxt[int(yyBase[yyCurrentState])+yyC])
-	if yyCurrentState == 37 {
+	if yyCurrentState == 40 {
 		yyIsJam = true
 	}
 // SKEL ----------------------------------------------------------------
@@ -1122,7 +1145,7 @@ func YYmain(filenames ...string) (interface{}, error) {
 }
 
 // END OF SKELL --------------------------------------------------------
-//line hex/hex_lexer.l:204
+//line hex/hex_lexer.l:217
 
 
 

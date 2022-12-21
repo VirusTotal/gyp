@@ -40,11 +40,13 @@ const StringChainingThreshold int = 200
 type byteWithMask struct {
 	Value byte
 	Mask  byte
+	Not   bool
 }
 %}
 
 
 %token <bm> _BYTE_
+%token <bm> _NOT_BYTE_
 %token <bm> _MASKED_BYTE_
 %token <integer> _NUMBER_
 %token _LBRACE_
@@ -251,12 +253,14 @@ bytes
         $$ = &ast.HexBytes{
           Bytes: []byte{$1.Value},
           Masks: []byte{$1.Mask},
+          Nots: []bool{$1.Not},
         }
       }
     | bytes byte
       {
         $1.Bytes = append($1.Bytes, $2.Value)
         $1.Masks = append($1.Masks, $2.Mask)
+        $1.Nots = append($1.Nots, $2.Not)
       }
 
 
@@ -266,6 +270,10 @@ byte
         $$ = $1
       }
     | _MASKED_BYTE_
+      {
+        $$ = $1
+      }
+    | _NOT_BYTE_
       {
         $$ = $1
       }

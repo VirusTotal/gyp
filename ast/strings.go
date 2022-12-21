@@ -133,9 +133,12 @@ type HexJump struct {
 // 0F -> The higher nibble is ignored (?X)
 // F0 -> The lower nibble is ignored (X?)
 // FF -> No wildcard at all.
+// The Nots array is an array of boolean values that indicate which of the
+// bytes are prefixed with a ~ indicating they should NOT be the given value.
 type HexBytes struct {
 	Bytes []byte
 	Masks []byte
+	Nots  []bool
 }
 
 // HexOr is an HexToken that represents an alternative in the hex string, like
@@ -311,18 +314,19 @@ func (h *HexString) WriteSource(w io.Writer) (err error) {
 // WriteSource writes the node's source into the writer w.
 func (h *HexBytes) WriteSource(w io.Writer) error {
 	for i, b := range h.Bytes {
-		var s string
+		var s string = ""
+		if h.Nots[i] {
+			s += "~"
+		}
 		switch mask := h.Masks[i]; mask {
 		case 0x00:
-			s = "?? "
+			s += "?? "
 		case 0x0F:
-			s = fmt.Sprintf("%02X ", b)
-			s = "?" + s[1:]
+			s += "?" + fmt.Sprintf("%02X ", b)[1:]
 		case 0xF0:
-			s = fmt.Sprintf("%02X", b)
-			s = s[:1] + "? "
+			s += fmt.Sprintf("%02X", b)[:1] + "? "
 		case 0xFF:
-			s = fmt.Sprintf("%02X ", b)
+			s += fmt.Sprintf("%02X ", b)
 		default:
 			panic(fmt.Errorf(`unexpected byte mask: "%0X"`, mask))
 		}
@@ -436,6 +440,7 @@ func (h *HexBytes) AsProto() *pb.BytesSequence {
 	return &pb.BytesSequence{
 		Value: h.Bytes,
 		Mask:  h.Masks,
+		Nots: h.Nots,
 	}
 }
 
