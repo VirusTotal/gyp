@@ -52,8 +52,9 @@ rule HEX_STRING2 {
 rule HEX_STRING3 {
   strings:
     $a = { AA BB ~CC DD }
+    $b = { AA BB ~?C DD }
   condition:
-    $a
+    any of them
 }
 
 rule REGEX1 {
@@ -748,6 +749,34 @@ func TestBase64AlphabetLength(t *testing.T) {
 	}`)
 	if assert.Error(t, err) {
 		assert.Equal(t, "line 4: length of base64 alphabet must be 64", err.Error())
+	}
+}
+
+// { ~?? } is an error
+func TestHexNotWildcard(t *testing.T) {
+	_, err := gyp.ParseString(`
+  rule TEST {
+    strings:
+      $ = { AA ~?? CC }
+    condition:
+      all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 4: invalid not operator (~) in hex string", err.Error())
+	}
+}
+
+// { AA BB ~ } is an error
+func TestHexNotAlone(t *testing.T) {
+	_, err := gyp.ParseString(`
+  rule TEST {
+    strings:
+      $ = { AA BB ~ }
+    condition:
+      all of them
+	}`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 4: invalid not operator (~) in hex string", err.Error())
 	}
 }
 

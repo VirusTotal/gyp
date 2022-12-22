@@ -94,7 +94,6 @@ const eof = 0
 %x yrange
 
 digit         [0-9]
-letter        [a-zA-Z]
 hexdigit      [a-fA-F0-9]
 
 %%
@@ -104,7 +103,7 @@ hexdigit      [a-fA-F0-9]
 
 <<EOF>> { return yy.Token(eof) }
 
-<INITIAL>{hexdigit}{2}  {
+<INITIAL>{hexdigit}{2} {
   val, err := strconv.ParseInt(string(yytext), 16, 16)
   if err != nil {
     // This shouldn't happen.
@@ -113,16 +112,7 @@ hexdigit      [a-fA-F0-9]
   return yy.TokenByte(_BYTE_, byte(val), byte(0xFF), false);
 }
 
-<INITIAL>\~{hexdigit}{2}  {
-  val, err := strconv.ParseInt(string(yytext[1:]), 16, 16)
-  if err != nil {
-    // This shouldn't happen.
-    panic(fmt.Sprintf("error parsing byte: %s\n", err))
-  }
-  return yy.TokenByte(_NOT_BYTE_, byte(val), byte(0xFF), true);
-}
-
-<INITIAL>{hexdigit}\?  {
+<INITIAL>{hexdigit}\? {
   yytext[1] = '0'  // Replace ? with 0
   val, err := strconv.ParseInt(string(yytext), 16, 16)
   if err != nil {
@@ -132,8 +122,17 @@ hexdigit      [a-fA-F0-9]
   return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0xF0), false);
 }
 
-\?{hexdigit}  {
-  yytext[0] = '0'
+\~{hexdigit}{2} {
+  val, err := strconv.ParseInt(string(yytext[1:]), 16, 16)
+  if err != nil {
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing byte: %s\n", err))
+  }
+  return yy.TokenByte(_NOT_BYTE_, byte(val), byte(0xFF), true);
+}
+
+\?{hexdigit} {
+  yytext[0] = '0'  // Replace ? with 0
   val, err := strconv.ParseInt(string(yytext), 16, 16)
   if err != nil {
     // This shouldn't happen.
@@ -146,6 +145,26 @@ hexdigit      [a-fA-F0-9]
   return yy.TokenByte(_MASKED_BYTE_, byte(0x00), byte(0x00), false);
 }
 
+<INITIAL>\~{hexdigit}\? {
+  yytext[2] = '0' // Replace ? with 0
+  val, err := strconv.ParseInt(string(yytext[1:]), 16, 16)
+  if err != nil {
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing byte: %s\n", err))
+  }
+  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0x0F), true);
+}
+
+\~\?{hexdigit} {
+  yytext[1] = '0' // Replace ? with 0
+  val, err := strconv.ParseInt(string(yytext[1:]), 16, 16)
+  if err != nil {
+    // This shouldn't happen.
+    panic(fmt.Sprintf("error parsing byte: %s\n", err))
+  }
+  return yy.TokenByte(_MASKED_BYTE_, byte(val), byte(0x0F), true);
+}
+
 {hexdigit} {
   return Error(
     gyperror.UnevenNumberOfDigitsError,
@@ -153,7 +172,9 @@ hexdigit      [a-fA-F0-9]
 }
 
 \~ {
-  panic(fmt.Sprintf("invalid not operator (~) in hex string"))
+  return Error(
+    gyperror.InvalidCharInHexStringError,
+    fmt.Sprintf("invalid not operator (~) in hex string"))
 }
 
 \[ {
