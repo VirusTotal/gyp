@@ -4,10 +4,11 @@ package gyp
 
 import (
 	"fmt"
-	"github.com/VirusTotal/gyp/ast"
 	"io"
 	"math"
 	"strings"
+
+	"github.com/VirusTotal/gyp/ast"
 
 	"github.com/VirusTotal/gyp/pb"
 )
@@ -46,8 +47,8 @@ var keywords = map[pb.Keyword]string{
 
 var forKeywords = map[pb.ForKeyword]string{
 	pb.ForKeyword_NONE: "none",
-	pb.ForKeyword_ALL: "all",
-	pb.ForKeyword_ANY: "any",
+	pb.ForKeyword_ALL:  "all",
+	pb.ForKeyword_ANY:  "any",
 }
 
 var stringSetKeywords = map[pb.StringSetKeyword]string{
@@ -457,14 +458,20 @@ func (ys *YaraSerializer) serializeHexToken(t *pb.HexToken) error {
 }
 
 func (ys *YaraSerializer) serializeBytesSequence(b *pb.BytesSequence) error {
-	if len(b.Value) != len(b.Mask) {
+	if len(b.Value) != len(b.Mask) || len(b.Value) != len(b.Nots) {
 		return fmt.Errorf(
-			`Length of value and mask bytes must match in a BytesSequence. Found: %d, %d`,
+			`Length of value, mask and nots must match in a BytesSequence. Found: %d, %d, %d`,
 			len(b.Value),
-			len(b.Mask))
+			len(b.Mask),
+			len(b.Nots))
 	}
 
 	for i, val := range b.Value {
+		if b.Nots[i] {
+			if err := ys.writeString("~"); err != nil {
+				return err
+			}
+		}
 		switch mask := b.Mask[i]; mask {
 		case 0:
 			if err := ys.writeString("?? "); err != nil {
