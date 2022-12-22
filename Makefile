@@ -1,13 +1,17 @@
+FLEXGO ?= flexgo
+GOYACC ?= goyacc
+PROTOC ?= protoc-gen-go
+
 all: proto hexgrammar grammar y2j j2y
 
 grammar:
-	flexgo -G -v -o parser/lexer.go parser/lexer.l && goyacc -p yr -o parser/parser.go parser/grammar.y
+	${FLEXGO} -G -v -o parser/lexer.go parser/lexer.l && ${GOYACC} -p yr -o parser/parser.go parser/grammar.y
 
 hexgrammar:
-	flexgo -G -v -o hex/hex_lexer.go hex/hex_lexer.l && goyacc -p hex -o hex/hex_parser.go hex/hex_grammar.y
+	${FLEXGO} -G -v -o hex/hex_lexer.go hex/hex_lexer.l && ${GOYACC} -p hex -o hex/hex_parser.go hex/hex_grammar.y
 
 proto:
-	protoc --go_out=. --go_opt=paths=source_relative pb/yara.proto
+	protoc --plugin=${PROTOC} --go_out=. --go_opt=paths=source_relative pb/yara.proto
 
 j2y:
 	go build github.com/VirusTotal/gyp/cmd/j2y
