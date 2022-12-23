@@ -208,10 +208,11 @@ type ForOf struct {
 //   <quantifier> of <string_set> in <range>
 // If "In" is non-nil there is an "in" condition: 3 of them in (0..100)
 type Of struct {
-	Quantifier Expression
-	Strings    Node
-	Rules      Node
-	In         *Range
+	Quantifier  Expression
+	Strings     Node
+	Rules       Node
+	TextStrings []string
+	In          *Range
 }
 
 // Operation is an Expression representing an operation with two or more operands,

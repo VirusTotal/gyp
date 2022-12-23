@@ -373,6 +373,11 @@ rule RULE_SET_IDENTIFIER_ISSUE_1631 {
   condition:
     for all a in (0..3) : (a * 0 == 0)
 }
+
+rule TEXT_STRING_SETS {
+  condition:
+    for any s in ("a", "b") : (s == "b")
+}
 `
 
 func TestRulesetParsing(t *testing.T) {
