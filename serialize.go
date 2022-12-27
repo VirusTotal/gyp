@@ -802,6 +802,15 @@ func (ys *YaraSerializer) serializeForOfExpression(e *pb.ForOfExpression) error 
 		}
 	}
 
+	if e.GetAt() != nil {
+		if err := ys.writeString(" at "); err != nil {
+			return err
+		}
+		if err := ys.SerializeExpression(e.At); err != nil {
+			return err
+		}
+	}
+
 	if e.GetExpression() != nil {
 		if err := ys.writeString(" : ("); err != nil {
 			return err

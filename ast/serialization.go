@@ -412,6 +412,7 @@ func forOfExpressionFromProto(expr *pb.ForOfExpression) Expression {
 			Strings:    strs,
 			Rules:      rules,
 			In:         rangeFromProto(expr.GetRange()),
+			At:         expressionFromProto(expr.GetAt()),
 		}
 	}
 	return &ForOf{
