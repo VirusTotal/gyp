@@ -373,6 +373,14 @@ rule RULE_SET_IDENTIFIER_ISSUE_1631 {
   condition:
     for all a in (0..3) : (a * 0 == 0)
 }
+
+rule RULE_STRING_SET_AT_EXPRESSION {
+  strings:
+    $s0 = "AXSERS"
+    $s1 = "WXSMTS"
+  condition:
+    any of them at 0
+}
 `
 
 func TestRulesetParsing(t *testing.T) {
