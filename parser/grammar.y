@@ -934,6 +934,14 @@ expression
           In: $5,
         }
       }
+    | for_expression _OF_ string_set _AT_ primary_expression
+      {
+        $$ = &ast.Of{
+          Quantifier: $1,
+          Strings: $3,
+          At: $5,
+        }
+      }
     | for_expression _OF_ string_set
       {
         $$ = &ast.Of{

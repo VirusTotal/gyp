@@ -308,6 +308,9 @@ message ForOfExpression {
   // Rule set: "(rule1, rule2, foo*)".
   // Only one of StringSet or RuleEnumeration is allowed.
   optional RuleEnumeration rule_enumeration = 5;
+
+  // Offset to match: "1 of them at 0"
+  optional Expression at = 6;
 }
 
 // Set of strings. Can be either an enumeration of strings or a keyword.

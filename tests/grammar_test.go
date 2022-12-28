@@ -378,6 +378,14 @@ rule TEXT_STRING_SETS {
   condition:
     for any s in ("a", "b") : (s == "b")
 }
+
+rule RULE_STRING_SET_AT_EXPRESSION {
+  strings:
+    $s0 = "AXSERS"
+    $s1 = "WXSMTS"
+  condition:
+    any of them at 0
+}
 `
 
 func TestRulesetParsing(t *testing.T) {

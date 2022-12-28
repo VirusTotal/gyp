@@ -207,12 +207,14 @@ type ForOf struct {
 //   <quantifier> of <string_set>
 //   <quantifier> of <string_set> in <range>
 // If "In" is non-nil there is an "in" condition: 3 of them in (0..100)
+// If "At" is non-nil there is an "at" condition: 1 of them at 0
 type Of struct {
 	Quantifier  Expression
 	Strings     Node
 	Rules       Node
 	TextStrings []string
 	In          *Range
+	At         Expression
 }
 
 // Operation is an Expression representing an operation with two or more operands,
@@ -536,6 +538,12 @@ func (o *Of) WriteSource(w io.Writer) error {
 		_, err = io.WriteString(w, " in ")
 		if err == nil {
 			err = o.In.WriteSource(w)
+		}
+	}
+	if err == nil && o.At != nil {
+		_, err = io.WriteString(w, " at ")
+		if err == nil {
+			err = o.At.WriteSource(w)
 		}
 	}
 	return err
@@ -1190,12 +1198,19 @@ func (o *Of) AsProto() *pb.Expression {
 			End:   o.In.End.AsProto(),
 		}
 	}
+	var e *pb.Expression = nil;
+	if o.At != nil {
+		e = &pb.Expression{
+			Expression: o.At.AsProto().Expression,
+		}
+	}
 	return &pb.Expression{
 		Expression: &pb.Expression_ForOfExpression{
 			ForOfExpression: &pb.ForOfExpression{
 				ForExpression:   quantifierToProto(o.Quantifier),
 				StringSet:       s,
 				Range:           r,
+				At:              e,
 				RuleEnumeration: rule_enumeration,
 			},
 		},
