@@ -32,6 +32,7 @@ const (
 	InvalidUTF8Error
 	UndefinedStringIdentifierError
 	UndefinedRuleIdentifierError
+	InvalidValueError
 )
 
 type Error struct {

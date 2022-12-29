@@ -765,6 +765,88 @@ func TestBase64AlphabetLength(t *testing.T) {
 	}
 }
 
+func TestNegativeForExpression(t *testing.T) {
+	_, err := gyp.ParseString(`
+    rule NEGATIVE_FOR_EXPRESSION {
+      condition:
+        for -1 i in (1) : (i)
+    }`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 4: invalid value in condition: -1", err.Error())
+	}
+}
+
+func TestStringForExpression(t *testing.T) {
+	_, err := gyp.ParseString(`
+    rule STRING_FOR_EXPRESSION {
+      condition:
+        for "AXS" i in (1) : (i)
+    }`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: invalid value in condition: "AXS"`, err.Error())
+	}
+}
+
+func TestRegexpForExpression(t *testing.T) {
+	_, err := gyp.ParseString(`
+    rule REGEXP_FOR_EXPRESSION {
+      condition:
+        for /AXS/ i in (1) : (i)
+    }`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: invalid value in condition: /AXS/`, err.Error())
+	}
+}
+
+func TestFloatingForExpression(t *testing.T) {
+	_, err := gyp.ParseString(`
+    rule FLOAT_FOR_EXPRESSION {
+      condition:
+        for 3.14159 i in (1) : (i)
+    }`)
+	if assert.Error(t, err) {
+		assert.Equal(t, `line 4: invalid value in condition: 3.141590`, err.Error())
+	}
+}
+
+func TestNegativeLowerRange(t *testing.T) {
+	_, err := gyp.ParseString(`
+    rule NEGATIVE_LOWER_RANGE {
+	  strings:
+	    $a = "AXSERS"
+      condition:
+        $a in (-1..10)
+    }`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 6: lower bound can not be negative", err.Error())
+	}
+}
+
+func TestNegativeUpperRange(t *testing.T) {
+	_, err := gyp.ParseString(`
+    rule NEGATIVE_UPPER_RANGE {
+	  strings:
+	    $a = "AXSERS"
+      condition:
+        $a in (1..-1)
+    }`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 6: upper bound can not be negative", err.Error())
+	}
+}
+func TestInvalidRange(t *testing.T) {
+	_, err := gyp.ParseString(`
+    rule INVALID_RANGE {
+	  strings:
+	    $a = "AXSERS"
+      condition:
+        $a in (10..1)
+    }`)
+	if assert.Error(t, err) {
+		assert.Equal(t, "line 6: lower bound must be less than upper bound", err.Error())
+	}
+}
+
 // { ~?? } is an error
 func TestHexNotWildcard(t *testing.T) {
 	_, err := gyp.ParseString(`
