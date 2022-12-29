@@ -1061,6 +1061,35 @@ integer_set
 range
     : '(' primary_expression _DOT_DOT_  primary_expression ')'
       {
+        if start, ok := $2.(*ast.LiteralInteger); ok {
+          if end, ok := $4.(*ast.LiteralInteger); ok {
+            if (start.Value >= end.Value) {
+              lexer := asLexer(yrlex)
+              return lexer.setError(
+                gyperror.InvalidValueError,
+                "lower bound must be less than upper bound")
+            }
+          }
+        }
+
+        if v, ok := $2.(*ast.Minus); ok {
+          if _, ok := v.Expression.(*ast.LiteralInteger); ok {
+            lexer := asLexer(yrlex)
+            return lexer.setError(
+              gyperror.InvalidValueError,
+              "lower bound can not be negative")
+          }
+        }
+
+        if v, ok := $4.(*ast.Minus); ok {
+          if _, ok := v.Expression.(*ast.LiteralInteger); ok {
+            lexer := asLexer(yrlex)
+            return lexer.setError(
+              gyperror.InvalidValueError,
+              "upper bound can not be negative")
+          }
+        }
+
         $$ = &ast.Range{
           Start: $2,
           End: $4,
@@ -1255,6 +1284,30 @@ text_string_enumeration_item
 for_expression
     : primary_expression
       {
+        switch v := $1.(type) {
+        case *ast.Minus:
+          if i, ok := v.Expression.(*ast.LiteralInteger); ok {
+            lexer := asLexer(yrlex)
+              return lexer.setError(
+                gyperror.InvalidValueError,
+                `invalid value in condition: -%d`, i.Value)
+          }
+        case *ast.LiteralString:
+          lexer := asLexer(yrlex)
+            return lexer.setError(
+              gyperror.InvalidValueError,
+              `invalid value in condition: "%s"`, v.Value)
+        case *ast.LiteralRegexp:
+          lexer := asLexer(yrlex)
+            return lexer.setError(
+              gyperror.InvalidValueError,
+              `invalid value in condition: /%s/`, v.Value)
+        case *ast.LiteralFloat:
+          lexer := asLexer(yrlex)
+            return lexer.setError(
+              gyperror.InvalidValueError,
+              `invalid value in condition: %f`, v.Value)
+        }
         $$ = $1
       }
     | _ALL_
