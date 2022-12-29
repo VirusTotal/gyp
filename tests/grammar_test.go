@@ -374,6 +374,11 @@ rule RULE_SET_IDENTIFIER_ISSUE_1631 {
     for all a in (0..3) : (a * 0 == 0)
 }
 
+rule TEXT_STRING_SETS {
+  condition:
+    for any s in ("a", "b") : (s == "b")
+}
+
 rule RULE_STRING_SET_AT_EXPRESSION {
   strings:
     $s0 = "AXSERS"

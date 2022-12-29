@@ -172,6 +172,9 @@ type stringModifiers struct {
 %type <node>      rule_set
 %type <exprs>     rule_enumeration
 %type <ident>     rule_enumeration_item
+%type <ss>        text_string_set
+%type <ss>        text_string_enumeration
+%type <s>         text_string_enumeration_item
 
 
 %union {
@@ -953,6 +956,13 @@ expression
           Rules: $3,
         }
       }
+    | for_expression _OF_ text_string_set
+      {
+        $$ = &ast.Of{
+          Quantifier: $1,
+          TextStrings: $3,
+        }
+      }
     | primary_expression '%' _OF_ string_set
       {
         $$ = &ast.Of{
@@ -1210,6 +1220,34 @@ rule_enumeration_item
         // this table.
         lexer.rule_wildcards[$1] = true
         $$ = &ast.Identifier{Identifier: $1 + "*"}
+      }
+    ;
+
+
+text_string_set
+    : '(' text_string_enumeration ')'
+      {
+        $$ = $2
+      }
+    ;
+
+
+text_string_enumeration
+    : text_string_enumeration_item
+      {
+        $$ = []string{$1}
+      }
+    | text_string_enumeration ',' text_string_enumeration_item
+      {
+        $$ = append($1, $3)
+      }
+    ;
+
+
+text_string_enumeration_item
+    : _TEXT_STRING_
+      {
+        $$ = $1
       }
     ;
 

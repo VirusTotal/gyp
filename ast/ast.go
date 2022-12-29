@@ -209,10 +209,11 @@ type ForOf struct {
 // If "In" is non-nil there is an "in" condition: 3 of them in (0..100)
 // If "At" is non-nil there is an "at" condition: 1 of them at 0
 type Of struct {
-	Quantifier Expression
-	Strings    Node
-	Rules      Node
-	In         *Range
+	Quantifier  Expression
+	Strings     Node
+	Rules       Node
+	TextStrings []string
+	In          *Range
 	At         Expression
 }
 
