@@ -1063,7 +1063,7 @@ range
       {
         if start, ok := $2.(*ast.LiteralInteger); ok {
           if end, ok := $4.(*ast.LiteralInteger); ok {
-            if (start.Value >= end.Value) {
+            if (start.Value > end.Value) {
               lexer := asLexer(yrlex)
               return lexer.setError(
                 gyperror.InvalidValueError,
