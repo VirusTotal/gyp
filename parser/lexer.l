@@ -323,7 +323,7 @@ u?int(8|16|32)(be)? {
       gyperror.NumberConversionError,
       fmt.Sprintf("%s", err))
   }
-  return yy.TokenInt64(_NUMBER_, v);
+  return yy.TokenInt64(_HEX_NUMBER_, v);
 }
 
 0o{octdigit}+  {
@@ -334,7 +334,7 @@ u?int(8|16|32)(be)? {
       gyperror.NumberConversionError,
       fmt.Sprintf("%s", err))
   }
-  return yy.TokenInt64(_NUMBER_, v);
+  return yy.TokenInt64(_OCT_NUMBER_, v);
 }
 
 

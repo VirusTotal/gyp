@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -51,6 +52,7 @@ type Group struct {
 // LiteralInteger is an Expression that represents a literal integer.
 type LiteralInteger struct {
 	Value int64
+	Base  int
 }
 
 // LiteralFloat is an Expression that represents a literal float.
@@ -267,7 +269,17 @@ func (g *Group) WriteSource(w io.Writer) error {
 
 // WriteSource writes the node's source into the writer w.
 func (l *LiteralInteger) WriteSource(w io.Writer) error {
-	_, err := fmt.Fprint(w, l.Value)
+	var err error
+	switch l.Base {
+	case 8:
+		_, err = fmt.Fprintf(w, "0o%o", l.Value)
+	case 10:
+		_, err = fmt.Fprint(w, l.Value)
+	case 16:
+		_, err = fmt.Fprintf(w, "0x%x", l.Value)
+	default:
+		err = errors.New("LiteralInteger does not have a valid base representation")
+	}
 	return err
 }
 
