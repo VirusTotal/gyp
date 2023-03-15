@@ -470,9 +470,10 @@ func expressionFromProto(e *pb.Expression) Expression {
 			return KeywordTrue
 		}
 		return KeywordFalse
-	case *pb.Expression_NumberValue:
+	case *pb.Expression_LiteralInteger:
 		return &LiteralInteger{
-			Value: v.NumberValue,
+			Value: *v.LiteralInteger.Value,
+			Base:  *v.LiteralInteger.Base,
 		}
 	case *pb.Expression_DoubleValue:
 		return &LiteralFloat{

@@ -52,7 +52,7 @@ type Group struct {
 // LiteralInteger is an Expression that represents a literal integer.
 type LiteralInteger struct {
 	Value int64
-	Base  int
+	Base  int64
 }
 
 // LiteralFloat is an Expression that represents a literal float.
@@ -793,8 +793,11 @@ func (g *Group) AsProto() *pb.Expression {
 // AsProto returns the Expression serialized as a pb.Expression.
 func (l *LiteralInteger) AsProto() *pb.Expression {
 	return &pb.Expression{
-		Expression: &pb.Expression_NumberValue{
-			NumberValue: l.Value,
+		Expression: &pb.Expression_LiteralInteger{
+			LiteralInteger: &pb.LiteralInteger{
+				Value: &l.Value,
+				Base:  &l.Base,
+			},
 		},
 	}
 }
