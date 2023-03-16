@@ -1331,7 +1331,7 @@ case 62:
       gyperror.NumberConversionError,
       fmt.Sprintf("%s", err))
   }
-  return yy.TokenInt64(_NUMBER_, v);
+  return yy.TokenInt64(_HEX_NUMBER_, v);
 }
 case 63:
 
@@ -1349,7 +1349,7 @@ case 63:
       gyperror.NumberConversionError,
       fmt.Sprintf("%s", err))
   }
-  return yy.TokenInt64(_NUMBER_, v);
+  return yy.TokenInt64(_OCT_NUMBER_, v);
 }
 case 64:
 

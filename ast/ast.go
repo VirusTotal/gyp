@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -51,6 +52,7 @@ type Group struct {
 // LiteralInteger is an Expression that represents a literal integer.
 type LiteralInteger struct {
 	Value int64
+	Base  int64
 }
 
 // LiteralFloat is an Expression that represents a literal float.
@@ -181,13 +183,15 @@ type Subscripting struct {
 }
 
 // Percentage is an Expression used in evaluating string sets. Example:
-//   <expression>% of <string set>
+//
+//	<expression>% of <string set>
 type Percentage struct {
 	Expression Expression
 }
 
 // ForIn is an Expression representing a "for in" loop. Example:
-//   for <quantifier> <variables> in <iterator> : ( <condition> )
+//
+//	for <quantifier> <variables> in <iterator> : ( <condition> )
 type ForIn struct {
 	Quantifier Expression
 	Variables  []string
@@ -196,7 +200,8 @@ type ForIn struct {
 }
 
 // ForOf is an Expression representing a "for of" loop. Example:
-//   for <quantifier> of <string_set> : ( <condition> )
+//
+//	for <quantifier> of <string_set> : ( <condition> )
 type ForOf struct {
 	Quantifier Expression
 	Strings    Node
@@ -204,8 +209,10 @@ type ForOf struct {
 }
 
 // Of is an Expression representing a "of" operation. Example:
-//   <quantifier> of <string_set>
-//   <quantifier> of <string_set> in <range>
+//
+//	<quantifier> of <string_set>
+//	<quantifier> of <string_set> in <range>
+//
 // If "In" is non-nil there is an "in" condition: 3 of them in (0..100)
 // If "At" is non-nil there is an "at" condition: 1 of them at 0
 type Of struct {
@@ -214,7 +221,7 @@ type Of struct {
 	Rules       Node
 	TextStrings []string
 	In          *Range
-	At         Expression
+	At          Expression
 }
 
 // Operation is an Expression representing an operation with two or more operands,
@@ -262,7 +269,17 @@ func (g *Group) WriteSource(w io.Writer) error {
 
 // WriteSource writes the node's source into the writer w.
 func (l *LiteralInteger) WriteSource(w io.Writer) error {
-	_, err := fmt.Fprint(w, l.Value)
+	var err error
+	switch l.Base {
+	case 8:
+		_, err = fmt.Fprintf(w, "0o%o", l.Value)
+	case 10:
+		_, err = fmt.Fprint(w, l.Value)
+	case 16:
+		_, err = fmt.Fprintf(w, "0x%x", l.Value)
+	default:
+		err = errors.New("LiteralInteger does not have a valid base representation")
+	}
 	return err
 }
 
@@ -776,8 +793,11 @@ func (g *Group) AsProto() *pb.Expression {
 // AsProto returns the Expression serialized as a pb.Expression.
 func (l *LiteralInteger) AsProto() *pb.Expression {
 	return &pb.Expression{
-		Expression: &pb.Expression_NumberValue{
-			NumberValue: l.Value,
+		Expression: &pb.Expression_LiteralInteger{
+			LiteralInteger: &pb.LiteralInteger{
+				Value: &l.Value,
+				Base:  &l.Base,
+			},
 		},
 	}
 }
@@ -1198,7 +1218,7 @@ func (o *Of) AsProto() *pb.Expression {
 			End:   o.In.End.AsProto(),
 		}
 	}
-	var e *pb.Expression = nil;
+	var e *pb.Expression = nil
 	if o.At != nil {
 		e = &pb.Expression{
 			Expression: o.At.AsProto().Expression,

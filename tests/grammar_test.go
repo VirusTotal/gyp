@@ -20,6 +20,11 @@ rule BASIC_BOOL2 {
     false
 }
 
+rule LITERAL_INT_BASE {
+  condition:
+    uint32(0) == 1234 or uint32(0) == 0x1234 or uint32(0) == 0o1234
+}
+
 rule OPERATORS1 {
   condition:
     (1 + 1 - 1) * 2 == 4 % 2

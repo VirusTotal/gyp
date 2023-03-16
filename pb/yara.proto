@@ -92,6 +92,12 @@ message TextString {
   optional StringModifiers modifiers = 2;
 }
 
+// LiteralInteger
+message LiteralInteger {
+  required int64 value = 1;
+  required int64 base = 2;
+}
+
 // Regular expression string.
 message Regexp {
   // String content.
@@ -399,7 +405,7 @@ message Expression {
     Range range = 10;
     Regexp regexp = 11;
     Keyword keyword = 12;
-    int64 number_value = 13;
+    LiteralInteger literal_integer = 13;
     double double_value = 14;
     string text = 15;
     string string_count = 16;

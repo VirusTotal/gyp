@@ -85,6 +85,8 @@ type stringModifiers struct {
 %token <s> _STRING_LENGTH_
 %token <s> _STRING_IDENTIFIER_WITH_WILDCARD_
 %token <i64> _NUMBER_
+%token <i64> _HEX_NUMBER_
+%token <i64> _OCT_NUMBER_
 %token <f64> _DOUBLE_
 %token <s> _INTEGER_FUNCTION_
 %token <s> _TEXT_STRING_
@@ -1371,7 +1373,15 @@ primary_expression
       }
     | _NUMBER_
       {
-        $$ = &ast.LiteralInteger{$1}
+        $$ = &ast.LiteralInteger{$1, 10}
+      }
+    | _HEX_NUMBER_
+      {
+        $$ = &ast.LiteralInteger{$1, 16}
+      }
+    | _OCT_NUMBER_
+      {
+        $$ = &ast.LiteralInteger{$1, 8}
       }
     | _DOUBLE_
       {

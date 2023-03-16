@@ -3,6 +3,7 @@
 package gyp
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -592,8 +593,17 @@ func (ys *YaraSerializer) SerializeExpression(e *pb.Expression) error {
 			return err
 		}
 		return nil
-	case *pb.Expression_NumberValue:
-		return ys.writeString(fmt.Sprintf("%d", e.GetNumberValue()))
+	case *pb.Expression_LiteralInteger:
+		switch e.GetLiteralInteger().GetBase() {
+		case 8:
+			return ys.writeString(fmt.Sprintf("0o%o", *e.GetLiteralInteger().Value))
+		case 10:
+			return ys.writeString(fmt.Sprintf("%d", *e.GetLiteralInteger().Value))
+		case 16:
+			return ys.writeString(fmt.Sprintf("0x%x", *e.GetLiteralInteger().Value))
+		default:
+			return errors.New("LiteralInteger does not have a valid base representation")
+		}
 	case *pb.Expression_DoubleValue:
 		return ys.writeString(fmt.Sprintf("%f", e.GetDoubleValue()))
 	case *pb.Expression_Range:
