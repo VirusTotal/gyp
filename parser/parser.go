@@ -262,7 +262,7 @@ func operation(operator ast.OperatorType, left, right ast.Expression) (n ast.Exp
 }
 
 //line yacctab:1
-var yrExca = [...]int16{
+var yrExca = [...]int{
 	-1, 1,
 	1, -1,
 	-2, 15,
@@ -286,7 +286,7 @@ const yrPrivate = 57344
 
 const yrLast = 495
 
-var yrAct = [...]int16{
+var yrAct = [...]int{
 	52, 207, 206, 205, 49, 167, 160, 70, 168, 196,
 	217, 123, 85, 86, 87, 88, 89, 90, 91, 92,
 	261, 241, 239, 273, 262, 242, 240, 119, 106, 104,
@@ -339,7 +339,7 @@ var yrAct = [...]int16{
 	0, 0, 0, 0, 211,
 }
 
-var yrPact = [...]int16{
+var yrPact = [...]int{
 	-1000, 143, -1000, -1000, 185, -1000, 339, 175, -1000, 257,
 	-1000, -1000, -1000, -1000, -1000, 46, 39, 256, 258, 249,
 	-1000, 273, 43, -1000, -1000, 41, 236, 259, 210, 236,
@@ -370,7 +370,7 @@ var yrPact = [...]int16{
 	-1000, -59, -1000, -1000,
 }
 
-var yrPgo = [...]int16{
+var yrPgo = [...]int{
 	0, 443, 440, 439, 438, 211, 427, 426, 425, 174,
 	417, 416, 413, 412, 395, 394, 392, 387, 376, 375,
 	4, 27, 0, 7, 374, 373, 137, 369, 367, 356,
@@ -378,7 +378,7 @@ var yrPgo = [...]int16{
 	318, 1, 317, 303, 292, 289,
 }
 
-var yrR1 = [...]int8{
+var yrR1 = [...]int{
 	0, 42, 42, 42, 42, 42, 1, 43, 44, 2,
 	7, 7, 8, 8, 19, 18, 18, 17, 17, 3,
 	3, 4, 4, 6, 6, 5, 5, 5, 5, 5,
@@ -398,7 +398,7 @@ var yrR1 = [...]int8{
 	22,
 }
 
-var yrR2 = [...]int8{
+var yrR2 = [...]int{
 	0, 0, 2, 2, 3, 2, 2, 0, 0, 11,
 	0, 3, 0, 3, 3, 0, 2, 1, 1, 0,
 	2, 1, 2, 1, 2, 3, 3, 4, 3, 3,
@@ -418,7 +418,7 @@ var yrR2 = [...]int8{
 	1,
 }
 
-var yrChk = [...]int16{
+var yrChk = [...]int{
 	-1000, -42, -2, -1, 54, 4, -18, 51, 23, 6,
 	-17, 7, 8, 23, 12, -43, -3, 79, 77, -4,
 	12, -7, 9, 12, -8, 10, 79, -44, 79, -6,
@@ -449,7 +449,7 @@ var yrChk = [...]int16{
 	82, 18, 82, 82,
 }
 
-var yrDef = [...]int16{
+var yrDef = [...]int{
 	1, -2, 2, 3, 0, 5, 0, 0, 4, 0,
 	16, 17, 18, 6, 7, 19, 0, 0, 10, 20,
 	21, 12, 0, 22, 8, 0, 0, 0, 0, 11,
@@ -480,7 +480,7 @@ var yrDef = [...]int16{
 	84, 0, 83, 49,
 }
 
-var yrTok1 = [...]int8{
+var yrTok1 = [...]int{
 	1, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
@@ -496,7 +496,7 @@ var yrTok1 = [...]int8{
 	3, 3, 3, 77, 59, 78, 75,
 }
 
-var yrTok2 = [...]int8{
+var yrTok2 = [...]int{
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
 	22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
@@ -506,7 +506,7 @@ var yrTok2 = [...]int8{
 	65, 66, 67, 68, 69, 76,
 }
 
-var yrTok3 = [...]int8{
+var yrTok3 = [...]int{
 	0,
 }
 
@@ -588,9 +588,9 @@ func yrErrorMessage(state, lookAhead int) string {
 	expected := make([]int, 0, 4)
 
 	// Look for shiftable tokens.
-	base := int(yrPact[state])
+	base := yrPact[state]
 	for tok := TOKSTART; tok-1 < len(yrToknames); tok++ {
-		if n := base + tok; n >= 0 && n < yrLast && int(yrChk[int(yrAct[n])]) == tok {
+		if n := base + tok; n >= 0 && n < yrLast && yrChk[yrAct[n]] == tok {
 			if len(expected) == cap(expected) {
 				return res
 			}
@@ -600,13 +600,13 @@ func yrErrorMessage(state, lookAhead int) string {
 
 	if yrDef[state] == -2 {
 		i := 0
-		for yrExca[i] != -1 || int(yrExca[i+1]) != state {
+		for yrExca[i] != -1 || yrExca[i+1] != state {
 			i += 2
 		}
 
 		// Look for tokens that we accept or reduce.
 		for i += 2; yrExca[i] >= 0; i += 2 {
-			tok := int(yrExca[i])
+			tok := yrExca[i]
 			if tok < TOKSTART || yrExca[i+1] == 0 {
 				continue
 			}
@@ -637,30 +637,30 @@ func yrlex1(lex yrLexer, lval *yrSymType) (char, token int) {
 	token = 0
 	char = lex.Lex(lval)
 	if char <= 0 {
-		token = int(yrTok1[0])
+		token = yrTok1[0]
 		goto out
 	}
 	if char < len(yrTok1) {
-		token = int(yrTok1[char])
+		token = yrTok1[char]
 		goto out
 	}
 	if char >= yrPrivate {
 		if char < yrPrivate+len(yrTok2) {
-			token = int(yrTok2[char-yrPrivate])
+			token = yrTok2[char-yrPrivate]
 			goto out
 		}
 	}
 	for i := 0; i < len(yrTok3); i += 2 {
-		token = int(yrTok3[i+0])
+		token = yrTok3[i+0]
 		if token == char {
-			token = int(yrTok3[i+1])
+			token = yrTok3[i+1]
 			goto out
 		}
 	}
 
 out:
 	if token == 0 {
-		token = int(yrTok2[1]) /* unknown char */
+		token = yrTok2[1] /* unknown char */
 	}
 	if yrDebug >= 3 {
 		__yyfmt__.Printf("lex %s(%d)\n", yrTokname(token), uint(char))
@@ -715,7 +715,7 @@ yrstack:
 	yrS[yrp].yys = yrstate
 
 yrnewstate:
-	yrn = int(yrPact[yrstate])
+	yrn = yrPact[yrstate]
 	if yrn <= yrFlag {
 		goto yrdefault /* simple state */
 	}
@@ -726,8 +726,8 @@ yrnewstate:
 	if yrn < 0 || yrn >= yrLast {
 		goto yrdefault
 	}
-	yrn = int(yrAct[yrn])
-	if int(yrChk[yrn]) == yrtoken { /* valid shift */
+	yrn = yrAct[yrn]
+	if yrChk[yrn] == yrtoken { /* valid shift */
 		yrrcvr.char = -1
 		yrtoken = -1
 		yrVAL = yrrcvr.lval
@@ -740,7 +740,7 @@ yrnewstate:
 
 yrdefault:
 	/* default state action */
-	yrn = int(yrDef[yrstate])
+	yrn = yrDef[yrstate]
 	if yrn == -2 {
 		if yrrcvr.char < 0 {
 			yrrcvr.char, yrtoken = yrlex1(yrlex, &yrrcvr.lval)
@@ -749,18 +749,18 @@ yrdefault:
 		/* look through exception table */
 		xi := 0
 		for {
-			if yrExca[xi+0] == -1 && int(yrExca[xi+1]) == yrstate {
+			if yrExca[xi+0] == -1 && yrExca[xi+1] == yrstate {
 				break
 			}
 			xi += 2
 		}
 		for xi += 2; ; xi += 2 {
-			yrn = int(yrExca[xi+0])
+			yrn = yrExca[xi+0]
 			if yrn < 0 || yrn == yrtoken {
 				break
 			}
 		}
-		yrn = int(yrExca[xi+1])
+		yrn = yrExca[xi+1]
 		if yrn < 0 {
 			goto ret0
 		}
@@ -782,10 +782,10 @@ yrdefault:
 
 			/* find a state where "error" is a legal shift action */
 			for yrp >= 0 {
-				yrn = int(yrPact[yrS[yrp].yys]) + yrErrCode
+				yrn = yrPact[yrS[yrp].yys] + yrErrCode
 				if yrn >= 0 && yrn < yrLast {
-					yrstate = int(yrAct[yrn]) /* simulate a shift of "error" */
-					if int(yrChk[yrstate]) == yrErrCode {
+					yrstate = yrAct[yrn] /* simulate a shift of "error" */
+					if yrChk[yrstate] == yrErrCode {
 						goto yrstack
 					}
 				}
@@ -821,7 +821,7 @@ yrdefault:
 	yrpt := yrp
 	_ = yrpt // guard against "declared and not used"
 
-	yrp -= int(yrR2[yrn])
+	yrp -= yrR2[yrn]
 	// yrp is now the index of $0. Perform the default action. Iff the
 	// reduced production is ε, $1 is possibly out of range.
 	if yrp+1 >= len(yrS) {
@@ -832,16 +832,16 @@ yrdefault:
 	yrVAL = yrS[yrp+1]
 
 	/* consult goto table to find next state */
-	yrn = int(yrR1[yrn])
-	yrg := int(yrPgo[yrn])
+	yrn = yrR1[yrn]
+	yrg := yrPgo[yrn]
 	yrj := yrg + yrS[yrp].yys + 1
 
 	if yrj >= yrLast {
-		yrstate = int(yrAct[yrg])
+		yrstate = yrAct[yrg]
 	} else {
-		yrstate = int(yrAct[yrj])
-		if int(yrChk[yrstate]) != -yrn {
-			yrstate = int(yrAct[yrg])
+		yrstate = yrAct[yrj]
+		if yrChk[yrstate] != -yrn {
+			yrstate = yrAct[yrg]
 		}
 	}
 	// dummy call; replaced with literal code
@@ -1826,7 +1826,7 @@ yrdefault:
 		{
 			if start, ok := yrDollar[2].expr.(*ast.LiteralInteger); ok {
 				if end, ok := yrDollar[4].expr.(*ast.LiteralInteger); ok {
-					if start.Value >= end.Value {
+					if start.Value > end.Value {
 						lexer := asLexer(yrlex)
 						return lexer.setError(
 							gyperror.InvalidValueError,

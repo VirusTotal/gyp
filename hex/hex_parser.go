@@ -72,7 +72,7 @@ const hexInitialStackSize = 16
 //line hex/hex_grammar.y:282
 
 //line yacctab:1
-var hexExca = [...]int8{
+var hexExca = [...]int{
 	-1, 1,
 	1, -1,
 	-2, 0,
@@ -92,61 +92,61 @@ const hexPrivate = 57344
 
 const hexLast = 40
 
-var hexAct = [...]int8{
+var hexAct = [...]int{
 	3, 8, 10, 9, 8, 10, 9, 16, 28, 29,
 	4, 6, 21, 14, 6, 12, 25, 26, 22, 24,
 	30, 33, 27, 11, 19, 31, 2, 20, 7, 18,
 	32, 8, 10, 9, 17, 1, 5, 15, 23, 13,
 }
 
-var hexPact = [...]int16{
+var hexPact = [...]int{
 	18, -1000, 0, 14, -3, 27, -1000, -1000, -1000, -1000,
 	-1000, -1000, -1000, -3, -1000, -1000, 5, -1000, 0, -1000,
 	-1000, 4, 10, -7, -1000, -1000, 13, -1000, -1000, 0,
 	9, -1000, -1000, -1000,
 }
 
-var hexPgo = [...]int8{
+var hexPgo = [...]int{
 	0, 0, 39, 13, 10, 38, 37, 36, 28, 35,
 	29,
 }
 
-var hexR1 = [...]int8{
+var hexR1 = [...]int{
 	0, 9, 1, 1, 1, 2, 2, 3, 3, 4,
 	10, 4, 6, 6, 6, 6, 5, 5, 7, 7,
 	8, 8, 8,
 }
 
-var hexR2 = [...]int8{
+var hexR2 = [...]int{
 	0, 3, 1, 2, 3, 1, 2, 1, 1, 1,
 	0, 4, 3, 5, 4, 3, 1, 3, 1, 2,
 	1, 1, 1,
 }
 
-var hexChk = [...]int16{
+var hexChk = [...]int{
 	-1000, -9, 8, -1, -4, -7, 14, -8, 4, 6,
 	5, 9, -4, -2, -3, -6, 10, -8, -10, -4,
 	-3, 7, 13, -5, -1, 12, 13, 12, 15, 16,
 	7, 12, -1, 12,
 }
 
-var hexDef = [...]int8{
+var hexDef = [...]int{
 	0, -2, 0, 0, 2, 9, 10, 18, 20, 21,
 	22, 1, -2, 0, 5, 8, 0, 19, 0, -2,
 	6, 0, 0, 0, 16, 12, 0, 15, 11, 0,
 	0, 14, 17, 13,
 }
 
-var hexTok1 = [...]int8{
+var hexTok1 = [...]int{
 	1,
 }
 
-var hexTok2 = [...]int8{
+var hexTok2 = [...]int{
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15, 16,
 }
 
-var hexTok3 = [...]int8{
+var hexTok3 = [...]int{
 	0,
 }
 
@@ -228,9 +228,9 @@ func hexErrorMessage(state, lookAhead int) string {
 	expected := make([]int, 0, 4)
 
 	// Look for shiftable tokens.
-	base := int(hexPact[state])
+	base := hexPact[state]
 	for tok := TOKSTART; tok-1 < len(hexToknames); tok++ {
-		if n := base + tok; n >= 0 && n < hexLast && int(hexChk[int(hexAct[n])]) == tok {
+		if n := base + tok; n >= 0 && n < hexLast && hexChk[hexAct[n]] == tok {
 			if len(expected) == cap(expected) {
 				return res
 			}
@@ -240,13 +240,13 @@ func hexErrorMessage(state, lookAhead int) string {
 
 	if hexDef[state] == -2 {
 		i := 0
-		for hexExca[i] != -1 || int(hexExca[i+1]) != state {
+		for hexExca[i] != -1 || hexExca[i+1] != state {
 			i += 2
 		}
 
 		// Look for tokens that we accept or reduce.
 		for i += 2; hexExca[i] >= 0; i += 2 {
-			tok := int(hexExca[i])
+			tok := hexExca[i]
 			if tok < TOKSTART || hexExca[i+1] == 0 {
 				continue
 			}
@@ -277,30 +277,30 @@ func hexlex1(lex hexLexer, lval *hexSymType) (char, token int) {
 	token = 0
 	char = lex.Lex(lval)
 	if char <= 0 {
-		token = int(hexTok1[0])
+		token = hexTok1[0]
 		goto out
 	}
 	if char < len(hexTok1) {
-		token = int(hexTok1[char])
+		token = hexTok1[char]
 		goto out
 	}
 	if char >= hexPrivate {
 		if char < hexPrivate+len(hexTok2) {
-			token = int(hexTok2[char-hexPrivate])
+			token = hexTok2[char-hexPrivate]
 			goto out
 		}
 	}
 	for i := 0; i < len(hexTok3); i += 2 {
-		token = int(hexTok3[i+0])
+		token = hexTok3[i+0]
 		if token == char {
-			token = int(hexTok3[i+1])
+			token = hexTok3[i+1]
 			goto out
 		}
 	}
 
 out:
 	if token == 0 {
-		token = int(hexTok2[1]) /* unknown char */
+		token = hexTok2[1] /* unknown char */
 	}
 	if hexDebug >= 3 {
 		__yyfmt__.Printf("lex %s(%d)\n", hexTokname(token), uint(char))
@@ -355,7 +355,7 @@ hexstack:
 	hexS[hexp].yys = hexstate
 
 hexnewstate:
-	hexn = int(hexPact[hexstate])
+	hexn = hexPact[hexstate]
 	if hexn <= hexFlag {
 		goto hexdefault /* simple state */
 	}
@@ -366,8 +366,8 @@ hexnewstate:
 	if hexn < 0 || hexn >= hexLast {
 		goto hexdefault
 	}
-	hexn = int(hexAct[hexn])
-	if int(hexChk[hexn]) == hextoken { /* valid shift */
+	hexn = hexAct[hexn]
+	if hexChk[hexn] == hextoken { /* valid shift */
 		hexrcvr.char = -1
 		hextoken = -1
 		hexVAL = hexrcvr.lval
@@ -380,7 +380,7 @@ hexnewstate:
 
 hexdefault:
 	/* default state action */
-	hexn = int(hexDef[hexstate])
+	hexn = hexDef[hexstate]
 	if hexn == -2 {
 		if hexrcvr.char < 0 {
 			hexrcvr.char, hextoken = hexlex1(hexlex, &hexrcvr.lval)
@@ -389,18 +389,18 @@ hexdefault:
 		/* look through exception table */
 		xi := 0
 		for {
-			if hexExca[xi+0] == -1 && int(hexExca[xi+1]) == hexstate {
+			if hexExca[xi+0] == -1 && hexExca[xi+1] == hexstate {
 				break
 			}
 			xi += 2
 		}
 		for xi += 2; ; xi += 2 {
-			hexn = int(hexExca[xi+0])
+			hexn = hexExca[xi+0]
 			if hexn < 0 || hexn == hextoken {
 				break
 			}
 		}
-		hexn = int(hexExca[xi+1])
+		hexn = hexExca[xi+1]
 		if hexn < 0 {
 			goto ret0
 		}
@@ -422,10 +422,10 @@ hexdefault:
 
 			/* find a state where "error" is a legal shift action */
 			for hexp >= 0 {
-				hexn = int(hexPact[hexS[hexp].yys]) + hexErrCode
+				hexn = hexPact[hexS[hexp].yys] + hexErrCode
 				if hexn >= 0 && hexn < hexLast {
-					hexstate = int(hexAct[hexn]) /* simulate a shift of "error" */
-					if int(hexChk[hexstate]) == hexErrCode {
+					hexstate = hexAct[hexn] /* simulate a shift of "error" */
+					if hexChk[hexstate] == hexErrCode {
 						goto hexstack
 					}
 				}
@@ -461,7 +461,7 @@ hexdefault:
 	hexpt := hexp
 	_ = hexpt // guard against "declared and not used"
 
-	hexp -= int(hexR2[hexn])
+	hexp -= hexR2[hexn]
 	// hexp is now the index of $0. Perform the default action. Iff the
 	// reduced production is ε, $1 is possibly out of range.
 	if hexp+1 >= len(hexS) {
@@ -472,16 +472,16 @@ hexdefault:
 	hexVAL = hexS[hexp+1]
 
 	/* consult goto table to find next state */
-	hexn = int(hexR1[hexn])
-	hexg := int(hexPgo[hexn])
+	hexn = hexR1[hexn]
+	hexg := hexPgo[hexn]
 	hexj := hexg + hexS[hexp].yys + 1
 
 	if hexj >= hexLast {
-		hexstate = int(hexAct[hexg])
+		hexstate = hexAct[hexg]
 	} else {
-		hexstate = int(hexAct[hexj])
-		if int(hexChk[hexstate]) != -hexn {
-			hexstate = int(hexAct[hexg])
+		hexstate = hexAct[hexj]
+		if hexChk[hexstate] != -hexn {
+			hexstate = hexAct[hexg]
 		}
 	}
 	// dummy call; replaced with literal code
