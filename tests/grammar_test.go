@@ -839,6 +839,7 @@ func TestNegativeUpperRange(t *testing.T) {
 		assert.Equal(t, "line 6: upper bound can not be negative", err.Error())
 	}
 }
+
 func TestInvalidRange(t *testing.T) {
 	_, err := gyp.ParseString(`
     rule INVALID_RANGE {
@@ -850,6 +851,17 @@ func TestInvalidRange(t *testing.T) {
 	if assert.Error(t, err) {
 		assert.Equal(t, "line 6: lower bound must be less than upper bound", err.Error())
 	}
+}
+
+func TestEqualBoundsRange(t *testing.T) {
+	_, err := gyp.ParseString(`
+    rule EQUAL_BOUNDS_RANGE {
+	  strings:
+	    $a = "AXSERS"
+      condition:
+        $a in (1..1)
+    }`)
+	assert.NoError(t, err)
 }
 
 // { ~?? } is an error
